@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
@@ -93,23 +94,34 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('登录')),
       body: Center(
-        child: ElevatedButton.icon(
-          icon: Icon(Icons.login),
-          onPressed: () async {
-            // 点击按钮后，启动URL
-            final url = githubAuthUrl;
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            } else {
-              // 若无法启动，提示
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('无法打开链接，请检查网络或浏览器设置！')),
-              );
-            }
-          },
-          label: const Text('Login with GitHub'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const FaIcon(FontAwesomeIcons.github, size: 32),
+            SizedBox(height: 10),
+            const Text(
+              '登录到 GitHub ',
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            const SizedBox(height: 5),
+            ElevatedButton.icon(
+              icon: Icon(Icons.login),
+              onPressed: () async {
+                // 点击按钮后，启动URL
+                final url = githubAuthUrl;
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  // 若无法启动，提示
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('无法打开链接，请检查网络或浏览器设置！')),
+                  );
+                }
+              },
+              label: const Text('Login with GitHub'),
+            ),
+          ],
         ),
       ),
     );

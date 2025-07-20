@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
-import 'models/my_user_model.dart';
+import 'models/my_user_model.dart'; // 用户模型
 import 'models/repo.dart'; // 仓库模型
 
 class Profile {

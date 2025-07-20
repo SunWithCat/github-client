@@ -44,5 +44,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# 忽略包含敏感密钥文件
-lib/config.darta
+lib/config.dart

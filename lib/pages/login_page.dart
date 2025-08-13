@@ -17,6 +17,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool _isLoading = false;
   StreamSubscription? _sub; // 用于取消监听
   @override
   void initState() {
@@ -49,7 +50,11 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleAuthCallback(Uri uri) async {
     final code = uri.queryParameters['code']; // 从回调URL中提取code
     if (code != null) {
+      setState(() {
+        _isLoading = true;
+      });
       try {
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('登陆中，请稍后...')));
@@ -67,17 +72,26 @@ class _LoginPageState extends State<LoginPage> {
             headers: {'Accept': 'application/json'},
           ), // 返回的数据打包成JSON格式
         );
+        if (!mounted) return;
         if (response.statusCode == 200) {
           final accessToken = response.data['access_token'];
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('github_access_token', accessToken);
           Provider.of<ProfileChange>(context, listen: false).login(accessToken);
+          Navigator.of(context).pushReplacementNamed('/');
         }
       } catch (e) {
         print('换取 token 失败： $e');
+        if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('登录失败，请重试')));
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -105,22 +119,25 @@ class _LoginPageState extends State<LoginPage> {
               style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 5),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.login),
-              onPressed: () async {
-                // 点击按钮后，启动URL
-                final url = githubAuthUrl;
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                } else {
-                  // 若无法启动，提示
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('无法打开链接，请检查网络或浏览器设置！')),
-                  );
-                }
-              },
-              label: const Text('Login with GitHub'),
-            ),
+            if (_isLoading)
+              const CircularProgressIndicator()
+            else
+              ElevatedButton.icon(
+                icon: const Icon(Icons.login),
+                onPressed: () async {
+                  // 点击按钮后，启动URL
+                  final url = githubAuthUrl;
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    // 若无法启动，提示
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('无法打开链接，请检查网络或浏览器设置！')),
+                    );
+                  }
+                },
+                label: const Text('Login with GitHub'),
+              ),
           ],
         ),
       ),

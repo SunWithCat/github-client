@@ -4,6 +4,7 @@ import 'package:ghclient/theme/theme_provider.dart';
 import '../profile_change.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../common/widgets/repo_item.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -183,28 +184,7 @@ class HomePage extends StatelessWidget {
                               itemCount: repos.length,
                               itemBuilder: (context, index) {
                                 final repo = repos[index];
-                                return Card(
-                                  elevation: 1.2,
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  child: ListTile(
-                                    title: Text(repo.name),
-                                    subtitle:
-                                        repo.description != null
-                                            ? Text(repo.description!)
-                                            : null,
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.star_border, size: 16),
-                                        const SizedBox(width: 4),
-                                        Text(repo.starCount.toString()),
-                                      ],
-                                    ),
-                                  ),
-                                );
+                                return RepoItem(repo: repo);
                               },
                             ),
                           ),

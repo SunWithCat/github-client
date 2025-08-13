@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Uri get githubAuthUrl {
-    // 构建并返回一个用于发起Github的OAuth登录授权的完整Uri对象
+    // 构建并返回一个用于发起Github的OAuth登录授权的完整Uri对象(URL)
     return Uri.https('github.com', '/login/oauth/authorize', {
       'client_id': AppConfig.githubClientId,
       'scope': 'user repo',
@@ -99,14 +99,14 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const FaIcon(FontAwesomeIcons.github, size: 32),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             const Text(
               '登录到 GitHub ',
               style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 5),
             ElevatedButton.icon(
-              icon: Icon(Icons.login),
+              icon: const Icon(Icons.login),
               onPressed: () async {
                 // 点击按钮后，启动URL
                 final url = githubAuthUrl;

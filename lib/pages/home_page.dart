@@ -14,6 +14,7 @@ class HomePage extends StatelessWidget {
     final user = notifier.profile.user;
     final repos = notifier.profile.repos;
     final brightness = Theme.of(context).brightness;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarIconBrightness:
@@ -25,9 +26,9 @@ class HomePage extends StatelessWidget {
           child: Center(
             child:
                 user == null
-                    ? Text('未能找到用户信息')
+                    ? const Text('未能找到用户信息')
                     : Padding(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 32,
                       ),
@@ -129,7 +130,7 @@ class HomePage extends StatelessWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              FaIcon(FontAwesomeIcons.github, size: 20),
+                              const FaIcon(FontAwesomeIcons.github, size: 20),
                               const SizedBox(width: 8),
                               Text('${user.publicRepos}个公开的仓库'),
                             ],
@@ -139,7 +140,7 @@ class HomePage extends StatelessWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.people_outline,
                                 size: 20,
                                 color: Colors.grey,
@@ -157,7 +158,7 @@ class HomePage extends StatelessWidget {
                           if (user.location != null)
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.location_on_outlined,
                                   size: 20,
                                   color: Colors.grey,
@@ -168,10 +169,13 @@ class HomePage extends StatelessWidget {
                             ),
                           // 仓库列表
                           Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Text(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: const Text(
                               'Repositories',
-                              style: TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           Expanded(
@@ -194,8 +198,8 @@ class HomePage extends StatelessWidget {
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.star_border, size: 16),
-                                        SizedBox(width: 4),
+                                        const Icon(Icons.star_border, size: 16),
+                                        const SizedBox(width: 4),
                                         Text(repo.starCount.toString()),
                                       ],
                                     ),

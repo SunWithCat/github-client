@@ -14,7 +14,7 @@ ThemeData lightMode = ThemeData(
     secondary: accentColor,
     surface: lightGreyColor, // 用于 Card
   ),
-  cardTheme: CardTheme(
+  cardTheme: CardThemeData(
     elevation: 1.0,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
@@ -32,7 +32,7 @@ ThemeData darkMode = ThemeData(
     primary: Colors.grey.shade500,
     secondary: Colors.grey.shade400,
   ),
-  cardTheme: CardTheme(
+  cardTheme: CardThemeData(
     elevation: 1.0,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),

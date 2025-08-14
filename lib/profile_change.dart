@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ghclient/services/storage_service.dart';
 import 'package:dio/dio.dart';
 import 'models/my_user_model.dart'; // 用户模型
 import 'models/repo.dart'; // 仓库模型
@@ -51,15 +51,19 @@ class ProfileChange extends ChangeNotifier {
   // 退出登录
   void logout() async {
     _profile = Profile(); // 重置 Profile 对象
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('github_access_token');
+    // final prefs = await SharedPreferences.getInstance();
+    // await prefs.remove('github_access_token');
+    final storage = StorageService();
+    storage.clearToken();
     notifyListeners();
   }
 
   // 初始化
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? accessToken = prefs.getString('github_access_token');
+    // final prefs = await SharedPreferences.getInstance();
+    // final String? accessToken = prefs.getString('github_access_token');
+    final storage = StorageService();
+    final String? accessToken = storage.getToken();
     if (accessToken != null) {
       await login(accessToken);
     } else {

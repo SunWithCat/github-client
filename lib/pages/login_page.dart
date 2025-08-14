@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ghclient/profile_change.dart';
+import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
 import 'dart:async'; // 引入异步库
 import 'package:uni_links/uni_links.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -75,8 +76,10 @@ class _LoginPageState extends State<LoginPage> {
         if (!mounted) return;
         if (response.statusCode == 200) {
           final accessToken = response.data['access_token'];
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('github_access_token', accessToken);
+          // final prefs = await SharedPreferences.getInstance();
+          // await prefs.setString('github_access_token', accessToken);
+          final storage = StorageService();
+          storage.saveToken(accessToken);
           Provider.of<ProfileChange>(context, listen: false).login(accessToken);
           Navigator.of(context).pushReplacementNamed('/');
         }

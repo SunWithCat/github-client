@@ -5,10 +5,16 @@ import 'package:provider/provider.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
 import './theme/theme_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
   // 确保Flutter应用在运行前已经初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+
+  await Hive.openBox('authBox');
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

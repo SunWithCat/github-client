@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import './profile_change.dart';
@@ -6,6 +8,7 @@ import 'pages/login_page.dart';
 import 'pages/home_page.dart';
 import './theme/theme_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() async {
   // 确保Flutter应用在运行前已经初始化
@@ -13,7 +16,26 @@ void main() async {
 
   await Hive.initFlutter();
 
-  await Hive.openBox('authBox');
+  const secureStorage = FlutterSecureStorage();
+  
+  final String? encryptionKeyString = await secureStorage.read(key: 'hive_encryption_key');
+
+  if (encryptionKeyString == null) {
+    final key = Hive.generateSecureKey();
+    await secureStorage.write(
+      key: 'hive_encryption_key',
+      value: base64UrlEncode(key),
+    );
+  }
+
+  final keyString = await secureStorage.read(key: 'hive_encryption_key');
+  final Uint8List encryptionKey = base64Url.decode(keyString!);
+
+  await Hive.openBox(
+    'authBox',
+    encryptionCipher: HiveAesCipher(encryptionKey), // 使用 encryptionCipher 参数
+  );
+
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(

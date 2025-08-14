@@ -20,5 +20,6 @@ class StorageService {
   // 清除 token
   Future<void> clearToken() async {
     await _box.delete(_tokenKey);
+    _box.close();
   }
 }

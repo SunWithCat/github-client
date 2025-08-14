@@ -9,7 +9,6 @@ import 'package:uni_links/uni_links.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 

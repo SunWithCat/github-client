@@ -12,6 +12,7 @@ Repo _$RepoFromJson(Map<String, dynamic> json) => Repo(
   language: json['language'] as String?,
   starCount: (json['stargazers_count'] as num).toInt(),
   forkCount: (json['forks_count'] as num).toInt(),
+  ownerData: json['owner'] as Map<String, dynamic>,
 );
 
 Map<String, dynamic> _$RepoToJson(Repo instance) => <String, dynamic>{
@@ -20,4 +21,5 @@ Map<String, dynamic> _$RepoToJson(Repo instance) => <String, dynamic>{
   'language': instance.language,
   'stargazers_count': instance.starCount,
   'forks_count': instance.forkCount,
+  'owner': instance.ownerData,
 };

@@ -1,30 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/pages/repo_page.dart';
+import 'package:ghclient/profile_change.dart';
+import 'package:provider/provider.dart';
 
 class RepoItem extends StatelessWidget {
   final Repo repo;
   const RepoItem({super.key, required this.repo});
 
-  Color getLanguageColor(String? laungage) {
-    if (laungage == null) return Colors.grey;
-    switch (laungage.toLowerCase()) {
+  Color getLanguageColor(String? language) {
+    if (language == null) return Colors.grey;
+    switch (language.toLowerCase()) {
       case 'dart':
-        return Colors.green.shade400;
+        return const Color(0xFF00B4AB); // Dart
       case 'java':
-        return Colors.brown;
+        return const Color(0xFFB07219); // Java
       case 'javascript':
-        return Colors.yellow.shade700;
+        return const Color(0xFFF1E05A); // JavaScript
+      case 'typescript':
+        return const Color(0xFF3178c6); // TypeScript
       case 'html':
-        return Colors.deepOrange;
+        return const Color(0xFFe34c26); // HTML
       case 'css':
-        return Colors.purpleAccent;
+        return const Color(0xFF563d7c); // CSS
       case 'vue':
-        return Colors.green;
+        return const Color(0xFF41b883); // Vue
       case 'c++':
-        return Colors.redAccent;
+        return const Color(0xFFf34b7d); // C++
+      case 'c':
+        return const Color(0xFF555555); // C
+      case 'c#':
+        return const Color(0xFF178600); // C#
+      case 'python':
+        return const Color(0xFF3572A5); // Python
+      case 'php':
+        return const Color(0xFF4F5D95); // PHP
+      case 'ruby':
+        return const Color(0xFF701516); // Ruby
+      case 'go':
+        return const Color(0xFF00ADD8); // Go
+      case 'rust':
+        return const Color(0xFFdea584); // Rust
+      case 'swift':
+        return const Color(0xFFF05138); // Swift
       case 'kotlin':
-        return Colors.deepPurpleAccent;
+        return const Color(0xFFA97BFF); // Kotlin
+      case 'scala':
+        return const Color(0xFFc22d40); // Scala
+      case 'shell':
+        return const Color(0xFF89E051); // Shell
+      case 'dockerfile':
+        return const Color(0xFF384D54); // Dockerfile
       default:
         return Colors.grey.shade600;
     }
@@ -36,7 +63,19 @@ class RepoItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         onTap: () {
-          print('Tapped on...');
+          final profileChange = Provider.of<ProfileChange>(
+            context,
+            listen: false,
+          );
+          final token = profileChange.profile.token;
+          if (token != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RepoPage(repo: repo, token: token),
+              ),
+            );
+          }
         },
         borderRadius: BorderRadius.circular(8),
         child: Padding(

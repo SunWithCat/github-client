@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ghclient/services/storage_service.dart';
 import './profile_change.dart';
 import 'package:provider/provider.dart';
 import 'pages/login_page.dart';
@@ -36,6 +37,8 @@ void main() async {
     encryptionCipher: HiveAesCipher(encryptionKey), // 使用 encryptionCipher 参数
   );
 
+  final storageService = StorageService();
+  await storageService.init();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(

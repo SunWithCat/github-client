@@ -63,7 +63,7 @@ class ProfileChange extends ChangeNotifier {
     // final prefs = await SharedPreferences.getInstance();
     // final String? accessToken = prefs.getString('github_access_token');
     final storage = StorageService();
-    final String? accessToken = storage.getToken();
+    final String? accessToken = await storage.getToken();
     if (accessToken != null) {
       await login(accessToken);
     } else {

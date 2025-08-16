@@ -19,6 +19,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   StreamSubscription? _sub; // 用于取消监听
+  
   @override
   void initState() {
     super.initState();
@@ -78,7 +79,8 @@ class _LoginPageState extends State<LoginPage> {
           // final prefs = await SharedPreferences.getInstance();
           // await prefs.setString('github_access_token', accessToken);
           final storage = StorageService();
-          storage.saveToken(accessToken);
+          await storage.init();
+          await storage.saveToken(accessToken);
           Provider.of<ProfileChange>(context, listen: false).login(accessToken);
           Navigator.of(context).pushReplacementNamed('/');
         }

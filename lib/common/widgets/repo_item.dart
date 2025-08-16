@@ -23,6 +23,8 @@ class RepoItem extends StatelessWidget {
         return Colors.green;
       case 'c++':
         return Colors.redAccent;
+      case 'kotlin':
+        return Colors.deepPurpleAccent;
       default:
         return Colors.grey.shade600;
     }

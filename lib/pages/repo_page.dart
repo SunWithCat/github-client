@@ -252,7 +252,6 @@ class _RepoPageState extends State<RepoPage>
     }
     return ListView.builder(
       itemCount: commits.length,
-
       itemBuilder: (context, index) {
         final commit = commits[index];
         final commitInfo = commit['commit'];
@@ -270,6 +269,9 @@ class _RepoPageState extends State<RepoPage>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          subtitle: Text(
+            '${committer['login'] ?? author['name']} 提交于 ${_formatDate(author['date'])}',
+          ),
           onTap: () async {
             final url = Uri.parse(commit['html_url']);
             if (await canLaunchUrl(url)) {
@@ -280,6 +282,11 @@ class _RepoPageState extends State<RepoPage>
       },
     );
   }
+}
+
+String _formatDate(String dateString) {
+  final date = DateTime.parse(dateString);
+  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
 }
 
 Widget _buildStatItem(IconData icon, String value, String label) {

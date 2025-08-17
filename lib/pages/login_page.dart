@@ -81,6 +81,7 @@ class _LoginPageState extends State<LoginPage> {
           final storage = StorageService();
           await storage.init();
           await storage.saveToken(accessToken);
+          if (!mounted) return;
           Provider.of<ProfileChange>(context, listen: false).login(accessToken);
           Navigator.of(context).pushReplacementNamed('/');
         }
@@ -129,14 +130,15 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 onPressed: () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   // 点击按钮后，启动URL
                   final url = githubAuthUrl;
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                  } else {
-                    // 若无法启动，提示
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('无法打开链接，请检查网络或浏览器设置！')),
+                  if (!await launchUrl(url,
+                      mode: LaunchMode.externalApplication)) {
+                    if (!mounted) return;
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                          content: Text('无法打开链接，请检查网络或浏览器设置！')),
                     );
                   }
                 },

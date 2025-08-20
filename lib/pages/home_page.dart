@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ghclient/pages/search_page.dart';
 import 'package:ghclient/theme/theme_provider.dart';
 import '../profile_change.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../common/widgets/repo_item.dart';
+// import '../common/widgets/repo_item.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,7 +14,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifier = context.watch<ProfileChange>();
     final user = notifier.profile.user;
-    final repos = notifier.profile.repos;
+    // final repos = notifier.profile.repos;
     final brightness = Theme.of(context).brightness;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -134,6 +135,19 @@ class HomePage extends StatelessWidget {
                               const FaIcon(FontAwesomeIcons.github, size: 20),
                               const SizedBox(width: 8),
                               Text('${user.publicRepos}个公开的仓库'),
+                              const Spacer(), // 添加Spacer以将按钮推到右侧
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SearchPage(),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(Icons.folder_open), // 使用文件夹图标
+                                label: Text('查看所有仓库'), // 添加文本指示
+                              ),
                             ],
                           ),
                           if (user.bio != null)
@@ -168,26 +182,6 @@ class HomePage extends StatelessWidget {
                                 Text(user.location!),
                               ],
                             ),
-                          // 仓库列表
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: const Text(
-                              'Repositories',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: repos.length,
-                              itemBuilder: (context, index) {
-                                final repo = repos[index];
-                                return RepoItem(repo: repo);
-                              },
-                            ),
-                          ),
                         ],
                       ),
                     ),

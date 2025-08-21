@@ -50,7 +50,7 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         title: TextField(
           controller: _searchController,
-          autofocus: true,
+          autofocus: false,
           onChanged: _filterRepos,
           decoration: InputDecoration(
             hintText: '搜索你的仓库...',

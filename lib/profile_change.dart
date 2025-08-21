@@ -8,6 +8,7 @@ class Profile {
   String? token;
   User? user;
   List<Repo> repos = [];
+  String? profileReadme; // README
   Profile({this.token, this.user});
 }
 
@@ -37,6 +38,22 @@ class ProfileChange extends ChangeNotifier {
               (reposResponse.data as List)
                   .map((e) => Repo.fromJson(e))
                   .toList();
+        }
+        // 获取个人主页
+        try {
+          final readmeResponse = await dio.get(
+            'https://api.github.com/repos/${_profile.user!.login}/${_profile.user!.login}/readme',
+            options: Options(
+              headers: {'Accept': 'application/vnd.github.raw+json'},
+              responseType: ResponseType.plain // 纯文本不解析
+            ),
+          );
+          if (readmeResponse.statusCode == 200) {
+            _profile.profileReadme = readmeResponse.data;
+          }
+        } catch (e) {
+          print('获取失败：$e');
+          _profile.profileReadme = null;
         }
       }
     } catch (e) {

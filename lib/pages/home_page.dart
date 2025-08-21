@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/pages/search_page.dart';
 import 'package:ghclient/theme/theme_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../profile_change.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,6 +18,7 @@ class HomePage extends StatelessWidget {
     final user = notifier.profile.user;
     // final repos = notifier.profile.repos;
     final brightness = Theme.of(context).brightness;
+    final profileReadme = notifier.profile.profileReadme;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -181,6 +184,31 @@ class HomePage extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(user.location!),
                               ],
+                            ),
+                          const Divider(height: 32),
+                          // README
+                          if (profileReadme != null)
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0), // 设置圆角
+                              ),
+                              color: Theme.of(context).colorScheme.surfaceContainer, // 使用主题中定义的卡片背景色
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 8,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: MarkdownBody(
+                                  data: profileReadme,
+                                  onTapLink: (text, href, title) {
+                                    // 打开链接
+                                    if (href != null) {
+                                      launchUrl(Uri.parse(href));
+                                    }
+                                  },
+                                ),
+                              ),
                             ),
                         ],
                       ),

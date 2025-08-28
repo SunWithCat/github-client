@@ -16,6 +16,8 @@ class User {
   int publicRepos; // 公开仓库
   String? location; // 所在地
   String? blog; // 博客链接
+  @JsonKey(name: 'created_at')
+  String? createdAt; // 初次加入GitHub的日期
 
   User({
     required this.login,
@@ -27,6 +29,7 @@ class User {
     required this.publicRepos,
     this.blog,
     this.location,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

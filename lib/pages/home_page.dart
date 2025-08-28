@@ -12,6 +12,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  // 格式化日期显示
+  String formatJoinDate(String? createdAt) {
+    if (createdAt == null) return '';
+
+    try {
+      final date = DateTime.parse(createdAt).toLocal();
+      return '${date.year}年${date.month}月${date.day}日加入';
+    } catch (e) {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final notifier = context.watch<ProfileChange>();
@@ -66,6 +78,25 @@ class HomePage extends StatelessWidget {
                                           .bodyLarge
                                           ?.copyWith(color: Colors.grey),
                                     ),
+                                    // 显示加入GitHub的日期
+                                    if (user.createdAt != null)
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_today,
+                                            size: 14,
+                                            color: Colors.grey,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            formatJoinDate(user.createdAt),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
                                   ],
                                 ),
                               ),
@@ -190,9 +221,14 @@ class HomePage extends StatelessWidget {
                           if (profileReadme != null)
                             Card(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0), // 设置圆角
+                                borderRadius: BorderRadius.circular(
+                                  12.0,
+                                ), // 设置圆角
                               ),
-                              color: Theme.of(context).colorScheme.surfaceContainer, // 使用主题中定义的卡片背景色
+                              color:
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainer, // 使用主题中定义的卡片背景色
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 4,
                                 vertical: 8,

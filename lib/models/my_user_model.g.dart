@@ -16,6 +16,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   publicRepos: (json['public_repos'] as num).toInt(),
   blog: json['blog'] as String?,
   location: json['location'] as String?,
+  createdAt: json['created_at'] as String?,
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -28,4 +29,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'public_repos': instance.publicRepos,
   'location': instance.location,
   'blog': instance.blog,
+  'created_at': instance.createdAt,
 };

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/pages/search_page.dart';
+import 'package:ghclient/pages/starred_repos_page.dart';
 import 'package:ghclient/theme/theme_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../profile_change.dart';
@@ -180,7 +181,19 @@ class HomePage extends StatelessWidget {
                                   );
                                 },
                                 icon: Icon(Icons.folder_open), // 使用文件夹图标
-                                label: Text('查看所有仓库'), // 添加文本指示
+                                label: Text('仓库'), // 添加文本指示
+                              ),
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => StarredReposPage(),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(Icons.star,color: Colors.amber,),
+                                label: Text('星标'),
                               ),
                             ],
                           ),

@@ -13,7 +13,7 @@ ThemeData lightMode = ThemeData(
     primary: primaryColor,
     secondary: accentColor,
     surface: lightGreyColor, // 用于 Card
-    surfaceContainer: Colors.grey.shade200, // 新增的卡片背景色
+    surfaceContainer: Colors.grey[100], // 新增的卡片背景色
   ),
   cardTheme: CardThemeData(
     elevation: 1.0,

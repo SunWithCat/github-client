@@ -8,6 +8,7 @@ class Profile {
   String? token;
   User? user;
   List<Repo> repos = [];
+  List<Repo> starredRepos = [];
   String? profileReadme; // README
   Profile({this.token, this.user});
 }
@@ -39,13 +40,27 @@ class ProfileChange extends ChangeNotifier {
                   .map((e) => Repo.fromJson(e))
                   .toList();
         }
+        // 获取星标仓库
+        try {
+          final starredRepoResponse = await dio.get(
+            'https://api.github.com/user/starred',
+          );
+          if (starredRepoResponse.statusCode == 200) {
+            _profile.starredRepos =
+                (starredRepoResponse.data as List)
+                    .map((e) => Repo.fromJson(e))
+                    .toList();
+          }
+        } catch (e) {
+          print('获取星标仓库失败:$e');
+        }
         // 获取个人主页
         try {
           final readmeResponse = await dio.get(
             'https://api.github.com/repos/${_profile.user!.login}/${_profile.user!.login}/readme',
             options: Options(
               headers: {'Accept': 'application/vnd.github.raw+json'},
-              responseType: ResponseType.plain // 纯文本不解析
+              responseType: ResponseType.plain, // 纯文本不解析
             ),
           );
           if (readmeResponse.statusCode == 200) {

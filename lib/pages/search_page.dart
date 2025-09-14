@@ -63,7 +63,7 @@ class _SearchPageState extends State<SearchPage> {
               _searchController.clear();
               _filterRepos('');
             },
-            icon: Icon(Icons.clear),
+            icon: const Icon(Icons.clear),
           ),
         ],
       ),

@@ -76,8 +76,6 @@ class _LoginPageState extends State<LoginPage> {
         if (!mounted) return;
         if (response.statusCode == 200) {
           final accessToken = response.data['access_token'];
-          // final prefs = await SharedPreferences.getInstance();
-          // await prefs.setString('github_access_token', accessToken);
           final storage = StorageService();
           await storage.init();
           await storage.saveToken(accessToken);

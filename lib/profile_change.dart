@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ghclient/services/github_service.dart';
 import 'package:ghclient/services/storage_service.dart';
-import 'package:dio/dio.dart';
 import 'models/my_user_model.dart'; // 用户模型
 import 'models/repo.dart'; // 仓库模型
 
@@ -20,59 +20,30 @@ class ProfileChange extends ChangeNotifier {
   bool get isLoggedIn => _profile.token != null;
   bool get isLoading => _isLoading;
 
+  final GithubService _githubService = GithubService();
+  final StorageService _storageService = StorageService();
+
   // 登录方法
   Future<void> login(String token) async {
     _profile.token = token;
+    _isLoading = true;
+    notifyListeners();
     try {
-      final dio = Dio();
-      // 配置请求头，带上token
-      dio.options.headers['Authorization'] = 'Bearer $token';
-      final response = await dio.get('https://api.github.com/user');
-      if (response.statusCode == 200) {
-        _profile.user = User.fromJson(response.data);
-        // 获取仓库列表
-        final reposResponse = await dio.get(
-          'https://api.github.com/users/${_profile.user!.login}/repos',
-        );
-        if (reposResponse.statusCode == 200) {
-          _profile.repos =
-              (reposResponse.data as List)
-                  .map((e) => Repo.fromJson(e))
-                  .toList();
-        }
-        // 获取星标仓库
-        try {
-          final starredRepoResponse = await dio.get(
-            'https://api.github.com/user/starred',
-          );
-          if (starredRepoResponse.statusCode == 200) {
-            _profile.starredRepos =
-                (starredRepoResponse.data as List)
-                    .map((e) => Repo.fromJson(e))
-                    .toList();
-          }
-        } catch (e) {
-          print('获取星标仓库失败:$e');
-        }
-        // 获取个人主页
-        try {
-          final readmeResponse = await dio.get(
-            'https://api.github.com/repos/${_profile.user!.login}/${_profile.user!.login}/readme',
-            options: Options(
-              headers: {'Accept': 'application/vnd.github.raw+json'},
-              responseType: ResponseType.plain, // 纯文本不解析
-            ),
-          );
-          if (readmeResponse.statusCode == 200) {
-            _profile.profileReadme = readmeResponse.data;
-          }
-        } catch (e) {
-          print('获取失败：$e');
-          _profile.profileReadme = null;
-        }
-      }
+      // 获取用户信息
+      final user = await _githubService.getUser(token);
+      _profile.user = user;
+      // 并行获取仓库、星标仓库、README
+      final results = await Future.wait([
+        _githubService.getRepos(token),
+        _githubService.getStarredRepos(token),
+        _githubService.getProfileReadme(user.login, token),
+      ]);
+      // 赋值
+      _profile.repos = results[0] as List<Repo>;
+      _profile.starredRepos = results[1] as List<Repo>;
+      _profile.profileReadme = results[2] as String?;
     } catch (e) {
-      print('获取用户信息失败：$e');
+      print('登录或获取用户信息失败：$e');
       logout();
     } finally {
       _isLoading = false;
@@ -83,19 +54,13 @@ class ProfileChange extends ChangeNotifier {
   // 退出登录
   void logout() async {
     _profile = Profile(); // 重置 Profile 对象
-    // final prefs = await SharedPreferences.getInstance();
-    // await prefs.remove('github_access_token');
-    final storage = StorageService();
-    storage.clearToken();
+    await _storageService.clearToken();
     notifyListeners();
   }
 
   // 初始化
   Future<void> init() async {
-    // final prefs = await SharedPreferences.getInstance();
-    // final String? accessToken = prefs.getString('github_access_token');
-    final storage = StorageService();
-    final String? accessToken = await storage.getToken();
+    final String? accessToken = await _storageService.getToken();
     if (accessToken != null) {
       await login(accessToken);
     } else {

@@ -169,7 +169,6 @@ class _RepoPageState extends State<RepoPage>
                         widget.repo.forkCount.toString(),
                         '分支',
                       ),
-
                       const SizedBox(width: 16),
                       if (widget.repo.language != null)
                         _buildStatItem(Icons.code, widget.repo.language!, '语言'),

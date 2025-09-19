@@ -12,11 +12,18 @@ GhClient 是一款使用 Flutter 构建的、功能丰富的第三方 GitHub 客
 
 - **安全登录**: 通过 GitHub OAuth 实现安全可靠的用户认证
 - **仓库管理**: 浏览、搜索和管理您的仓库
-- **主题切换**: 内置浅色和深色两种主题模式，保护您的眼睛
+- **主题切换**: 内置浅色和深色两种主题模式
 
 ## 📱 应用截图
 
-*即将添加应用截图*
+<div align="center" style="display: flex; gap: 20px; flex-wrap: wrap;">
+  <img src="home_page.jpg" alt="主页界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="repos_page.jpg" alt="仓库界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="starred_page.jpg" alt="星标界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="detail_page.jpg" alt="概述界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="issues_page.jpg" alt="议题界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="commits_page.jpg" alt="提交界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+</div>
 
 ## 🚀 技术栈
 

@@ -19,9 +19,15 @@ class GithubService {
   }
 
   // 获取加星标的仓库列表
-  Future<List<Repo>> getStarredRepos(String token) async {
+  Future<List<Repo>> getStarredRepos(String token, {int page = 1}) async {
     _configureDio(token);
-    final response = await _dio.get('https://api.github.com/user/starred');
+    final response = await _dio.get(
+      'https://api.github.com/user/starred',
+      queryParameters: {
+        'page': page,
+        'per-page': 30
+      }
+    );
     return (response.data as List).map((e) => Repo.fromJson(e)).toList();
   }
 

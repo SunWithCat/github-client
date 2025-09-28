@@ -35,7 +35,7 @@ class ProfileChange extends ChangeNotifier {
       // 并行获取仓库、星标仓库、README
       final results = await Future.wait([
         _githubService.getRepos(token),
-        _githubService.getStarredRepos(token),
+        _githubService.getStarredRepos(token, page: 1),
         _githubService.getProfileReadme(user.login, token),
       ]);
       // 赋值

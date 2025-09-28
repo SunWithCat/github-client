@@ -22,6 +22,12 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   // 搜索过滤
   void _filterRepos(String query) {
     final allRepos = context.read<ProfileChange>().profile.repos;
@@ -68,25 +74,21 @@ class _SearchPageState extends State<SearchPage> {
       body:
           _searchController.text.isEmpty
               ? (allRepos.isEmpty
-                  ? Center(
-                      child: Text('你还没有任何仓库'),
-                    )
+                  ? Center(child: Text('你还没有任何仓库'))
                   : ListView.builder(
-                      itemCount: allRepos.length,
-                      itemBuilder: (context, index) {
-                        return RepoItem(repo: allRepos[index]);
-                      },
-                    ))
+                    itemCount: allRepos.length,
+                    itemBuilder: (context, index) {
+                      return RepoItem(repo: allRepos[index]);
+                    },
+                  ))
               : (_filteredRepos.isEmpty
-                  ? Center(
-                      child: Text('没有找到匹配的仓库'),
-                    )
+                  ? Center(child: Text('没有找到匹配的仓库'))
                   : ListView.builder(
-                      itemCount: _filteredRepos.length,
-                      itemBuilder: (context, index) {
-                        return RepoItem(repo: _filteredRepos[index]);
-                      },
-                    )),
+                    itemCount: _filteredRepos.length,
+                    itemBuilder: (context, index) {
+                      return RepoItem(repo: _filteredRepos[index]);
+                    },
+                  )),
     );
   }
 }

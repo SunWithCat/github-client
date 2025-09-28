@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
+import 'package:ghclient/services/github_service.dart';
 import 'package:provider/provider.dart';
 
 class StarredReposPage extends StatefulWidget {
@@ -12,18 +13,78 @@ class StarredReposPage extends StatefulWidget {
 }
 
 class _StarredReposPageState extends State<StarredReposPage> {
-  List<Repo> _filteredRepos = [];
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  List<Repo> _repos = [];
+  List<Repo> _filteredRepos = [];
+  bool _isLoading = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _repos = context.read<ProfileChange>().profile.starredRepos;
+    _filteredRepos = _repos;
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        _loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoading || !_hasMore) return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final token = context.read<ProfileChange>().profile.token;
+      if (token != null) {
+        final newRepos = await GithubService().getStarredRepos(
+          token,
+          page: _currentPage + 1,
+        );
+        if (newRepos.isEmpty) {
+          setState(() {
+            _hasMore = false;
+          });
+        } else {
+          setState(() {
+            _currentPage++;
+            _repos.addAll(newRepos);
+            _filterRepos(_searchController.text);
+          });
+        }
+      }
+    } catch (e) {
+      print('加载更多星标仓库失败：$e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   void _filterRepos(String query) {
-    final starredRepos = context.watch<ProfileChange>().profile.starredRepos;
     if (query.isEmpty) {
       setState(() {
-        _filteredRepos = starredRepos;
+        _filteredRepos = _repos;
       });
     } else {
       final filtered =
-          starredRepos.where((repo) {
+          _repos.where((repo) {
             return repo.name.toLowerCase().contains(query.toLowerCase());
           }).toList();
       setState(() {
@@ -34,7 +95,6 @@ class _StarredReposPageState extends State<StarredReposPage> {
 
   @override
   Widget build(BuildContext context) {
-    final starredRepos = context.watch<ProfileChange>().profile.starredRepos;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -57,24 +117,31 @@ class _StarredReposPageState extends State<StarredReposPage> {
           ),
         ],
       ),
-      body:
-          starredRepos.isEmpty
-              ? const Center(child: Text('你还没有给任何仓库添加星标'))
-              : _searchController.text.isEmpty
-              ? ListView.builder(
-                itemCount: starredRepos.length,
-                itemBuilder: (context, index) {
-                  return RepoItem(repo: starredRepos[index]);
-                },
-              )
-              : (_filteredRepos.isEmpty
-                  ? Center(child: const Text("没有找到匹配的星标仓库"))
-                  : ListView.builder(
-                    itemCount: _filteredRepos.length,
-                    itemBuilder: (context, index) {
-                      return RepoItem(repo: _filteredRepos[index]);
-                    },
-                  )),
+      body: _buildBody()
+    );
+  }
+
+  Widget _buildBody() {
+    if (_repos.isEmpty) {
+      return const Center(child: Text('你还没有给任何仓库添加星标'));
+    }
+    if (_searchController.text.isNotEmpty && _filteredRepos.isEmpty) {
+      return const Center(child: Text('没有找到匹配的星标仓库'));
+    }
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _filteredRepos.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        // 如果是最后一项，并且还有更多数据，则显示加载指示器
+        if (index == _filteredRepos.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        // 否则，显示仓库信息
+        return RepoItem(repo: _filteredRepos[index]);
+      },
     );
   }
 }

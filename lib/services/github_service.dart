@@ -14,9 +14,7 @@ class GithubService {
   // 获取仓库列表
   Future<List<Repo>> getRepos(String token) async {
     _configureDio(token);
-    final response = await _dio.get(
-      'https://api.github.com/user/repos',
-    );
+    final response = await _dio.get('https://api.github.com/user/repos');
     return (response.data as List).map((e) => Repo.fromJson(e)).toList();
   }
 
@@ -43,6 +41,55 @@ class GithubService {
       print('获取个人主页失败:$e');
       return null;
     }
+  }
+
+  // 获取贡献者
+  Future<List<dynamic>> getContributors(
+    String owner,
+    String repoName,
+    String token,
+  ) async {
+    _configureDio(token);
+    final response = await _dio.get(
+      'https://api.github.com/repos/$owner/$repoName/contributors',
+    );
+    return response.data;
+  }
+
+  // 获取README
+  Future<String?> getReadme(String owner, String repoName, String token) async {
+    _configureDio(token);
+    final response = await _dio.get(
+      'https://api.github.com/repos/$owner/$repoName/readme',
+      options: Options(headers: {'Accept': 'application/vnd.github.v3.raw'}),
+    );
+    return response.data.toString();
+  }
+
+  // 获取Issues
+  Future<List<dynamic>> getIssues(
+    String owner,
+    String repoName,
+    String token,
+  ) async {
+    _configureDio(token);
+    final response = await _dio.get(
+      'https://api.github.com/repos/$owner/$repoName/issues?state=all&per_page=10',
+    );
+    return response.data;
+  }
+
+  // 获取最近提交
+  Future<List<dynamic>> getCommits(
+    String owner,
+    String repoName,
+    String token,
+  ) async {
+    _configureDio(token);
+    final response = await _dio.get(
+      'https://api.github.com/repos/$owner/$repoName/commits?per_page=10',
+    );
+    return response.data;
   }
 
   // 配置请求头

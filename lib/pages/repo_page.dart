@@ -1,8 +1,8 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:ghclient/services/github_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RepoPage extends StatefulWidget {
@@ -21,11 +21,12 @@ class _RepoPageState extends State<RepoPage>
   bool isLoading = true;
   List<dynamic> issues = [];
   List<dynamic> commits = [];
+  List<dynamic> contributors = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _fetchRepoDetails();
   }
 
@@ -35,55 +36,39 @@ class _RepoPageState extends State<RepoPage>
     });
 
     try {
-      final dio = Dio();
-      dio.options.headers['Authorization'] = 'Bearer ${widget.token}';
-
-      // 获取README内容
-      try {
-        final readmeResponse = await dio.get(
-          'https://api.github.com/repos/${widget.repo.owner}/${widget.repo.name}/readme',
-          options: Options(
-            headers: {'Accept': 'application/vnd.github.v3.raw'},
-          ),
-        );
-        if (readmeResponse.statusCode == 200) {
-          setState(() {
-            readmeContent = readmeResponse.data.toString();
-          });
-        }
-      } catch (e) {
-        print('获取README失败:$e');
-      }
-
-      // 获取issues
-      try {
-        final issuesResponse = await dio.get(
-          'https://api.github.com/repos/${widget.repo.owner}/${widget.repo.name}/issues?state=all&per_page=10',
-        );
-        if (issuesResponse.statusCode == 200) {
-          setState(() {
-            issues = issuesResponse.data;
-          });
-        }
-      } catch (e) {
-        print('获取issues失败:$e');
-      }
-
-      // 获取最近提交
-      try {
-        final commitsResponse = await dio.get(
-          'https://api.github.com/repos/${widget.repo.owner}/${widget.repo.name}/commits?per_page=10',
-        );
-        if (commitsResponse.statusCode == 200) {
-          setState(() {
-            commits = commitsResponse.data;
-          });
-        }
-      } catch (e) {
-        print('获取最近提交失败:$e');
+      final githubService = GithubService();
+      final responses = await Future.wait([
+        githubService.getReadme(
+          widget.repo.owner,
+          widget.repo.name,
+          widget.token,
+        ),
+        githubService.getIssues(
+          widget.repo.owner,
+          widget.repo.name,
+          widget.token,
+        ),
+        githubService.getCommits(
+          widget.repo.owner,
+          widget.repo.name,
+          widget.token,
+        ),
+        githubService.getContributors(
+          widget.repo.owner,
+          widget.repo.name,
+          widget.token,
+        ),
+      ]);
+      if (mounted) {
+        setState(() {
+          readmeContent = responses[0] as String?;
+          issues = responses[1] as List<dynamic>;
+          commits = responses[2] as List<dynamic>;
+          contributors = responses[3] as List<dynamic>;
+        });
       }
     } catch (e) {
-      print('获取仓库详情失败:$e');
+      print('获取仓库详情失败：$e');
     } finally {
       if (mounted) {
         setState(() {
@@ -116,6 +101,7 @@ class _RepoPageState extends State<RepoPage>
               icon: FaIcon(FontAwesomeIcons.codeBranch, size: 20),
               text: '提交',
             ),
+            Tab(icon: Icon(Icons.people), text: '贡献者'),
           ],
           dividerColor: Colors.transparent,
         ),
@@ -129,6 +115,7 @@ class _RepoPageState extends State<RepoPage>
                   _buildOverviewTab(),
                   _buildIssuesTab(),
                   _buildCommitsTab(),
+                  _buildContributorsTab(),
                 ],
               ),
     );
@@ -273,6 +260,32 @@ class _RepoPageState extends State<RepoPage>
           ),
           onTap: () async {
             final url = Uri.parse(commit['html_url']);
+            if (await canLaunchUrl(url)) {
+              await launchUrl(url);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildContributorsTab() {
+    if (contributors.isEmpty) {
+      return const Center(child: Text('没有贡献者信息'));
+    }
+    return ListView.builder(
+      itemCount: contributors.length,
+      itemBuilder: (context, index) {
+        final contributor = contributors[index];
+        final String? avatarUrl = contributor['avatar_url'];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+          ),
+          title: Text(contributor['login']),
+          subtitle: Text('贡献：${contributor['contributions']}次'),
+          onTap: () async {
+            final url = Uri.parse(contributor['html_url']);
             if (await canLaunchUrl(url)) {
               await launchUrl(url);
             }

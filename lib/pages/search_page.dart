@@ -20,8 +20,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    // final allRepos = context.read<ProfileChange>().profile.repos;
-    // _filteredRepos = allRepos;
   }
 
   // 搜索过滤

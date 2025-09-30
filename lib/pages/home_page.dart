@@ -28,7 +28,6 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifier = context.watch<ProfileChange>();
     final user = notifier.profile.user;
-    // final repos = notifier.profile.repos;
     final brightness = Theme.of(context).brightness;
     final profileReadme = notifier.profile.profileReadme;
 
@@ -109,8 +108,7 @@ class HomePage extends StatelessWidget {
                                     ),
                                   );
                                 },
-                                icon: Icon(Icons.settings),
-                                tooltip: '设置',
+                                icon: const Icon(Icons.settings),
                               ),
                             ],
                           ),

@@ -33,14 +33,13 @@ GhClient 是一款使用 Flutter 构建的、功能丰富的第三方 GitHub 客
 - **本地存储**: [Hive](https://pub.dev/packages/hive) & [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) - 高性能的键值数据库和安全存储
 - **OAuth 流程**: [uni_links](https://pub.dev/packages/uni_links) & [url_launcher](https://pub.dev/packages/url_launcher) - 处理深度链接和外部浏览器启动
 - **Markdown 渲染**: [flutter_markdown](https://pub.dev/packages/flutter_markdown) - 渲染 GitHub 的 Markdown 内容
-- **图标**: [Font Awesome Flutter](https://pub.dev/packages/font_awesome_flutter) - 丰富的图标库
 
 ## 🛠️ 安装与运行
 
 ### 前提条件
 
-- Flutter SDK (3.7.2 或更高版本)
-- Dart SDK (3.0.0 或更高版本)
+- Flutter SDK (3.32.7 或更高版本)
+- Dart SDK (随 Flutter 一起安装)
 - Android Studio / VS Code
 - Android SDK / Xcode (取决于目标平台)
 

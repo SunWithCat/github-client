@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -17,14 +18,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final githubBlue = Color(0xFF0969DA);
-    final avatarUrl =
-        Provider.of<ProfileChange>(
-          context,
-          listen: false,
-        ).profile.user?.avatarUrl;
-    final userLogin =
-        Provider.of<ProfileChange>(context, listen: false).profile.user?.login;
-    final userName = Provider.of<ProfileChange>(context).profile.user?.name;
+    final profileUser = context.read<ProfileChange>().profile.user;
+    final avatarUrl = profileUser?.avatarUrl;
+    final userLogin = profileUser?.login;
+    final userName = profileUser?.name;
 
     const String developer = 'SunWithCat';
     const projectUrl = 'https://github.com/SunWithCat/github-client';
@@ -91,7 +88,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   },
                   icon: const Icon(OctIcons.sign_out_16),
-                  tooltip: '退出',
                 ),
                 title: Text(userLogin!),
                 subtitle: Text(
@@ -146,7 +142,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 leading: const Icon(OctIcons.versions_16),
                 title: const Text('版本'),
                 subtitle: const Text('1.0.0'),
-                onTap: () {},
+                onTap: () {
+                  Fluttertoast.showToast(
+                    msg: "目前已是最新版~",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                  );
+                },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,

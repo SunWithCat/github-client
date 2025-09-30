@@ -246,6 +246,14 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "0.6.23"
+  flutter_octicons:
+    dependency: "direct main"
+    description:
+      name: flutter_octicons
+      sha256: adcfc9c1c34ee023d0dce0eb33358dc2d7f20f15a84be6192da1b3bbba671813
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
+    source: hosted
+    version: "1.58.0"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -304,14 +312,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  font_awesome_flutter:
-    dependency: "direct main"
-    description:
-      name: font_awesome_flutter
-      sha256: d3a89184101baec7f4600d58840a764d2ef760fe1c5a20ef9e6b0e9b24a07a3a
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
-    source: hosted
-    version: "10.8.0"
   frontend_server_client:
     dependency: transitive
     description:

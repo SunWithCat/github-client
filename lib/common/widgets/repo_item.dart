@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_page.dart';
 import 'package:ghclient/profile_change.dart';
@@ -85,8 +85,8 @@ class RepoItem extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  FaIcon(
-                    FontAwesomeIcons.bookBookmark,
+                  Icon(
+                    OctIcons.repo_16,
                     size: 16,
                     color: Colors.grey.shade600,
                   ),
@@ -133,9 +133,9 @@ class RepoItem extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(repo.starCount.toString()),
                   const SizedBox(width: 16),
-                  const FaIcon(
-                    FontAwesomeIcons.codeFork,
-                    size: 12,
+                  const Icon(
+                    OctIcons.repo_forked_16,
+                    size: 16,
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 4),

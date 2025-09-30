@@ -38,10 +38,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   uni_links: ^0.5.1
   json_annotation: ^4.9.0
-  font_awesome_flutter: ^10.8.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   flutter_secure_storage: ^9.2.4
+  flutter_octicons: ^1.58.0
 
 dev_dependencies:
   flutter_test:

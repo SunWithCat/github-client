@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/pages/search_page.dart';
+import 'package:ghclient/pages/settings_page.dart';
 import 'package:ghclient/pages/starred_repos_page.dart';
-import 'package:ghclient/theme/theme_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../profile_change.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// import '../common/widgets/repo_item.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -103,71 +102,22 @@ class HomePage extends StatelessWidget {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  Provider.of<ThemeProvider>(
+                                  Navigator.push(
                                     context,
-                                    listen: false,
-                                  ).toggleTheme();
-                                },
-                                icon:
-                                    brightness == Brightness.dark
-                                        ? Icon(Icons.light_mode)
-                                        : Icon(Icons.dark_mode),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text('退出登录'),
-                                        content: const Text('你确定要退出这个帐号吗？'),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.pop(context),
-                                            child: Text(
-                                              '取消',
-                                              style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary,
-                                              ),
-                                            ),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              Provider.of<ProfileChange>(
-                                                context,
-                                                listen: false,
-                                              ).logout();
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text(
-                                              '确定',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
+                                    MaterialPageRoute(
+                                      builder: (context) => SettingsPage(),
+                                    ),
                                   );
                                 },
-                                icon: Icon(Icons.logout),
+                                icon: Icon(Icons.settings),
+                                tooltip: '设置',
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              const FaIcon(FontAwesomeIcons.github, size: 20),
+                              const Icon(OctIcons.mark_github_16, size: 20),
                               const SizedBox(width: 8),
                               Text('${user.publicRepos}个公开的仓库'),
                               const Spacer(), // 添加Spacer以将按钮推到右侧
@@ -192,7 +142,7 @@ class HomePage extends StatelessWidget {
                                     ),
                                   );
                                 },
-                                icon: Icon(Icons.star,color: Colors.amber,),
+                                icon: Icon(Icons.star, color: Colors.amber),
                                 label: Text('星标'),
                               ),
                             ],

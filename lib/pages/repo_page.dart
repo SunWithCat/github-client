@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_octicons/flutter_octicons.dart';
 
 class RepoPage extends StatefulWidget {
   final Repo repo;
@@ -92,13 +92,13 @@ class _RepoPageState extends State<RepoPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.description), text: '概览'),
+            Tab(icon: Icon(Icons.description,size: 20,), text: '概览'),
             Tab(
-              icon: FaIcon(FontAwesomeIcons.fileCircleExclamation, size: 20),
+              icon: Icon(OctIcons.issue_opened_16,size: 20,),
               text: 'Issues',
             ),
             Tab(
-              icon: FaIcon(FontAwesomeIcons.codeBranch, size: 20),
+              icon: Icon(OctIcons.git_commit_16,size: 20),
               text: '提交',
             ),
             Tab(icon: Icon(Icons.people), text: '贡献者'),
@@ -152,7 +152,7 @@ class _RepoPageState extends State<RepoPage>
                       ),
                       const SizedBox(width: 16),
                       _buildStatItem(
-                        FontAwesomeIcons.codeFork,
+                        OctIcons.repo_forked_16,
                         widget.repo.forkCount.toString(),
                         '分支',
                       ),
@@ -171,7 +171,7 @@ class _RepoPageState extends State<RepoPage>
                         await launchUrl(url);
                       }
                     },
-                    icon: const FaIcon(FontAwesomeIcons.github),
+                    icon: const Icon(OctIcons.mark_github_16),
                     label: const Text('在GitHub上查看'),
                   ),
                 ],

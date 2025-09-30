@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -115,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const FaIcon(FontAwesomeIcons.github, size: 32),
+            const Icon(OctIcons.mark_github_16, size: 32),
             const SizedBox(height: 10),
             const Text(
               '登录到 GitHub ',

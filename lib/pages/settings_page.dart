@@ -212,15 +212,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildSettingsCard(context, {required List<Widget> children}) {
     return Card(
+      clipBehavior: Clip.antiAlias, // 裁切多余的边角
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
         side: BorderSide(color: Theme.of(context).dividerColor, width: 1.5),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.0),
-        child: Column(children: children),
-      ),
+      child: Column(children: children),
     );
   }
 }

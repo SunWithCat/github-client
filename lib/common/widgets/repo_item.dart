@@ -59,8 +59,12 @@ class RepoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: theme.cardTheme.color, // 使用主题中定义的卡片颜色
+      elevation: theme.cardTheme.elevation, // 使用主题中定义的阴影
+      shadowColor: theme.cardTheme.shadowColor, // 使用主题中定义的阴影颜色
       child: InkWell(
         onTap: () {
           final profileChange = Provider.of<ProfileChange>(
@@ -88,7 +92,9 @@ class RepoItem extends StatelessWidget {
                   Icon(
                     OctIcons.repo_16,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade600,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -108,9 +114,11 @@ class RepoItem extends StatelessWidget {
                   repo.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.grey.shade300
+                                : Colors.grey.shade700,
+                          ),
                 ),
               const SizedBox(height: 16),
 
@@ -133,10 +141,12 @@ class RepoItem extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(repo.starCount.toString()),
                   const SizedBox(width: 16),
-                  const Icon(
+                  Icon(
                     OctIcons.repo_forked_16,
                     size: 16,
-                    color: Colors.grey,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.grey.shade400
+                        : Colors.grey,
                   ),
                   const SizedBox(width: 4),
                   Text(repo.forkCount.toString()),

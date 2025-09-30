@@ -18,10 +18,15 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final githubBlue = Color(0xFF0969DA);
-    final profileUser = context.read<ProfileChange>().profile.user;
-    final avatarUrl = profileUser?.avatarUrl;
-    final userLogin = profileUser?.login;
-    final userName = profileUser?.name;
+    final profileUser = context.watch<ProfileChange>().profile.user;
+
+    if (profileUser == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final avatarUrl = profileUser.avatarUrl;
+    final userLogin = profileUser.login;
+    final userName = profileUser.name;
 
     const String developer = 'SunWithCat';
     const projectUrl = 'https://github.com/SunWithCat/github-client';
@@ -41,9 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
             context,
             children: [
               ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(avatarUrl!),
-                ),
+                leading: CircleAvatar(backgroundImage: NetworkImage(avatarUrl)),
                 trailing: IconButton(
                   onPressed: () {
                     showDialog(
@@ -67,15 +70,21 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             TextButton(
                               onPressed: () {
+                                final profileChange =
+                                    Provider.of<ProfileChange>(
+                                      context,
+                                      listen: false,
+                                    );
+                                final navigator = Navigator.of(context);
                                 // 先关闭对话框
-                                Navigator.pop(context);
+                                navigator.pop();
                                 // 然后执行退出登录
-                                Provider.of<ProfileChange>(
-                                  context,
-                                  listen: false,
-                                ).logout();
-                                // 由于退出后 `isLoggedIn` 会变为 false, main.dart 中的逻辑会
-                                // 自动将页面切换到 LoginPage，这里不需要手动跳转了。
+                                profileChange.logout();
+                                // 导航到根路由，并移除所有历史记录
+                                navigator.pushNamedAndRemoveUntil(
+                                  '/',
+                                  (route) => false,
+                                );
                               },
                               child: const Text(
                                 '确定',
@@ -89,9 +98,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                   icon: const Icon(OctIcons.sign_out_16),
                 ),
-                title: Text(userLogin!),
+                title: Text(userLogin),
                 subtitle: Text(
-                  userName!,
+                  userName ?? 'Unknown Name',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
@@ -148,8 +157,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     toastLength: Toast.LENGTH_SHORT,
                     gravity: ToastGravity.BOTTOM,
                     timeInSecForIosWeb: 1,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
                   );
                 },
                 contentPadding: const EdgeInsets.symmetric(

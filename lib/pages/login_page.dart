@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,7 +20,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   StreamSubscription? _sub; // 用于取消监听
-  
+
   @override
   void initState() {
     super.initState();
@@ -54,11 +55,17 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
+      final profileChange = Provider.of<ProfileChange>(context, listen: false);
+      final navigator = Navigator.of(context);
+
       try {
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('登陆中，请稍后...')));
+        Fluttertoast.showToast(
+          msg: '登陆中，请稍后...',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+        );
         final dio = Dio(); // 创建一个Dio实例，用于发起网络请求
 
         // 异步发送POST请求到GitHub，用`code`换取`access_token`
@@ -80,15 +87,18 @@ class _LoginPageState extends State<LoginPage> {
           await storage.init();
           await storage.saveToken(accessToken);
           if (!mounted) return;
-          Provider.of<ProfileChange>(context, listen: false).login(accessToken);
-          Navigator.of(context).pushReplacementNamed('/');
+          profileChange.login(accessToken);
+          navigator.pushReplacementNamed('/');
         }
       } catch (e) {
         print('换取 token 失败： $e');
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('登录失败，请重试')));
+        Fluttertoast.showToast(
+          msg: '登录失败，请重试',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+        );
       } finally {
         if (mounted) {
           setState(() {
@@ -117,9 +127,12 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             const Icon(OctIcons.mark_github_16, size: 32),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               '登录到 GitHub ',
-              style: TextStyle(fontSize: 16, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 5),
             if (_isLoading)
@@ -128,15 +141,18 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 onPressed: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   // 点击按钮后，启动URL
                   final url = githubAuthUrl;
-                  if (!await launchUrl(url,
-                      mode: LaunchMode.externalApplication)) {
+                  if (!await launchUrl(
+                    url,
+                    mode: LaunchMode.externalApplication,
+                  )) {
                     if (!mounted) return;
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(
-                          content: Text('无法打开链接，请检查网络或浏览器设置！')),
+                    Fluttertoast.showToast(
+                      msg: "无法打开链接，请检查网络或浏览器设置！",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
                     );
                   }
                 },

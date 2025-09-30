@@ -186,14 +186,8 @@ class HomePage extends StatelessWidget {
                                   12.0,
                                 ), // 设置圆角
                               ),
-                              color:
-                                  Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainer, // 使用主题中定义的卡片背景色
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 8,
-                              ),
+                              color: Theme.of(context).cardTheme.color,
+                              margin: const EdgeInsets.symmetric(vertical: 8),
                               child: Padding(
                                 padding: const EdgeInsets.all(8),
                                 child: MarkdownBody(

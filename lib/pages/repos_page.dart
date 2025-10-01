@@ -4,14 +4,14 @@ import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:provider/provider.dart';
 
-class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+class ReposPage extends StatefulWidget {
+  const ReposPage({super.key});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<ReposPage> createState() => _ReposPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _ReposPageState extends State<ReposPage> {
   // 存储过滤后的仓库列表
   List<Repo> _filteredRepos = [];
   // 用于获取输入框文本

@@ -19,7 +19,7 @@ ThemeData lightMode = ThemeData(
   cardTheme: CardThemeData(
     color: Colors.white,
     elevation: 3.0, // 增加阴影
-    shadowColor: Colors.black.withOpacity(0.08), // 更柔和的阴影
+    shadowColor: Colors.black.withValues(alpha: 0.08), // 更柔和的阴影
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
       side: BorderSide(color: Colors.grey.shade200, width: 1.0),
@@ -45,7 +45,7 @@ ThemeData darkMode = ThemeData(
   cardTheme: CardThemeData(
     color: const Color(0xFF2C2C2C), // 使用明显更浅的灰色
     elevation: 4.0, // 进一步增加阴影深度
-    shadowColor: Colors.black.withOpacity(0.5), // 增加阴影不透明度
+    shadowColor: Colors.black.withValues(alpha: 0.5), // 增加阴影不透明度
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
   textTheme: const TextTheme(

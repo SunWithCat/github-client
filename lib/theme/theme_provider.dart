@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ghclient/theme/theme.dart';
 
 class ThemeProvider with ChangeNotifier {
-  ThemeData _themeData = ThemeMode.system == ThemeMode.light ? lightMode : darkMode;
+  ThemeData _themeData = darkMode;
 
   ThemeData get themeData => _themeData;
 

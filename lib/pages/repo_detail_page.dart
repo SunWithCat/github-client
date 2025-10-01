@@ -4,6 +4,8 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:markdown/markdown.dart' as md;
 
 class RepoPage extends StatefulWidget {
   final Repo repo;
@@ -284,7 +286,26 @@ class _RepoPageState extends State<RepoPage>
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: MarkdownBody(data: readmeContent!),
+                child: SelectionArea(
+                  child: MarkdownBody(
+                    data: _preprocessMarkdownContent(readmeContent!),
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                    onTapLink: (text, href, title) {
+                      launchUrl(Uri.parse(href!));
+                    },
+                    // imageBuilder: (uri, title, alt) {
+                    //   return _buildMarkdownImage(uri, title, alt);
+                    // },
+                    extensionSet: md.ExtensionSet(
+                      md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                      [
+                        md.EmojiSyntax(),
+                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                      ],
+                    ),
+                  ),
+                )
               ),
             ),
           ] else
@@ -417,6 +438,108 @@ class _RepoPageState extends State<RepoPage>
           },
         );
       },
+    );
+  }
+
+  String _preprocessMarkdownContent(String content) {
+    // 处理各种格式的 HTML img 标签，将其转换为 Markdown 格式
+    return content.replaceAllMapped(
+      RegExp(r'<img[^>]*>', caseSensitive: false),
+      (match) {
+        final imgTag = match.group(0) ?? '';
+        
+        // 简单的字符串查找方法提取 src
+        String src = '';
+        int srcStart = imgTag.toLowerCase().indexOf('src=');
+        if (srcStart != -1) {
+          int quoteStart = imgTag.indexOf('"', srcStart);
+          if (quoteStart == -1) {
+            quoteStart = imgTag.indexOf("'", srcStart);
+          }
+          if (quoteStart != -1) {
+            int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
+            if (quoteEnd != -1) {
+              src = imgTag.substring(quoteStart + 1, quoteEnd);
+            }
+          }
+        }
+        
+        // 简单的字符串查找方法提取 alt
+        String alt = '图片';
+        int altStart = imgTag.toLowerCase().indexOf('alt=');
+        if (altStart != -1) {
+          int quoteStart = imgTag.indexOf('"', altStart);
+          if (quoteStart == -1) {
+            quoteStart = imgTag.indexOf("'", altStart);
+          }
+          if (quoteStart != -1) {
+            int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
+            if (quoteEnd != -1) {
+              alt = imgTag.substring(quoteStart + 1, quoteEnd);
+            }
+          }
+        }
+        
+        if (src.isEmpty) {
+          return imgTag; // 如果没有 src，保持原样
+        }
+        
+        // 将 HTML img 转换为 Markdown 格式
+        return '![$alt]($src)';
+      },
+    );
+  }
+
+  Widget _buildMarkdownImage(Uri uri, String? title, String? alt) {
+    String imageUrl = uri.toString();
+    
+    // 如果是相对路径，转换为 GitHub raw 文件 URL
+    if (!imageUrl.startsWith('http')) {
+      // 移除开头的 './' 或直接以文件名开始的情况
+      if (imageUrl.startsWith('./')) {
+        imageUrl = imageUrl.substring(2);
+      }
+      // 构建 GitHub raw 文件 URL
+      imageUrl = 'https://raw.githubusercontent.com/${widget.repo.owner}/${widget.repo.name}/main/$imageUrl';
+    }
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        placeholder: (context, url) => Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 8),
+              Text(
+                alt ?? '图片加载失败',
+                style: TextStyle(color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        fit: BoxFit.contain,
+        fadeInDuration: const Duration(milliseconds: 300),
+      ),
     );
   }
 }

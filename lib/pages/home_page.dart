@@ -37,7 +37,6 @@ class HomePage extends StatelessWidget {
             brightness == Brightness.dark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Center(
@@ -190,12 +189,13 @@ class HomePage extends StatelessWidget {
                                         12.0,
                                       ), // 设置圆角
                                     ),
-                                    color: Theme.of(context).cardTheme.color,
+                                    color: Theme.of(context).colorScheme.surface,
                                     margin: const EdgeInsets.symmetric(vertical: 8),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8),
                                       child: MarkdownBody(
                                         data: profileReadme,
+                                        selectable: true,
                                         onTapLink: (text, href, title) {
                                           // 打开链接
                                           if (href != null) {

@@ -17,17 +17,116 @@ class RepoPage extends StatefulWidget {
 class _RepoPageState extends State<RepoPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _issuesScrollController = ScrollController();
+  final _commitsScrollController = ScrollController();
   String? readmeContent;
   bool isLoading = true;
   List<dynamic> issues = [];
   List<dynamic> commits = [];
   List<dynamic> contributors = [];
+  
+  // 分页加载相关状态
+  bool isLoadingMore = false;
+  int issuesPage = 1;
+  int commitsPage = 1;
+  bool hasMoreIssues = true;
+  bool hasMoreCommits = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _issuesScrollController.addListener(_onIssuesScroll);
+    _commitsScrollController.addListener(_onCommitsScroll);
     _fetchRepoDetails();
+  }
+
+  void _onIssuesScroll() {
+    if (_issuesScrollController.position.pixels ==
+        _issuesScrollController.position.maxScrollExtent) {
+      _loadMoreIssues();
+    }
+  }
+  
+  void _onCommitsScroll() {
+    if (_commitsScrollController.position.pixels ==
+        _commitsScrollController.position.maxScrollExtent) {
+      _loadMoreCommits();
+    }
+  }
+
+  Future<void> _loadMoreIssues() async {
+    if (isLoadingMore || !hasMoreIssues) return;
+    
+    setState(() {
+      isLoadingMore = true;
+    });
+    
+    try {
+      final githubService = GithubService();
+      final newIssues = await githubService.getIssues(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+        page: issuesPage + 1,
+      );
+      
+      if (mounted) {
+        setState(() {
+          if (newIssues.isEmpty) {
+            hasMoreIssues = false;
+          } else {
+            issues.addAll(newIssues);
+            issuesPage++;
+          }
+        });
+      }
+    } catch (e) {
+      print('加载更多 Issues 失败：$e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingMore = false;
+        });
+      }
+    }
+  }
+  
+  Future<void> _loadMoreCommits() async {
+    if (isLoadingMore || !hasMoreCommits) return;
+    
+    setState(() {
+      isLoadingMore = true;
+    });
+    
+    try {
+      final githubService = GithubService();
+      final newCommits = await githubService.getCommits(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+        page: commitsPage + 1,
+      );
+      
+      if (mounted) {
+        setState(() {
+          if (newCommits.isEmpty) {
+            hasMoreCommits = false;
+          } else {
+            commits.addAll(newCommits);
+            commitsPage++;
+          }
+        });
+      }
+    } catch (e) {
+      print('加载更多提交记录失败：$e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingMore = false;
+        });
+      }
+    }
   }
 
   Future<void> _fetchRepoDetails() async {
@@ -81,6 +180,8 @@ class _RepoPageState extends State<RepoPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _issuesScrollController.dispose();
+    _commitsScrollController.dispose();
     super.dispose();
   }
 
@@ -92,15 +193,9 @@ class _RepoPageState extends State<RepoPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.description,size: 20,), text: '概览'),
-            Tab(
-              icon: Icon(OctIcons.issue_opened_16,size: 20,),
-              text: 'Issues',
-            ),
-            Tab(
-              icon: Icon(OctIcons.git_commit_16,size: 20),
-              text: '提交',
-            ),
+            Tab(icon: Icon(Icons.description, size: 20), text: '概览'),
+            Tab(icon: Icon(OctIcons.issue_opened_16, size: 20), text: 'Issues'),
+            Tab(icon: Icon(OctIcons.git_commit_16, size: 20), text: '提交'),
             Tab(icon: Icon(Icons.people), text: '贡献者'),
           ],
           dividerColor: Colors.transparent,
@@ -205,12 +300,27 @@ class _RepoPageState extends State<RepoPage>
   }
 
   Widget _buildIssuesTab() {
-    if (issues.isEmpty) {
+    if (issues.isEmpty && !isLoading) {
       return const Center(child: Text('没有 Issues'));
     }
+    
     return ListView.builder(
-      itemCount: issues.length,
+      controller: _issuesScrollController,
+      itemCount: issues.length + (hasMoreIssues || isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == issues.length) {
+          // 加载更多指示器
+          return Container(
+            padding: const EdgeInsets.all(16),
+            alignment: Alignment.center,
+            child: isLoadingMore
+                ? const CircularProgressIndicator()
+                : hasMoreIssues
+                    ? const Text('下拉加载更多')
+                    : const Text('没有更多了'),
+          );
+        }
+        
         final issue = issues[index];
         final isOpen = issue['state'] == 'open';
 
@@ -233,12 +343,27 @@ class _RepoPageState extends State<RepoPage>
   }
 
   Widget _buildCommitsTab() {
-    if (commits.isEmpty) {
+    if (commits.isEmpty && !isLoading) {
       return const Center(child: Text('没有提交记录'));
     }
+    
     return ListView.builder(
-      itemCount: commits.length,
+      controller: _commitsScrollController,
+      itemCount: commits.length + (hasMoreCommits || isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == commits.length) {
+          // 加载更多指示器
+          return Container(
+            padding: const EdgeInsets.all(16),
+            alignment: Alignment.center,
+            child: isLoadingMore
+                ? const CircularProgressIndicator()
+                : hasMoreCommits
+                    ? const Text('下拉加载更多')
+                    : const Text('没有更多了'),
+          );
+        }
+        
         final commit = commits[index];
         final commitInfo = commit['commit'];
         final author = commitInfo['author'];

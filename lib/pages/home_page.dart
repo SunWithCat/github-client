@@ -183,28 +183,29 @@ class HomePage extends StatelessWidget {
                               ),
                             const Divider(height: 32),
                             // README
-                            if (profileReadme != null)
-                              Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    12.0,
-                                  ), // 设置圆角
-                                ),
-                                color: Theme.of(context).cardTheme.color,
-                                margin: const EdgeInsets.symmetric(vertical: 8),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: MarkdownBody(
-                                    data: profileReadme,
-                                    onTapLink: (text, href, title) {
-                                      // 打开链接
-                                      if (href != null) {
-                                        launchUrl(Uri.parse(href));
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ),
+                            profileReadme != null
+                                ? Card(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        12.0,
+                                      ), // 设置圆角
+                                    ),
+                                    color: Theme.of(context).cardTheme.color,
+                                    margin: const EdgeInsets.symmetric(vertical: 8),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: MarkdownBody(
+                                        data: profileReadme,
+                                        onTapLink: (text, href, title) {
+                                          // 打开链接
+                                          if (href != null) {
+                                            launchUrl(Uri.parse(href));
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                : const Center(child: Text("还没有个人主页仓库，快去添加吧~")),
                           ],
                         ),
                       ),

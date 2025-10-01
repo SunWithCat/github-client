@@ -12,9 +12,12 @@ class GithubService {
   }
 
   // 获取仓库列表
-  Future<List<Repo>> getRepos(String token) async {
+  Future<List<Repo>> getRepos(String token, {int page = 1}) async {
     _configureDio(token);
-    final response = await _dio.get('https://api.github.com/user/repos');
+    final response = await _dio.get(
+      'https://api.github.com/user/repos',
+      queryParameters: {'page': page, 'per_page': 30},
+    );
     return (response.data as List).map((e) => Repo.fromJson(e)).toList();
   }
 
@@ -23,10 +26,7 @@ class GithubService {
     _configureDio(token);
     final response = await _dio.get(
       'https://api.github.com/user/starred',
-      queryParameters: {
-        'page': page,
-        'per-page': 30
-      }
+      queryParameters: {'page': page, 'per-page': 30},
     );
     return (response.data as List).map((e) => Repo.fromJson(e)).toList();
   }
@@ -76,11 +76,18 @@ class GithubService {
   Future<List<dynamic>> getIssues(
     String owner,
     String repoName,
-    String token,
-  ) async {
+    String token, {
+    int page = 1,
+    int perPage = 10,
+  }) async {
     _configureDio(token);
     final response = await _dio.get(
-      'https://api.github.com/repos/$owner/$repoName/issues?state=all&per_page=10',
+      'https://api.github.com/repos/$owner/$repoName/issues',
+      queryParameters: {
+        'state': 'all',
+        'page': page,
+        'per_page': perPage,
+      },
     );
     return response.data;
   }
@@ -89,11 +96,17 @@ class GithubService {
   Future<List<dynamic>> getCommits(
     String owner,
     String repoName,
-    String token,
-  ) async {
+    String token, {
+    int page = 1,
+    int perPage = 10,
+  }) async {
     _configureDio(token);
     final response = await _dio.get(
-      'https://api.github.com/repos/$owner/$repoName/commits?per_page=10',
+      'https://api.github.com/repos/$owner/$repoName/commits',
+      queryParameters: {
+        'page': page,
+        'per_page': perPage,
+      },
     );
     return response.data;
   }

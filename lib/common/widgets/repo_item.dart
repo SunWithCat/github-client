@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/pages/repo_page.dart';
+import 'package:ghclient/pages/repo_detail_page.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:provider/provider.dart';
 

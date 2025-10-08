@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 const primaryColor = Color(0xFF24292E); // GitHub 头部黑
 const accentColor = Color(0xFF0366D6); // GitHub 链接蓝
-const lightGreyColor = Color(0xFFF6F8FA); // 浅灰背景
+const lightGreyColor = Color(0xFFF5F7F9); // 浅灰背景
 
 ThemeData lightMode = ThemeData(
   brightness: Brightness.light,

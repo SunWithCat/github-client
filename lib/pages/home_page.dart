@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/pages/repos_page.dart';
 import 'package:ghclient/pages/settings_page.dart';
 import 'package:ghclient/pages/starred_repos_page.dart';
@@ -24,8 +25,6 @@ class HomePage extends StatelessWidget {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     final notifier = context.watch<ProfileChange>();
@@ -42,84 +41,21 @@ class HomePage extends StatelessWidget {
         body: RefreshIndicator(
           child: SafeArea(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Center(
                 child:
                     user == null
-                        ? const Text('未能找到用户信息')
+                        ? _buildEmptyState(context)
                         : Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
-                            vertical: 32,
+                            vertical: 16,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  // 显示头像
-                                  CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: NetworkImage(
-                                      user.avatarUrl,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          user.name ?? user.login,
-                                          style:
-                                              Theme.of(
-                                                context,
-                                              ).textTheme.headlineSmall,
-                                        ),
-                                        Text(
-                                          '@${user.login}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.copyWith(color: Colors.grey),
-                                        ),
-                                        // 显示加入GitHub的日期
-                                        if (user.createdAt != null)
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.calendar_today,
-                                                size: 14,
-                                                color: Colors.grey,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                formatJoinDate(user.createdAt),
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodySmall?.copyWith(
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => SettingsPage(),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.settings),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
+                              _buildUserHeader(context, user),
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
                                   const Icon(OctIcons.mark_github_16, size: 20),
@@ -154,7 +90,11 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                               if (user.bio != null)
-                                Text(user.bio!, style: TextStyle(fontSize: 16)),
+                                Text(
+                                  user.bio!,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
                               const SizedBox(height: 16),
                               Row(
                                 children: [
@@ -228,6 +168,107 @@ class HomePage extends StatelessWidget {
               await notifier.login(notifier.profile.token!);
             }
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off_outlined, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            '未能找到用户消息',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserHeader(BuildContext context, User user) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadiusGeometry.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Hero(
+              tag: 'user_avatar',
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 35,
+                  backgroundImage: NetworkImage(user.avatarUrl),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name ?? user.login,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '@${user.login}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (user.createdAt != null)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          formatJoinDate(user.createdAt),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()),
+                );
+              },
+              icon: const Icon(Icons.settings),
+            ),
+          ],
         ),
       ),
     );

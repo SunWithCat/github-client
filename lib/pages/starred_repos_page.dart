@@ -104,6 +104,7 @@ class _StarredReposPageState extends State<StarredReposPage> {
           onChanged: _filterRepos,
           decoration: InputDecoration(
             hintText: '搜索你的星标仓库...',
+            hintStyle: TextStyle(color: Colors.grey[500]),
             border: InputBorder.none,
           ),
         ),

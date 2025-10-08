@@ -60,8 +60,8 @@ class RepoItem extends StatelessWidget {
   // 格式化数字显示
   String formatNumber(int number) {
     if (number < 1000) return number.toString();
-    if (number < 1000000) return '${(number / 1000).toStringAsFixed(1)}K';
-    return '${(number / 1000000).toStringAsFixed(1)}M';
+    if (number < 1000000) return '${(number / 1000).toStringAsFixed(1)}k';
+    return '${(number / 1000000).toStringAsFixed(1)}m';
   }
 
   @override

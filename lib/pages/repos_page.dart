@@ -105,6 +105,7 @@ class _ReposPageState extends State<ReposPage> {
           onChanged: _filterRepos,
           decoration: InputDecoration(
             hintText: '搜索你的仓库...',
+            hintStyle: TextStyle(color: Colors.grey[500]),
             border: InputBorder.none,
           ),
         ),

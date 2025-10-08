@@ -57,6 +57,13 @@ class RepoItem extends StatelessWidget {
     }
   }
 
+  // 格式化数字显示
+  String formatNumber(int number) {
+    if (number < 1000) return number.toString();
+    if (number < 1000000) return '${(number / 1000).toStringAsFixed(1)}K';
+    return '${(number / 1000000).toStringAsFixed(1)}M';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -139,7 +146,7 @@ class RepoItem extends StatelessWidget {
                   ],
                   Icon(Icons.star, size: 16, color: Colors.yellow.shade700),
                   const SizedBox(width: 4),
-                  Text(repo.starCount.toString()),
+                  Text(formatNumber(repo.starCount)),
                   const SizedBox(width: 16),
                   Icon(
                     OctIcons.repo_forked_16,
@@ -149,7 +156,7 @@ class RepoItem extends StatelessWidget {
                         : Colors.grey,
                   ),
                   const SizedBox(width: 4),
-                  Text(repo.forkCount.toString()),
+                  Text(formatNumber(repo.forkCount)),
                 ],
               ),
             ],

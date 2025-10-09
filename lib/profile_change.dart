@@ -10,6 +10,10 @@ class Profile {
   List<Repo> repos = [];
   List<Repo> starredRepos = [];
   String? profileReadme; // README
+  int starredReposCurrentPage = 1;
+  int reposCurrentPage = 1;
+  bool starredReposHasMore = true;
+  bool reposHasMore = true;
   Profile({this.token, this.user});
 }
 
@@ -66,6 +70,54 @@ class ProfileChange extends ChangeNotifier {
     } else {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // 加载更多星标仓库
+  Future<List<Repo>> loadMoreStarredRepos() async {
+    if (_profile.token == null || !_profile.starredReposHasMore) {
+      return [];
+    }
+    try {
+      final newRepos = await _githubService.getStarredRepos(
+        _profile.token!,
+        page: _profile.starredReposCurrentPage + 1,
+      );
+      if (newRepos.isEmpty) {
+        _profile.starredReposHasMore = false;
+      } else {
+        _profile.starredReposCurrentPage++;
+        _profile.starredRepos.addAll(newRepos);
+        notifyListeners();
+      }
+      return newRepos;
+    } catch (e) {
+      print('加载更多星标仓库失败：$e');
+      return [];
+    }
+  }
+
+  // 加载更多仓库
+  Future<List<Repo>> loadMoreRepos() async {
+    if (_profile.token == null || !_profile.reposHasMore) {
+      return [];
+    }
+    try {
+      final newRepos = await _githubService.getRepos(
+        _profile.token!,
+        page: _profile.reposCurrentPage + 1,
+      );
+      if (newRepos.isEmpty) {
+        _profile.reposHasMore = false;
+      } else {
+        _profile.reposCurrentPage++;
+        _profile.repos.addAll(newRepos);
+        notifyListeners();
+      }
+      return newRepos;
+    } catch (e) {
+      print('加载更多仓库失败：$e');
+      return [];
     }
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
-import 'package:ghclient/services/github_service.dart';
 import 'package:provider/provider.dart';
 
 class StarredReposPage extends StatefulWidget {
@@ -19,7 +18,6 @@ class _StarredReposPageState extends State<StarredReposPage> {
   List<Repo> _filteredRepos = [];
   bool _isLoading = false;
   bool _hasMore = true;
-  int _currentPage = 1;
 
   @override
   void initState() {
@@ -48,23 +46,18 @@ class _StarredReposPageState extends State<StarredReposPage> {
     });
 
     try {
-      final token = context.read<ProfileChange>().profile.token;
-      if (token != null) {
-        final newRepos = await GithubService().getStarredRepos(
-          token,
-          page: _currentPage + 1,
-        );
-        if (newRepos.isEmpty) {
-          setState(() {
-            _hasMore = false;
-          });
-        } else {
-          setState(() {
-            _currentPage++;
-            _repos.addAll(newRepos);
-            _filterRepos(_searchController.text);
-          });
-        }
+      final profileChange = context.read<ProfileChange>();
+      final newRepos = await profileChange.loadMoreStarredRepos();
+      if (newRepos.isEmpty) {
+        setState(() {
+          _hasMore = false;
+        });
+      } else {
+        setState(() {
+          _repos = profileChange.profile.starredRepos;
+          _hasMore = profileChange.profile.starredReposHasMore;
+          _filterRepos(_searchController.text);
+        });
       }
     } catch (e) {
       print('加载更多星标仓库失败：$e');
@@ -118,7 +111,7 @@ class _StarredReposPageState extends State<StarredReposPage> {
           ),
         ],
       ),
-      body: _buildBody()
+      body: _buildBody(),
     );
   }
 

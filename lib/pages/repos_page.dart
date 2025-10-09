@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
-import 'package:ghclient/services/github_service.dart';
 import 'package:provider/provider.dart';
 
 class ReposPage extends StatefulWidget {
@@ -20,7 +19,6 @@ class _ReposPageState extends State<ReposPage> {
   List<Repo> _filteredRepos = [];
   bool _isLoading = false;
   bool _hasMore = true;
-  int _currentPage = 1;
 
   @override
   void initState() {
@@ -48,23 +46,18 @@ class _ReposPageState extends State<ReposPage> {
       _isLoading = true;
     });
     try {
-      final token = context.read<ProfileChange>().profile.token;
-      if (token != null) {
-        final newRepos = await GithubService().getRepos(
-          token,
-          page: _currentPage + 1,
-        );
-        if (newRepos.isEmpty) {
-          setState(() {
-            _hasMore = false;
-          });
-        } else {
-          setState(() {
-            _currentPage++;
-            _repos.addAll(newRepos);
-            _filterRepos(_searchController.text);
-          });
-        }
+      final profileChange = context.read<ProfileChange>();
+      final newRepos = await profileChange.loadMoreRepos();
+      if (newRepos.isEmpty) {
+        setState(() {
+          _hasMore = false;
+        });
+      } else {
+        setState(() {
+          _repos = profileChange.profile.repos;
+          _hasMore = profileChange.profile.reposHasMore;
+          _filterRepos(_searchController.text);
+        });
       }
     } catch (e) {
       print('加载更多仓库失败：$e');

@@ -99,16 +99,20 @@ class RepoItem extends StatelessWidget {
                   Icon(
                     OctIcons.repo_16,
                     size: 16,
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.grey.shade400
-                        : Colors.grey.shade600,
+                    color:
+                        theme.brightness == Brightness.dark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       repo.name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color:
+                            theme.brightness == Brightness.light
+                                ? Color(0xFF0366D6)
+                                : Colors.grey.shade300,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -121,11 +125,12 @@ class RepoItem extends StatelessWidget {
                   repo.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: theme.brightness == Brightness.dark
-                                ? Colors.grey.shade300
-                                : Colors.grey.shade700,
-                          ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color:
+                        theme.brightness == Brightness.dark
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade700,
+                  ),
                 ),
               const SizedBox(height: 16),
 
@@ -151,9 +156,10 @@ class RepoItem extends StatelessWidget {
                   Icon(
                     OctIcons.repo_forked_16,
                     size: 16,
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.grey.shade400
-                        : Colors.grey,
+                    color:
+                        theme.brightness == Brightness.dark
+                            ? Colors.grey.shade400
+                            : Colors.grey,
                   ),
                   const SizedBox(width: 4),
                   Text(formatNumber(repo.forkCount)),

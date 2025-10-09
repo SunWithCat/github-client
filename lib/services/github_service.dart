@@ -110,11 +110,26 @@ class GithubService {
   }
 
   // 获取热门/趋势仓库
-  Future<List<Repo>> getTrendingRepos(String token) async {
+  Future<List<Repo>> getTrendingRepos(
+    String token, {
+    String timeRange = 'monthly',
+  }) async {
     _configureDio(token);
-    final oneMonthAgo = DateTime.now().subtract(const Duration(days: 30));
+    DateTime sinceDate;
+    switch (timeRange) {
+      case 'daily':
+        sinceDate = DateTime.now().subtract(const Duration(days: 1));
+        break;
+      case 'weekly':
+        sinceDate = DateTime.now().subtract(const Duration(days: 7));
+        break;
+      case 'monthly':
+      default:
+        sinceDate = DateTime.now().subtract(const Duration(days: 30));
+        break;
+    }
     final formattedDate =
-        '${oneMonthAgo.year}-${oneMonthAgo.month.toString().padLeft(2, '0')}-${oneMonthAgo.day.toString().padLeft(2, '0')}';
+        '${sinceDate.year}-${sinceDate.month.toString().padLeft(2, '0')}-${sinceDate.day.toString().padLeft(2, '0')}';
     final response = await _dio.get(
       'https://api.github.com/search/repositories',
       queryParameters: {
@@ -124,6 +139,8 @@ class GithubService {
         'per_page': 30, // 每页数量
       },
     );
-    return (response.data['items'] as List).map((e) => Repo.fromJson(e)).toList();
+    return (response.data['items'] as List)
+        .map((e) => Repo.fromJson(e))
+        .toList();
   }
 }

@@ -9,9 +9,9 @@ ThemeData lightMode = ThemeData(
   primaryColor: primaryColor,
   scaffoldBackgroundColor: const Color(0xFFF5F7F9), // GitHub 风格的背景色
   colorScheme: ColorScheme.light(
-    background: const Color(0xFFF5F7F9),
+    background: const Color.fromARGB(255, 2, 4, 7),
     primary: primaryColor,
-    secondary: accentColor,
+    secondary: const Color(0xFFB3D4FC),
     surface: Colors.white,
     surfaceContainer: Colors.white,
     surfaceTint: Colors.white, // 防止 Material 3 的色调融合

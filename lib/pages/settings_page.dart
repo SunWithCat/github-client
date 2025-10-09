@@ -17,7 +17,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final githubBlue = Color(0xFF0969DA);
+    final githubBlue = const Color(0xFFB3D4FC);
     final profileUser = context.watch<ProfileChange>().profile.user;
 
     if (profileUser == null) {

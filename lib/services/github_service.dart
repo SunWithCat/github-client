@@ -83,11 +83,7 @@ class GithubService {
     _configureDio(token);
     final response = await _dio.get(
       'https://api.github.com/repos/$owner/$repoName/issues',
-      queryParameters: {
-        'state': 'all',
-        'page': page,
-        'per_page': perPage,
-      },
+      queryParameters: {'state': 'all', 'page': page, 'per_page': perPage},
     );
     return response.data;
   }
@@ -103,10 +99,7 @@ class GithubService {
     _configureDio(token);
     final response = await _dio.get(
       'https://api.github.com/repos/$owner/$repoName/commits',
-      queryParameters: {
-        'page': page,
-        'per_page': perPage,
-      },
+      queryParameters: {'page': page, 'per_page': perPage},
     );
     return response.data;
   }
@@ -114,5 +107,23 @@ class GithubService {
   // 配置请求头
   void _configureDio(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  // 获取热门/趋势仓库
+  Future<List<Repo>> getTrendingRepos(String token) async {
+    _configureDio(token);
+    final oneMonthAgo = DateTime.now().subtract(const Duration(days: 30));
+    final formattedDate =
+        '${oneMonthAgo.year}-${oneMonthAgo.month.toString().padLeft(2, '0')}-${oneMonthAgo.day.toString().padLeft(2, '0')}';
+    final response = await _dio.get(
+      'https://api.github.com/search/repositories',
+      queryParameters: {
+        'q': 'created:>$formattedDate', // 查询条件：创建于最近30天
+        'sort': 'stars', // 按星标数排序
+        'order': 'desc', // 降序排列
+        'per_page': 30, // 每页数量
+      },
+    );
+    return (response.data['items'] as List).map((e) => Repo.fromJson(e)).toList();
   }
 }

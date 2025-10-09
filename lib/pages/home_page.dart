@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/models/my_user_model.dart';
+import 'package:ghclient/pages/explore_page.dart';
 import 'package:ghclient/pages/repos_page.dart';
 import 'package:ghclient/pages/settings_page.dart';
 import 'package:ghclient/pages/starred_repos_page.dart';
@@ -38,6 +39,18 @@ class HomePage extends StatelessWidget {
             brightness == Brightness.dark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ExplorePage()),
+            );
+          },
+          backgroundColor: const Color(0xFFB3D4FC),
+          foregroundColor: const Color(0xFF003566),
+          icon: Icon(OctIcons.telescope_16),
+          label: const Text('探索'),
+        ),
         body: RefreshIndicator(
           child: SafeArea(
             child: SingleChildScrollView(
@@ -235,9 +248,9 @@ class HomePage extends StatelessWidget {
                   ),
                   Text(
                     '@${user.login}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 4),
                   if (user.createdAt != null)

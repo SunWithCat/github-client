@@ -46,7 +46,10 @@ class _SettingsPageState extends State<SettingsPage> {
             context,
             children: [
               ListTile(
-                leading: CircleAvatar(backgroundImage: NetworkImage(avatarUrl)),
+                leading: Hero(
+                  tag: 'user_avatar',
+                  child: CircleAvatar(backgroundImage: NetworkImage(avatarUrl)),
+                ),
                 trailing: IconButton(
                   onPressed: () {
                     showDialog(
@@ -165,7 +168,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.person),
+                leading: const Icon(OctIcons.person_16),
                 title: const Text('开发者'),
                 subtitle: const Text(developer),
                 trailing: const Icon(OctIcons.chevron_right_16),

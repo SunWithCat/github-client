@@ -38,7 +38,7 @@ ThemeData darkMode = ThemeData(
   colorScheme: ColorScheme.dark(
     background: const Color(0xFF121212), // 更深的背景色
     primary: Colors.grey.shade400,
-    secondary: Colors.grey.shade300,
+    secondary: lightGreyColor,
     surface: const Color(0xFF1E1E1E), // 较浅的表面颜色
     surfaceContainer: const Color(0xFF1E1E1E),
   ),

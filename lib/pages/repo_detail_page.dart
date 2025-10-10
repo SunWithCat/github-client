@@ -201,10 +201,10 @@ class _RepoPageState extends State<RepoPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.description, size: 20), text: '概览'),
+            Tab(icon: Icon(OctIcons.book_16, size: 20), text: '概览'),
             Tab(icon: Icon(OctIcons.issue_opened_16, size: 20), text: 'Issues'),
             Tab(icon: Icon(OctIcons.git_commit_16, size: 20), text: '提交'),
-            Tab(icon: Icon(Icons.people), text: '贡献者'),
+            Tab(icon: Icon(OctIcons.people_16), text: '贡献者'),
           ],
           dividerColor: Colors.transparent,
         ),
@@ -249,7 +249,7 @@ class _RepoPageState extends State<RepoPage>
                   Row(
                     children: [
                       _buildStatItem(
-                        Icons.star,
+                        OctIcons.star_fill_16,
                         widget.repo.starCount.toString(),
                         '星标',
                       ),
@@ -261,7 +261,7 @@ class _RepoPageState extends State<RepoPage>
                       ),
                       const SizedBox(width: 16),
                       if (widget.repo.language != null)
-                        _buildStatItem(Icons.code, widget.repo.language!, '语言'),
+                        _buildStatItem(OctIcons.code_16, widget.repo.language!, '语言'),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -353,7 +353,7 @@ class _RepoPageState extends State<RepoPage>
 
         return ListTile(
           leading: Icon(
-            isOpen ? Icons.error_outline : Icons.check_circle_outline,
+            isOpen ? OctIcons.issue_opened_16 : OctIcons.issue_closed_16,
             color: isOpen ? Colors.green : Colors.purple,
           ),
           title: Text(issue['title']),
@@ -401,7 +401,7 @@ class _RepoPageState extends State<RepoPage>
                   ? CircleAvatar(
                     backgroundImage: NetworkImage(committer['avatar_url']),
                   )
-                  : const CircleAvatar(child: Icon(Icons.person)),
+                  : const CircleAvatar(child: Icon(OctIcons.person_16)),
           title: Text(
             commitInfo['message'].toString().split('\n').first,
             maxLines: 1,
@@ -561,7 +561,7 @@ Widget _buildStatItem(IconData icon, String value, String label) {
       Icon(
         icon,
         size: 16,
-        color: icon == Icons.star ? Colors.yellow.shade700 : null,
+        color: icon == OctIcons.star_fill_16 ? Colors.yellow.shade700 : null,
       ),
       const SizedBox(width: 4),
       Text('$value $label'),

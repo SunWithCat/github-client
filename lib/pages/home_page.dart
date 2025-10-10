@@ -84,7 +84,7 @@ class HomePage extends StatelessWidget {
                                         ),
                                       );
                                     },
-                                    icon: Icon(Icons.folder_open), // 使用文件夹图标
+                                    icon: Icon(OctIcons.repo_16), // 使用文件夹图标
                                     label: Text('仓库'), // 添加文本指示
                                   ),
                                   TextButton.icon(
@@ -97,7 +97,7 @@ class HomePage extends StatelessWidget {
                                         ),
                                       );
                                     },
-                                    icon: Icon(Icons.star, color: Colors.amber),
+                                    icon: Icon(OctIcons.star_fill_16, color: Colors.yellow.shade700),
                                     label: Text('星标'),
                                   ),
                                 ],
@@ -112,7 +112,7 @@ class HomePage extends StatelessWidget {
                               Row(
                                 children: [
                                   const Icon(
-                                    Icons.people_outline,
+                                    OctIcons.people_16,
                                     size: 20,
                                     color: Colors.grey,
                                   ),
@@ -257,7 +257,7 @@ class HomePage extends StatelessWidget {
                     Row(
                       children: [
                         Icon(
-                          Icons.calendar_today,
+                          OctIcons.calendar_24,
                           size: 16,
                           color: Colors.grey[600],
                         ),

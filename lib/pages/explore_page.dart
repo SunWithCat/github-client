@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/pages/search_page.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:provider/provider.dart';
@@ -79,7 +79,12 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('探索热门仓库')),
+      appBar: AppBar(
+        title: const Text('探索热门仓库'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
       body: RefreshIndicator(
         onRefresh: _fetchTrendingRepos,
         child: _buildBody(),
@@ -142,13 +147,21 @@ class _ExplorePageState extends State<ExplorePage> {
               const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: () {
-                  Fluttertoast.showToast(
-                    toastLength: Toast.LENGTH_SHORT,
-                    msg: '搜索功能正在开发中~'
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SearchPage()),
                   );
                 },
-                label: Text('搜索'),
-                icon: Icon(Icons.search),
+                label: const Text('搜索'),
+                icon: const Icon(OctIcons.search_16),
+                style: TextButton.styleFrom(
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24.0),
+                  ),
+                ),
               ),
             ],
           ),

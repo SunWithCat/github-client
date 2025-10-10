@@ -149,7 +149,7 @@ class RepoItem extends StatelessWidget {
                     Text(repo.language!),
                     const SizedBox(width: 16),
                   ],
-                  Icon(Icons.star, size: 16, color: Colors.yellow.shade700),
+                  Icon(OctIcons.star_fill_16, size: 16, color: Colors.yellow.shade700),
                   const SizedBox(width: 4),
                   Text(formatNumber(repo.starCount)),
                   const SizedBox(width: 16),

@@ -143,4 +143,20 @@ class GithubService {
         .map((e) => Repo.fromJson(e))
         .toList();
   }
+
+  // 搜索仓库
+  Future<List<Repo>> searchRepos(
+    String token,
+    String query, {
+    int page = 1,
+  }) async {
+    _configureDio(token);
+    final response = await _dio.get(
+      'https://api.github.com/search/repositories',
+      queryParameters: {'q': query, 'page': page, 'per_page': 30},
+    );
+    return (response.data['items'] as List)
+        .map((e) => Repo.fromJson(e))
+        .toList();
+  }
 }

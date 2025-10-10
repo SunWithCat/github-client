@@ -139,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
               const CircularProgressIndicator()
             else
               ElevatedButton.icon(
-                icon: const Icon(Icons.login),
+                icon: const Icon(OctIcons.sign_in_16),
                 onPressed: () async {
                   // 点击按钮后，启动URL
                   final url = githubAuthUrl;

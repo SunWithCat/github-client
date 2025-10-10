@@ -166,6 +166,12 @@ class _RepoPageState extends State<RepoPage>
           issues = responses[1] as List<dynamic>;
           commits = responses[2] as List<dynamic>;
           contributors = responses[3] as List<dynamic>;
+          if (issues.length < 10) {
+            hasMoreIssues = false;
+          }
+          if (commits.length < 10) {
+            hasMoreCommits = false;
+          }
         });
       }
     } catch (e) {

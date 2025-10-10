@@ -17,12 +17,12 @@ GhClient 是一款使用 Flutter 构建的、功能丰富的第三方 GitHub 客
 ## 📱 应用截图
 
 <div align="center" style="display: flex; gap: 20px; flex-wrap: wrap;">
-  <img src="home_page.jpg" alt="主页界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="repos_page.jpg" alt="仓库界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="starred_page.jpg" alt="星标界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="detail_page.jpg" alt="概述界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="issues_page.jpg" alt="议题界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="commits_page.jpg" alt="提交界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="home.jpg" alt="主页界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="repos.jpg" alt="仓库界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="starred_repos.jpg" alt="星标界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="detail.jpg" alt="详情界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="explore.jpg" alt="探索界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="search.jpg" alt="搜索界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </div>
 
 ## 🚀 技术栈
@@ -38,7 +38,7 @@ GhClient 是一款使用 Flutter 构建的、功能丰富的第三方 GitHub 客
 
 ### 前提条件
 
-- Flutter SDK (3.32.7 或更高版本)
+- Flutter SDK
 - Dart SDK (随 Flutter 一起安装)
 - Android Studio / VS Code
 - Android SDK / Xcode (取决于目标平台)

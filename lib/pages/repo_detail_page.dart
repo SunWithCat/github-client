@@ -26,7 +26,7 @@ class _RepoPageState extends State<RepoPage>
   List<dynamic> issues = [];
   List<dynamic> commits = [];
   List<dynamic> contributors = [];
-  
+
   // 分页加载相关状态
   bool isLoadingMore = false;
   int issuesPage = 1;
@@ -49,7 +49,7 @@ class _RepoPageState extends State<RepoPage>
       _loadMoreIssues();
     }
   }
-  
+
   void _onCommitsScroll() {
     if (_commitsScrollController.position.pixels ==
         _commitsScrollController.position.maxScrollExtent) {
@@ -59,23 +59,25 @@ class _RepoPageState extends State<RepoPage>
 
   Future<void> _loadMoreIssues() async {
     if (isLoadingMore || !hasMoreIssues) return;
-    
+
     setState(() {
       isLoadingMore = true;
     });
-    
+
     try {
-      final githubService = GithubService();
-      final newIssues = await githubService.getIssues(
+      final githubService = GithubService.instance;
+      final (newIssues, error) = await githubService.getIssues(
         widget.repo.owner,
         widget.repo.name,
         widget.token,
         page: issuesPage + 1,
       );
-      
+
       if (mounted) {
         setState(() {
-          if (newIssues.isEmpty) {
+          if (error != null) {
+            print('加载更多 Issues 失败：$error');
+          } else if (newIssues == null || newIssues.isEmpty) {
             hasMoreIssues = false;
           } else {
             issues.addAll(newIssues);
@@ -93,26 +95,28 @@ class _RepoPageState extends State<RepoPage>
       }
     }
   }
-  
+
   Future<void> _loadMoreCommits() async {
     if (isLoadingMore || !hasMoreCommits) return;
-    
+
     setState(() {
       isLoadingMore = true;
     });
-    
+
     try {
-      final githubService = GithubService();
-      final newCommits = await githubService.getCommits(
+      final githubService = GithubService.instance;
+      final (newCommits, error) = await githubService.getCommits(
         widget.repo.owner,
         widget.repo.name,
         widget.token,
         page: commitsPage + 1,
       );
-      
+
       if (mounted) {
         setState(() {
-          if (newCommits.isEmpty) {
+          if (error != null) {
+            print('加载更多提交记录失败：$error');
+          } else if (newCommits == null || newCommits.isEmpty) {
             hasMoreCommits = false;
           } else {
             commits.addAll(newCommits);
@@ -137,7 +141,7 @@ class _RepoPageState extends State<RepoPage>
     });
 
     try {
-      final githubService = GithubService();
+      final githubService = GithubService.instance;
       final responses = await Future.wait([
         githubService.getReadme(
           widget.repo.owner,
@@ -160,12 +164,19 @@ class _RepoPageState extends State<RepoPage>
           widget.token,
         ),
       ]);
+
+      // 解构结果
+      final readmeResult = responses[0] as ApiResult<String?>;
+      final issuesResult = responses[1] as ApiResult<List<dynamic>>;
+      final commitsResult = responses[2] as ApiResult<List<dynamic>>;
+      final contributorsResult = responses[3] as ApiResult<List<dynamic>>;
+
       if (mounted) {
         setState(() {
-          readmeContent = responses[0] as String?;
-          issues = responses[1] as List<dynamic>;
-          commits = responses[2] as List<dynamic>;
-          contributors = responses[3] as List<dynamic>;
+          readmeContent = readmeResult.$1;
+          issues = issuesResult.$1 ?? [];
+          commits = commitsResult.$1 ?? [];
+          contributors = contributorsResult.$1 ?? [];
           if (issues.length < 10) {
             hasMoreIssues = false;
           }
@@ -261,7 +272,11 @@ class _RepoPageState extends State<RepoPage>
                       ),
                       const SizedBox(width: 16),
                       if (widget.repo.language != null)
-                        _buildStatItem(OctIcons.code_16, widget.repo.language!, '语言'),
+                        _buildStatItem(
+                          OctIcons.code_16,
+                          widget.repo.language!,
+                          '语言',
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -307,11 +322,11 @@ class _RepoPageState extends State<RepoPage>
                       md.ExtensionSet.gitHubFlavored.blockSyntaxes,
                       [
                         md.EmojiSyntax(),
-                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
                       ],
                     ),
                   ),
-                )
+                ),
               ),
             ),
           ] else
@@ -330,7 +345,7 @@ class _RepoPageState extends State<RepoPage>
     if (issues.isEmpty && !isLoading) {
       return const Center(child: Text('没有 Issues'));
     }
-    
+
     return ListView.builder(
       controller: _issuesScrollController,
       itemCount: issues.length + (hasMoreIssues || isLoadingMore ? 1 : 0),
@@ -340,14 +355,15 @@ class _RepoPageState extends State<RepoPage>
           return Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.center,
-            child: isLoadingMore
-                ? const CircularProgressIndicator()
-                : hasMoreIssues
+            child:
+                isLoadingMore
+                    ? const CircularProgressIndicator()
+                    : hasMoreIssues
                     ? const Text('下拉加载更多')
                     : const Text('没有更多了'),
           );
         }
-        
+
         final issue = issues[index];
         final isOpen = issue['state'] == 'open';
 
@@ -373,7 +389,7 @@ class _RepoPageState extends State<RepoPage>
     if (commits.isEmpty && !isLoading) {
       return const Center(child: Text('没有提交记录'));
     }
-    
+
     return ListView.builder(
       controller: _commitsScrollController,
       itemCount: commits.length + (hasMoreCommits || isLoadingMore ? 1 : 0),
@@ -383,14 +399,15 @@ class _RepoPageState extends State<RepoPage>
           return Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.center,
-            child: isLoadingMore
-                ? const CircularProgressIndicator()
-                : hasMoreCommits
+            child:
+                isLoadingMore
+                    ? const CircularProgressIndicator()
+                    : hasMoreCommits
                     ? const Text('下拉加载更多')
                     : const Text('没有更多了'),
           );
         }
-        
+
         final commit = commits[index];
         final commitInfo = commit['commit'];
         final author = commitInfo['author'];
@@ -453,7 +470,7 @@ class _RepoPageState extends State<RepoPage>
       RegExp(r'<img[^>]*>', caseSensitive: false),
       (match) {
         final imgTag = match.group(0) ?? '';
-        
+
         // 简单的字符串查找方法提取 src
         String src = '';
         int srcStart = imgTag.toLowerCase().indexOf('src=');
@@ -469,7 +486,7 @@ class _RepoPageState extends State<RepoPage>
             }
           }
         }
-        
+
         // 简单的字符串查找方法提取 alt
         String alt = '图片';
         int altStart = imgTag.toLowerCase().indexOf('alt=');
@@ -485,11 +502,11 @@ class _RepoPageState extends State<RepoPage>
             }
           }
         }
-        
+
         if (src.isEmpty) {
           return imgTag; // 如果没有 src，保持原样
         }
-        
+
         // 将 HTML img 转换为 Markdown 格式
         return '![$alt]($src)';
       },
@@ -498,7 +515,7 @@ class _RepoPageState extends State<RepoPage>
 
   Widget _buildMarkdownImage(Uri uri, String? title, String? alt) {
     String imageUrl = uri.toString();
-    
+
     // 如果是相对路径，转换为 GitHub raw 文件 URL
     if (!imageUrl.startsWith('http')) {
       // 移除开头的 './' 或直接以文件名开始的情况
@@ -506,43 +523,44 @@ class _RepoPageState extends State<RepoPage>
         imageUrl = imageUrl.substring(2);
       }
       // 构建 GitHub raw 文件 URL
-      imageUrl = 'https://raw.githubusercontent.com/${widget.repo.owner}/${widget.repo.name}/main/$imageUrl';
+      imageUrl =
+          'https://raw.githubusercontent.com/${widget.repo.owner}/${widget.repo.name}/main/$imageUrl';
     }
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
-        placeholder: (context, url) => Container(
-          height: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
-        errorWidget: (context, url, error) => Container(
-          height: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 8),
-              Text(
-                alt ?? '图片加载失败',
-                style: TextStyle(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
+        placeholder:
+            (context, url) => Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
-          ),
-        ),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        errorWidget:
+            (context, url, error) => Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 8),
+                  Text(
+                    alt ?? '图片加载失败',
+                    style: TextStyle(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
         fit: BoxFit.contain,
         fadeInDuration: const Duration(milliseconds: 300),
       ),

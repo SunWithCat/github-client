@@ -6,7 +6,7 @@ import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
 import 'dart:async'; // 引入异步库
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 
@@ -34,7 +34,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _initUniLinks() async {
-    _sub = uriLinkStream.listen(
+    final appLinks = AppLinks();
+    _sub = appLinks.uriLinkStream.listen(
       // 接收从外部传入的链接
       (Uri? uri) {
         if (uri != null &&
@@ -44,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       },
       onError: (err) {
         // 处理错误
-        print('uni_links error: $err');
+        print('app_links error: $err');
       },
     );
   }

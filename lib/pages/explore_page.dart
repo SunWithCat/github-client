@@ -45,19 +45,25 @@ class _ExplorePageState extends State<ExplorePage> {
       return;
     }
     try {
-      final githubService = GithubService();
-      final repos = await githubService.getTrendingRepos(
+      final githubService = GithubService.instance; // 使用单例
+      final (repos, error) = await githubService.getTrendingRepos(
         token,
         timeRange: _selectedTimeRange,
       );
+
       if (mounted) {
         setState(() {
-          _trendingRepos = repos;
+          if (error != null) {
+            print('加载热门仓库失败：$error'); // 实际项目中这里可以弹 Toast
+            // 保持 _trendingRepos 不变或清空，视需求而定
+          } else {
+            _trendingRepos = repos ?? [];
+          }
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('加载热门仓库失败：$e');
+      print('加载热门仓库发生未知错误：$e');
       if (mounted) {
         setState(() {
           _isLoading = false;

@@ -16,7 +16,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _textEditingController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final GithubService _githubService = GithubService();
+  final GithubService _githubService = GithubService.instance;
 
   List<Repo> _repos = [];
   bool _isLoading = false;
@@ -66,14 +66,19 @@ class _SearchPageState extends State<SearchPage> {
       return;
     }
     try {
-      final repos = await _githubService.searchRepos(
+      final (repos, error) = await _githubService.searchRepos(
         token,
         _currentQuery,
         page: _page,
       );
       if (mounted) {
         setState(() {
-          _repos = repos;
+          if (error != null) {
+            print('搜索仓库失败：$error');
+            _repos = [];
+          } else {
+            _repos = repos ?? [];
+          }
         });
       }
     } catch (e) {
@@ -104,14 +109,18 @@ class _SearchPageState extends State<SearchPage> {
     }
     try {
       _page++;
-      final newRepos = await _githubService.searchRepos(
+      final (newRepos, error) = await _githubService.searchRepos(
         token,
         _currentQuery,
         page: _page,
       );
       if (mounted) {
         setState(() {
-          if (newRepos.isEmpty) {
+          if (error != null) {
+            print('加载更多搜索结果失败：$error');
+            // 可以在这里处理错误，比如不增加页码
+            _page--;
+          } else if (newRepos == null || newRepos.isEmpty) {
             _hasMore = false;
           } else {
             _repos.addAll(newRepos);

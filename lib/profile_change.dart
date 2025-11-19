@@ -24,7 +24,7 @@ class ProfileChange extends ChangeNotifier {
   bool get isLoggedIn => _profile.token != null;
   bool get isLoading => _isLoading;
 
-  final GithubService _githubService = GithubService();
+  final GithubService _githubService = GithubService.instance;
   final StorageService _storageService = StorageService();
 
   // 登录方法
@@ -34,18 +34,33 @@ class ProfileChange extends ChangeNotifier {
     notifyListeners();
     try {
       // 获取用户信息
-      final user = await _githubService.getUser(token);
+      final (user, error) = await _githubService.getUser(token);
+      if (error != null) {
+        print(error);
+        return;
+      }
       _profile.user = user;
       // 并行获取仓库、星标仓库、README
+      // 并行获取仓库、星标仓库、README
+      // 使用 Future.wait 获取结果，注意这里返回的是 List<dynamic>，其中每个元素都是 ApiResult
       final results = await Future.wait([
         _githubService.getRepos(token),
         _githubService.getStarredRepos(token, page: 1),
-        _githubService.getProfileReadme(user.login, token),
+        _githubService.getProfileReadme(user!.login, token),
       ]);
-      // 赋值
-      _profile.repos = results[0] as List<Repo>;
-      _profile.starredRepos = results[1] as List<Repo>;
-      _profile.profileReadme = results[2] as String?;
+
+      final reposResult = results[0] as ApiResult<List<Repo>>;
+      final starredResult = results[1] as ApiResult<List<Repo>>;
+      final readmeResult = results[2] as ApiResult<String?>;
+
+      // 简单处理：如果有错误就打印，数据设为空列表或 null
+      if (reposResult.$2 != null) print('Repos Error: ${reposResult.$2}');
+      if (starredResult.$2 != null) print('Starred Error: ${starredResult.$2}');
+      if (readmeResult.$2 != null) print('Readme Error: ${readmeResult.$2}');
+
+      _profile.repos = reposResult.$1 ?? [];
+      _profile.starredRepos = starredResult.$1 ?? [];
+      _profile.profileReadme = readmeResult.$1;
     } catch (e) {
       print('登录或获取用户信息失败：$e');
       logout();
@@ -79,18 +94,24 @@ class ProfileChange extends ChangeNotifier {
       return [];
     }
     try {
-      final newRepos = await _githubService.getStarredRepos(
+      final (newRepos, error) = await _githubService.getStarredRepos(
         _profile.token!,
         page: _profile.starredReposCurrentPage + 1,
       );
-      if (newRepos.isEmpty) {
+
+      if (error != null) {
+        print('加载更多星标仓库失败：$error');
+        return [];
+      }
+
+      if (newRepos == null || newRepos.isEmpty) {
         _profile.starredReposHasMore = false;
       } else {
         _profile.starredReposCurrentPage++;
         _profile.starredRepos.addAll(newRepos);
         notifyListeners();
       }
-      return newRepos;
+      return newRepos ?? [];
     } catch (e) {
       print('加载更多星标仓库失败：$e');
       return [];
@@ -103,18 +124,24 @@ class ProfileChange extends ChangeNotifier {
       return [];
     }
     try {
-      final newRepos = await _githubService.getRepos(
+      final (newRepos, error) = await _githubService.getRepos(
         _profile.token!,
         page: _profile.reposCurrentPage + 1,
       );
-      if (newRepos.isEmpty) {
+
+      if (error != null) {
+        print('加载更多仓库失败：$error');
+        return [];
+      }
+
+      if (newRepos == null || newRepos.isEmpty) {
         _profile.reposHasMore = false;
       } else {
         _profile.reposCurrentPage++;
         _profile.repos.addAll(newRepos);
         notifyListeners();
       }
-      return newRepos;
+      return newRepos ?? [];
     } catch (e) {
       print('加载更多仓库失败：$e');
       return [];

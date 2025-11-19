@@ -36,7 +36,7 @@ dependencies:
   flutter_markdown: ^0.6.0 # markdown渲染
   url_launcher: ^6.3.1 # 打开外部浏览器进行OAuth授权
   cupertino_icons: ^1.0.8
-  uni_links: ^0.5.1
+  app_links: ^6.3.1
   json_annotation: ^4.9.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0

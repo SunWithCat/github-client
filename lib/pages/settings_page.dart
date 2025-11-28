@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/theme/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     const String developer = 'SunWithCat';
     const projectUrl = 'https://github.com/SunWithCat/github-client';
-    return Scaffold(
+    return SafeScaffold(
       appBar: AppBar(
         title: const Text('设置'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,

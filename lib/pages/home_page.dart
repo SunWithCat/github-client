@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/pages/explore_page.dart';
 import 'package:ghclient/pages/repos_page.dart';
@@ -38,7 +39,7 @@ class HomePage extends StatelessWidget {
         statusBarIconBrightness:
             brightness == Brightness.dark ? Brightness.light : Brightness.dark,
       ),
-      child: Scaffold(
+      child: SafeScaffold(
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             Navigator.push(
@@ -97,7 +98,10 @@ class HomePage extends StatelessWidget {
                                         ),
                                       );
                                     },
-                                    icon: Icon(OctIcons.star_fill_16, color: Colors.yellow.shade700),
+                                    icon: Icon(
+                                      OctIcons.star_fill_16,
+                                      color: Colors.yellow.shade700,
+                                    ),
                                     label: Text('星标'),
                                   ),
                                 ],

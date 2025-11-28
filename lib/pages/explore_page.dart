@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/search_page.dart';
 import 'package:ghclient/profile_change.dart';
@@ -84,7 +85,7 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeScaffold(
       appBar: AppBar(
         title: const Text('探索热门仓库'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,

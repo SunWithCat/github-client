@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/services/github_service.dart';
@@ -206,7 +207,7 @@ class _RepoPageState extends State<RepoPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeScaffold(
       appBar: AppBar(
         title: Text(widget.repo.name),
         bottom: TabBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:ghclient/services/github_service.dart';
@@ -167,7 +168,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeScaffold(
       appBar: AppBar(
         title: const Text('搜索仓库'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,

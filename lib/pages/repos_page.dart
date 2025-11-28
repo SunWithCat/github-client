@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
+import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/profile_change.dart';
 import 'package:provider/provider.dart';
@@ -89,7 +90,7 @@ class _ReposPageState extends State<ReposPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeScaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: TextField(

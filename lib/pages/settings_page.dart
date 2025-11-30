@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
@@ -49,7 +50,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: Hero(
                   tag: 'user_avatar',
-                  child: CircleAvatar(backgroundImage: NetworkImage(avatarUrl)),
+                  child: CachedNetworkImage(
+                    key: ValueKey(avatarUrl),
+                    imageUrl: avatarUrl,
+                    imageBuilder:
+                        (context, imageProvider) =>
+                            CircleAvatar(backgroundImage: imageProvider),
+                    placeholder:
+                        (context, url) =>
+                            CircleAvatar(backgroundColor: Colors.transparent),
+                    errorWidget:
+                        (context, url, error) => CircleAvatar(
+                          backgroundColor: Colors.grey.shade300,
+                          child: const Icon(Icons.person),
+                        ),
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
+                  ),
                 ),
                 trailing: IconButton(
                   onPressed: () {

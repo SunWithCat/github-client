@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
@@ -233,9 +234,27 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: CircleAvatar(
-                  radius: 35,
-                  backgroundImage: NetworkImage(user.avatarUrl),
+                child: CachedNetworkImage(
+                  key: ValueKey(user.avatarUrl),
+                  imageUrl: user.avatarUrl,
+                  imageBuilder:
+                      (context, imageProvider) => CircleAvatar(
+                        radius: 35,
+                        backgroundImage: imageProvider,
+                      ),
+                  placeholder:
+                      (context, url) => CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.transparent,
+                      ),
+                  errorWidget:
+                      (context, url, error) => CircleAvatar(
+                        radius: 35,
+                        backgroundColor: Colors.grey.shade300,
+                        child: const Icon(Icons.person),
+                      ),
+                  fadeInDuration: Duration.zero,
+                  fadeOutDuration: Duration.zero,
                 ),
               ),
             ),

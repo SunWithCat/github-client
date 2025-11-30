@@ -18,8 +18,10 @@ void main() async {
   await Hive.initFlutter();
 
   const secureStorage = FlutterSecureStorage();
-  
-  final String? encryptionKeyString = await secureStorage.read(key: 'hive_encryption_key');
+
+  final String? encryptionKeyString = await secureStorage.read(
+    key: 'hive_encryption_key',
+  );
 
   if (encryptionKeyString == null) {
     final key = Hive.generateSecureKey();
@@ -40,6 +42,9 @@ void main() async {
   final storageService = StorageService();
   await storageService.init();
 
+  final profileChange = ProfileChange();
+  await profileChange.init();
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -50,7 +55,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => ProfileChange()..init()),
+        ChangeNotifierProvider.value(value: profileChange),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const MyApp(),

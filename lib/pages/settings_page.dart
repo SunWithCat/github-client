@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:ghclient/theme/theme_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsPage extends StatefulWidget {
+/// 设置页：使用 ConsumerWidget
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final githubBlue = const Color(0xFFB3D4FC);
-    final profileUser = context.watch<ProfileChange>().profile.user;
+    // 🔄 使用 ref.watch 获取用户数据
+    final profileUser = ref.watch(userProvider);
 
     if (profileUser == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -72,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) {
+                      builder: (dialogContext) {
                         return AlertDialog(
                           title: const Text('退出登录'),
                           content: const Text('你确定要退出这个帐号吗？'),
@@ -81,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           actions: [
                             TextButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Navigator.pop(dialogContext),
                               child: Text(
                                 '取消',
                                 style: TextStyle(
@@ -91,17 +87,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             TextButton(
                               onPressed: () {
-                                final profileChange =
-                                    Provider.of<ProfileChange>(
-                                      context,
-                                      listen: false,
-                                    );
-                                final navigator = Navigator.of(context);
-                                // 先关闭对话框
+                                // 🔄 使用 ref.read 获取 notifier 来执行退出
+                                ref.read(profileProvider.notifier).logout();
+                                final navigator = Navigator.of(dialogContext);
                                 navigator.pop();
-                                // 然后执行退出登录
-                                profileChange.logout();
-                                // 导航到根路由，并移除所有历史记录
                                 navigator.pushNamedAndRemoveUntil(
                                   '/',
                                   (route) => false,
@@ -147,10 +136,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: Text(isDarkMode ? '已开启' : '已关闭'),
                 value: isDarkMode,
                 onChanged: (bool value) {
-                  Provider.of<ThemeProvider>(
-                    context,
-                    listen: false,
-                  ).toggleTheme();
+                  // 🔄 使用 ref.read 获取 notifier 来切换主题
+                  ref.read(themeProvider.notifier).toggleTheme();
                 },
                 secondary: Icon(
                   isDarkMode ? OctIcons.moon_16 : OctIcons.sun_16,
@@ -224,7 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSectionTitle(context, String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, left: 8.0),
       child: Text(
@@ -238,7 +225,10 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSettingsCard(context, {required List<Widget> children}) {
+  Widget _buildSettingsCard(
+    BuildContext context, {
+    required List<Widget> children,
+  }) {
     return Card(
       clipBehavior: Clip.antiAlias, // 裁切多余的边角
       elevation: 0,

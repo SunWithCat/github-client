@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:ghclient/profile_change.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
-import 'dart:async'; // 引入异步库
+import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
-import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
+/// 登录页：使用 ConsumerStatefulWidget
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isLoading = false;
   StreamSubscription? _sub; // 用于取消监听
 
@@ -56,7 +57,8 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-      final profileChange = Provider.of<ProfileChange>(context, listen: false);
+      // 🔄 使用 ref.read 获取 notifier
+      final profileNotifier = ref.read(profileProvider.notifier);
       final navigator = Navigator.of(context);
 
       try {
@@ -67,9 +69,8 @@ class _LoginPageState extends State<LoginPage> {
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
         );
-        final dio = Dio(); // 创建一个Dio实例，用于发起网络请求
+        final dio = Dio();
 
-        // 异步发送POST请求到GitHub，用`code`换取`access_token`
         final response = await dio.post(
           'https://github.com/login/oauth/access_token',
           data: {
@@ -77,9 +78,7 @@ class _LoginPageState extends State<LoginPage> {
             'client_secret': AppConfig.githubClientSecret,
             'code': code,
           },
-          options: Options(
-            headers: {'Accept': 'application/json'},
-          ), // 返回的数据打包成JSON格式
+          options: Options(headers: {'Accept': 'application/json'}),
         );
         if (!mounted) return;
         if (response.statusCode == 200) {
@@ -88,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
           await storage.init();
           await storage.saveToken(accessToken);
           if (!mounted) return;
-          profileChange.login(accessToken);
+          profileNotifier.login(accessToken);
           navigator.pushReplacementNamed('/');
         }
       } catch (e) {

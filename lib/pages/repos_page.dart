@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:provider/provider.dart';
 
-class ReposPage extends StatefulWidget {
+/// 仓库列表页：使用 ConsumerStatefulWidget 来支持有状态组件
+class ReposPage extends ConsumerStatefulWidget {
   const ReposPage({super.key});
 
   @override
-  State<ReposPage> createState() => _ReposPageState();
+  ConsumerState<ReposPage> createState() => _ReposPageState();
 }
 
-class _ReposPageState extends State<ReposPage> {
+class _ReposPageState extends ConsumerState<ReposPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -24,7 +25,8 @@ class _ReposPageState extends State<ReposPage> {
   @override
   void initState() {
     super.initState();
-    _repos = context.read<ProfileChange>().profile.repos;
+    // 🔄 使用 ref.read 获取初始数据
+    _repos = ref.read(profileProvider).repos;
     _filteredRepos = _repos;
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -47,16 +49,18 @@ class _ReposPageState extends State<ReposPage> {
       _isLoading = true;
     });
     try {
-      final profileChange = context.read<ProfileChange>();
-      final newRepos = await profileChange.loadMoreRepos();
+      // 🔄 使用 ref.read 获取 notifier 来加载更多
+      final notifier = ref.read(profileProvider.notifier);
+      final newRepos = await notifier.loadMoreRepos();
       if (newRepos.isEmpty) {
         setState(() {
           _hasMore = false;
         });
       } else {
+        final profileState = ref.read(profileProvider);
         setState(() {
-          _repos = profileChange.profile.repos;
-          _hasMore = profileChange.profile.reposHasMore;
+          _repos = profileState.repos;
+          _hasMore = profileState.reposHasMore;
           _filterRepos(_searchController.text);
         });
       }

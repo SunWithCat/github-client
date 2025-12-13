@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:ghclient/services/github_service.dart';
-import 'package:provider/provider.dart';
 
-class SearchPage extends StatefulWidget {
+/// 搜索页：使用 ConsumerStatefulWidget 来支持有状态组件
+class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  ConsumerState<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends ConsumerState<SearchPage> {
   final TextEditingController _textEditingController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final GithubService _githubService = GithubService.instance;
 
   List<Repo> _repos = [];
   bool _isLoading = false;
@@ -57,7 +56,8 @@ class _SearchPageState extends State<SearchPage> {
       _currentQuery = query;
     });
 
-    final token = context.read<ProfileChange>().profile.token;
+    // 🔄 使用 ref.read 获取 token
+    final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
         setState(() {
@@ -67,7 +67,9 @@ class _SearchPageState extends State<SearchPage> {
       return;
     }
     try {
-      final (repos, error) = await _githubService.searchRepos(
+      // 🔄 使用 ref.read 获取 GitHub 服务
+      final githubService = ref.read(githubServiceProvider);
+      final (repos, error) = await githubService.searchRepos(
         token,
         _currentQuery,
         page: _page,
@@ -83,7 +85,7 @@ class _SearchPageState extends State<SearchPage> {
         });
       }
     } catch (e) {
-      print('搜搜仓库失败：$e');
+      print('搜索仓库失败：$e');
     } finally {
       if (mounted) {
         setState(() {
@@ -94,12 +96,14 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _loadMore() async {
-    if (_isLoading || _isLoadingMore || !_hasMore || _currentQuery.isEmpty)
+    if (_isLoading || _isLoadingMore || !_hasMore || _currentQuery.isEmpty) {
       return;
+    }
     setState(() {
       _isLoadingMore = true;
     });
-    final token = context.read<ProfileChange>().profile.token;
+
+    final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
         setState(() {
@@ -110,7 +114,8 @@ class _SearchPageState extends State<SearchPage> {
     }
     try {
       _page++;
-      final (newRepos, error) = await _githubService.searchRepos(
+      final githubService = ref.read(githubServiceProvider);
+      final (newRepos, error) = await githubService.searchRepos(
         token,
         _currentQuery,
         page: _page,

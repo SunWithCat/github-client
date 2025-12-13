@@ -1,13 +1,18 @@
+// =============================================================
+// 📱 GhClient 应用入口
+// =============================================================
+// 使用 Riverpod 进行状态管理
+// =============================================================
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
-import './profile_change.dart';
-import 'package:provider/provider.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
-import './theme/theme_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -15,10 +20,11 @@ void main() async {
   // 确保Flutter应用在运行前已经初始化
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 初始化 Hive
   await Hive.initFlutter();
 
+  // 初始化安全存储和加密
   const secureStorage = FlutterSecureStorage();
-
   final String? encryptionKeyString = await secureStorage.read(
     key: 'hive_encryption_key',
   );
@@ -34,17 +40,13 @@ void main() async {
   final keyString = await secureStorage.read(key: 'hive_encryption_key');
   final Uint8List encryptionKey = base64Url.decode(keyString!);
 
-  await Hive.openBox(
-    'authBox',
-    encryptionCipher: HiveAesCipher(encryptionKey), // 使用 encryptionCipher 参数
-  );
+  await Hive.openBox('authBox', encryptionCipher: HiveAesCipher(encryptionKey));
 
+  // 初始化 StorageService
   final storageService = StorageService();
   await storageService.init();
 
-  final profileChange = ProfileChange();
-  await profileChange.init();
-
+  // 设置系统 UI 样式
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -52,29 +54,30 @@ void main() async {
       systemNavigationBarColor: Colors.transparent,
     ),
   );
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: profileChange),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+
+  // 🎉 使用 ProviderScope 包装应用（Riverpod 的根组件）
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
+/// 应用根组件 - 使用 ConsumerStatefulWidget 来监听 Riverpod 状态
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // 🚀 在应用启动时初始化 Profile 状态
+    // 使用 addPostFrameCallback 确保 build 完成后再初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileProvider.notifier).init();
+    });
   }
 
   @override
@@ -92,14 +95,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final profileChange = context.watch<ProfileChange>();
-    final bool isLoading = profileChange.isLoading;
-    final bool isLoggedIn = profileChange.isLoggedIn;
+    // 🔄 使用 ref.watch 监听状态变化
+    final themeData = ref.watch(themeProvider);
+    final profileState = ref.watch(profileProvider);
+    final bool isLoading = profileState.isLoading;
+    final bool isLoggedIn = profileState.isLoggedIn;
 
     // 根据当前主题的亮度决定状态栏图标的颜色
     final Brightness statusBarIconBrightness =
-        themeProvider.themeData.brightness == Brightness.dark
+        themeData.brightness == Brightness.dark
             ? Brightness.light
             : Brightness.dark;
 
@@ -129,7 +133,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 : isLoggedIn
                 ? const HomePage()
                 : const LoginPage(),
-        theme: themeProvider.themeData,
+        theme: themeData,
       ),
     );
   }

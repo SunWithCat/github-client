@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:provider/provider.dart';
 
-class StarredReposPage extends StatefulWidget {
+/// 星标仓库页：使用 ConsumerStatefulWidget 来支持有状态组件
+class StarredReposPage extends ConsumerStatefulWidget {
   const StarredReposPage({super.key});
 
   @override
-  State<StarredReposPage> createState() => _StarredReposPageState();
+  ConsumerState<StarredReposPage> createState() => _StarredReposPageState();
 }
 
-class _StarredReposPageState extends State<StarredReposPage> {
+class _StarredReposPageState extends ConsumerState<StarredReposPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   List<Repo> _repos = [];
@@ -23,7 +24,8 @@ class _StarredReposPageState extends State<StarredReposPage> {
   @override
   void initState() {
     super.initState();
-    _repos = context.read<ProfileChange>().profile.starredRepos;
+    // 🔄 使用 ref.read 获取初始数据
+    _repos = ref.read(profileProvider).starredRepos;
     _filteredRepos = _repos;
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
@@ -47,16 +49,18 @@ class _StarredReposPageState extends State<StarredReposPage> {
     });
 
     try {
-      final profileChange = context.read<ProfileChange>();
-      final newRepos = await profileChange.loadMoreStarredRepos();
+      // 🔄 使用 ref.read 获取 notifier 来加载更多
+      final notifier = ref.read(profileProvider.notifier);
+      final newRepos = await notifier.loadMoreStarredRepos();
       if (newRepos.isEmpty) {
         setState(() {
           _hasMore = false;
         });
       } else {
+        final profileState = ref.read(profileProvider);
         setState(() {
-          _repos = profileChange.profile.starredRepos;
-          _hasMore = profileChange.profile.starredReposHasMore;
+          _repos = profileState.starredRepos;
+          _hasMore = profileState.starredReposHasMore;
           _filterRepos(_searchController.text);
         });
       }

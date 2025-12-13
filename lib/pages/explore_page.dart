@@ -1,31 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/search_page.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:ghclient/services/github_service.dart';
-import 'package:provider/provider.dart';
 
-class ExplorePage extends StatefulWidget {
+/// 探索页：使用 ConsumerStatefulWidget 来支持有状态组件
+class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
 
   @override
-  State<ExplorePage> createState() => _ExplorePageState();
+  ConsumerState<ExplorePage> createState() => _ExplorePageState();
 }
 
-class _ExplorePageState extends State<ExplorePage> {
+class _ExplorePageState extends ConsumerState<ExplorePage> {
   bool _isLoading = true;
   List<Repo> _trendingRepos = [];
   String _selectedTimeRange = 'monthly';
-
-  // final Map<String, String> _timeRangeLabels = {
-  //   'daily': '今日热门',
-  //   'weekly': '本周热门',
-  //   'monthly': '本月热门',
-  // };
-
   DateTime _loadingCompleteTime = DateTime.now();
 
   @override
@@ -38,7 +31,8 @@ class _ExplorePageState extends State<ExplorePage> {
     setState(() {
       _isLoading = true;
     });
-    final token = context.read<ProfileChange>().profile.token;
+    // 🔄 使用 ref.read 获取 token
+    final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
         setState(() {
@@ -48,7 +42,8 @@ class _ExplorePageState extends State<ExplorePage> {
       return;
     }
     try {
-      final githubService = GithubService.instance; // 使用单例
+      // 🔄 使用 ref.read 获取 GitHub 服务
+      final githubService = ref.read(githubServiceProvider);
       final (repos, error) = await githubService.getTrendingRepos(
         token,
         timeRange: _selectedTimeRange,

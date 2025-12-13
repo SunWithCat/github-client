@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail_page.dart';
-import 'package:ghclient/profile_change.dart';
-import 'package:provider/provider.dart';
 
-class RepoItem extends StatelessWidget {
+/// 仓库列表项组件：使用 ConsumerWidget
+class RepoItem extends ConsumerWidget {
   final Repo repo;
   const RepoItem({super.key, required this.repo});
 
@@ -65,20 +66,17 @@ class RepoItem extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      color: theme.cardTheme.color, // 使用主题中定义的卡片颜色
-      elevation: theme.cardTheme.elevation, // 使用主题中定义的阴影
-      shadowColor: theme.cardTheme.shadowColor, // 使用主题中定义的阴影颜色
+      color: theme.cardTheme.color,
+      elevation: theme.cardTheme.elevation,
+      shadowColor: theme.cardTheme.shadowColor,
       child: InkWell(
         onTap: () {
-          final profileChange = Provider.of<ProfileChange>(
-            context,
-            listen: false,
-          );
-          final token = profileChange.profile.token;
+          // 🔄 使用 ref.read 获取 token
+          final token = ref.read(tokenProvider);
           if (token != null) {
             Navigator.push(
               context,
@@ -133,7 +131,6 @@ class RepoItem extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 16),
-
               Row(
                 children: [
                   if (repo.language != null) ...[
@@ -149,7 +146,11 @@ class RepoItem extends StatelessWidget {
                     Text(repo.language!),
                     const SizedBox(width: 16),
                   ],
-                  Icon(OctIcons.star_fill_16, size: 16, color: Colors.yellow.shade700),
+                  Icon(
+                    OctIcons.star_fill_16,
+                    size: 16,
+                    color: Colors.yellow.shade700,
+                  ),
                   const SizedBox(width: 4),
                   Text(formatNumber(repo.starCount)),
                   const SizedBox(width: 16),

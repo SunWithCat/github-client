@@ -3,17 +3,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/pages/explore_page.dart';
 import 'package:ghclient/pages/repos_page.dart';
 import 'package:ghclient/pages/settings_page.dart';
 import 'package:ghclient/pages/starred_repos_page.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../profile_change.dart';
-import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+/// 首页：使用 ConsumerWidget 来监听 Riverpod 状态
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   // 格式化日期显示
@@ -29,11 +30,12 @@ class HomePage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final notifier = context.watch<ProfileChange>();
-    final user = notifier.profile.user;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 🔄 使用 ref.watch 监听 Profile 状态
+    final profileState = ref.watch(profileProvider);
+    final user = profileState.user;
     final brightness = Theme.of(context).brightness;
-    final profileReadme = notifier.profile.profileReadme;
+    final profileReadme = profileState.profileReadme;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -76,7 +78,7 @@ class HomePage extends StatelessWidget {
                                   const Icon(OctIcons.mark_github_16, size: 20),
                                   const SizedBox(width: 8),
                                   Text('${user.publicRepos}个公开的仓库'),
-                                  const Spacer(), // 添加Spacer以将按钮推到右侧
+                                  const Spacer(),
                                   TextButton.icon(
                                     onPressed: () {
                                       Navigator.push(
@@ -86,8 +88,8 @@ class HomePage extends StatelessWidget {
                                         ),
                                       );
                                     },
-                                    icon: Icon(OctIcons.repo_16), // 使用文件夹图标
-                                    label: Text('仓库'), // 添加文本指示
+                                    icon: Icon(OctIcons.repo_16),
+                                    label: Text('仓库'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () {
@@ -130,7 +132,6 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              // 地址/博客
                               if (user.location != null)
                                 Row(
                                   children: [
@@ -144,13 +145,10 @@ class HomePage extends StatelessWidget {
                                   ],
                                 ),
                               const Divider(height: 32),
-                              // README
                               profileReadme != null
                                   ? Card(
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        12.0,
-                                      ), // 设置圆角
+                                      borderRadius: BorderRadius.circular(12.0),
                                     ),
                                     color:
                                         Theme.of(context).colorScheme.surface,
@@ -163,7 +161,6 @@ class HomePage extends StatelessWidget {
                                         data: profileReadme,
                                         selectable: true,
                                         onTapLink: (text, href, title) {
-                                          // 打开链接
                                           if (href != null) {
                                             launchUrl(Uri.parse(href));
                                           }
@@ -181,10 +178,8 @@ class HomePage extends StatelessWidget {
             ),
           ),
           onRefresh: () async {
-            // 下拉刷新
-            if (notifier.profile.token != null) {
-              await notifier.login(notifier.profile.token!);
-            }
+            // 🔄 使用 ref.read 获取 notifier 来执行刷新
+            await ref.read(profileProvider.notifier).refreshData();
           },
         ),
       ),

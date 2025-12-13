@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/services/github_service.dart';
@@ -8,16 +10,16 @@ import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:markdown/markdown.dart' as md;
 
-class RepoPage extends StatefulWidget {
+class RepoPage extends ConsumerStatefulWidget {
   final Repo repo;
   final String token;
   const RepoPage({super.key, required this.repo, required this.token});
 
   @override
-  State<RepoPage> createState() => _RepoPageState();
+  ConsumerState<RepoPage> createState() => _ConsumerRepoPageState();
 }
 
-class _RepoPageState extends State<RepoPage>
+class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _issuesScrollController = ScrollController();
@@ -66,7 +68,7 @@ class _RepoPageState extends State<RepoPage>
     });
 
     try {
-      final githubService = GithubService.instance;
+      final githubService = ref.read(githubServiceProvider);
       final (newIssues, error) = await githubService.getIssues(
         widget.repo.owner,
         widget.repo.name,
@@ -105,7 +107,7 @@ class _RepoPageState extends State<RepoPage>
     });
 
     try {
-      final githubService = GithubService.instance;
+      final githubService = ref.read(githubServiceProvider);
       final (newCommits, error) = await githubService.getCommits(
         widget.repo.owner,
         widget.repo.name,
@@ -142,7 +144,7 @@ class _RepoPageState extends State<RepoPage>
     });
 
     try {
-      final githubService = GithubService.instance;
+      final githubService = ref.read(githubServiceProvider);
       final responses = await Future.wait([
         githubService.getReadme(
           widget.repo.owner,
@@ -312,7 +314,7 @@ class _RepoPageState extends State<RepoPage>
                   child: MarkdownBody(
                     data: _preprocessMarkdownContent(readmeContent!),
                     selectable: true,
-                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                    styleSheet: _buildMarkdownStyleSheet(context),
                     onTapLink: (text, href, title) {
                       launchUrl(Uri.parse(href!));
                     },
@@ -511,6 +513,100 @@ class _RepoPageState extends State<RepoPage>
         // 将 HTML img 转换为 Markdown 格式
         return '![$alt]($src)';
       },
+    );
+  }
+
+  /// 构建自定义 Markdown 样式表 ✨
+  /// 针对深色/浅色模式进行优化，使引用块、代码块等区域更加醒目
+  MarkdownStyleSheet _buildMarkdownStyleSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final baseSheet = MarkdownStyleSheet.fromTheme(theme);
+
+    // 引用块的装饰配色 - 使用更温和、对比度更高的颜色
+    // 深色模式：使用金色边框 + 深灰背景
+    // 浅色模式：使用蓝灰边框 + 淡灰背景
+    final blockquoteDecoration = BoxDecoration(
+      color:
+          isDark ? Colors.grey.shade800.withOpacity(0.6) : Colors.grey.shade100,
+      border: Border(
+        left: BorderSide(
+          color: isDark ? Colors.amber.shade600 : Colors.blueGrey.shade400,
+          width: 4,
+        ),
+      ),
+      borderRadius: const BorderRadius.only(
+        topRight: Radius.circular(4),
+        bottomRight: Radius.circular(4),
+      ),
+    );
+
+    // 代码块装饰 - 更柔和的背景色
+    final codeblockDecoration = BoxDecoration(
+      color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(
+        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        width: 1,
+      ),
+    );
+
+    // 行内代码样式
+    final codeTextStyle = TextStyle(
+      backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      color: isDark ? Colors.orange.shade300 : Colors.deepOrange.shade700,
+      fontFamily: 'monospace',
+      fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 14) * 0.9,
+    );
+
+    return baseSheet.copyWith(
+      // 引用块样式 - 核心优化点 ⭐
+      blockquote: theme.textTheme.bodyMedium?.copyWith(
+        color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+        fontStyle: FontStyle.italic,
+      ),
+      blockquoteDecoration: blockquoteDecoration,
+      blockquotePadding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+
+      // 代码块样式
+      code: codeTextStyle,
+      codeblockDecoration: codeblockDecoration,
+      codeblockPadding: const EdgeInsets.all(12),
+
+      // 表格样式
+      tableHead: theme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+      tableBody: theme.textTheme.bodyMedium,
+      tableBorder: TableBorder.all(
+        color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+        width: 1,
+      ),
+      tableHeadAlign: TextAlign.center,
+      tableCellsPadding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
+
+      // 链接样式 - 更醒目
+      a: TextStyle(
+        color: isDark ? Colors.lightBlue.shade300 : Colors.blue.shade700,
+        decoration: TextDecoration.underline,
+        decorationColor:
+            isDark
+                ? Colors.lightBlue.shade300.withOpacity(0.5)
+                : Colors.blue.shade700.withOpacity(0.5),
+      ),
+
+      // 水平分隔线
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            width: 1,
+          ),
+        ),
+      ),
     );
   }
 

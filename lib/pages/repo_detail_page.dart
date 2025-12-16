@@ -20,7 +20,10 @@ class RepoPage extends ConsumerStatefulWidget {
 }
 
 class _ConsumerRepoPageState extends ConsumerState<RepoPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  // 保持 Tab 切换时的状态，防止重建
+  @override
+  bool get wantKeepAlive => true;
   late TabController _tabController;
   final _issuesScrollController = ScrollController();
   final _commitsScrollController = ScrollController();
@@ -37,6 +40,10 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   bool hasMoreIssues = true;
   bool hasMoreCommits = true;
 
+  // 缓存 Markdown 样式表和预处理内容
+  MarkdownStyleSheet? _cachedStyleSheet;
+  String? _preprocessedReadme;
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +51,13 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     _issuesScrollController.addListener(_onIssuesScroll);
     _commitsScrollController.addListener(_onCommitsScroll);
     _fetchRepoDetails();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 在主题变化时重建样式表
+    _cachedStyleSheet = _buildMarkdownStyleSheet(context);
   }
 
   void _onIssuesScroll() {
@@ -177,6 +191,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
       if (mounted) {
         setState(() {
           readmeContent = readmeResult.$1;
+          // 性能优化：在数据加载时就预处理 Markdown，而不是每次 build
+          _preprocessedReadme =
+              readmeContent != null
+                  ? _preprocessMarkdownContent(readmeContent!)
+                  : null;
           issues = issuesResult.$1 ?? [];
           commits = commitsResult.$1 ?? [];
           contributors = contributorsResult.$1 ?? [];
@@ -209,6 +228,8 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
 
   @override
   Widget build(BuildContext context) {
+    // AutomaticKeepAliveClientMixin 要求调用 super.build
+    super.build(context);
     return SafeScaffold(
       appBar: AppBar(
         title: Text(widget.repo.name),
@@ -312,9 +333,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                 padding: const EdgeInsets.all(8),
                 child: SelectionArea(
                   child: MarkdownBody(
-                    data: _preprocessMarkdownContent(readmeContent!),
+                    // 使用预处理后的缓存内容
+                    data: _preprocessedReadme ?? '',
                     selectable: true,
-                    styleSheet: _buildMarkdownStyleSheet(context),
+                    // 使用缓存的样式表
+                    styleSheet: _cachedStyleSheet,
                     onTapLink: (text, href, title) {
                       launchUrl(Uri.parse(href!));
                     },

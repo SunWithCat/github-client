@@ -331,26 +331,25 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: SelectionArea(
-                  child: MarkdownBody(
-                    // 使用预处理后的缓存内容
-                    data: _preprocessedReadme ?? '',
-                    selectable: true,
-                    // 使用缓存的样式表
-                    styleSheet: _cachedStyleSheet,
-                    onTapLink: (text, href, title) {
-                      launchUrl(Uri.parse(href!));
-                    },
-                    // imageBuilder: (uri, title, alt) {
-                    //   return _buildMarkdownImage(uri, title, alt);
-                    // },
-                    extensionSet: md.ExtensionSet(
-                      md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                      [
-                        md.EmojiSyntax(),
-                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-                      ],
-                    ),
+
+                child: MarkdownBody(
+                  // 使用预处理后的缓存内容
+                  data: _preprocessedReadme ?? '',
+                  selectable: true,
+                  // 使用缓存的样式表
+                  styleSheet: _cachedStyleSheet,
+                  onTapLink: (text, href, title) {
+                    launchUrl(Uri.parse(href!));
+                  },
+                  imageBuilder: (uri, title, alt) {
+                    return _buildMarkdownImage(uri, title, alt);
+                  },
+                  extensionSet: md.ExtensionSet(
+                    md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                    [
+                      md.EmojiSyntax(),
+                      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                    ],
                   ),
                 ),
               ),

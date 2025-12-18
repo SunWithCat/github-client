@@ -4,6 +4,7 @@ import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/utils/debouncer.dart';
 
 /// 星标仓库页：使用 ConsumerStatefulWidget 来支持有状态组件
 class StarredReposPage extends ConsumerStatefulWidget {
@@ -20,6 +21,7 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
   List<Repo> _filteredRepos = [];
   bool _isLoading = false;
   bool _hasMore = true;
+  final _debouncer = Debouncer(milliseconds: 300);
 
   @override
   void initState() {
@@ -28,8 +30,8 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
     _repos = ref.read(profileProvider).starredRepos;
     _filteredRepos = _repos;
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 300) {
         _loadMore();
       }
     });
@@ -39,6 +41,7 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -99,7 +102,11 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
         title: TextField(
           controller: _searchController,
           autofocus: false,
-          onChanged: _filterRepos,
+          onChanged: (value) {
+            _debouncer.run(() {
+              _filterRepos(value);
+            });
+          },
           decoration: InputDecoration(
             hintText: '搜索你的星标仓库...',
             hintStyle: TextStyle(color: Colors.grey[500]),

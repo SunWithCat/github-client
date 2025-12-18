@@ -4,6 +4,7 @@ import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/utils/debouncer.dart';
 
 /// 仓库列表页：使用 ConsumerStatefulWidget 来支持有状态组件
 class ReposPage extends ConsumerStatefulWidget {
@@ -22,6 +23,8 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   bool _isLoading = false;
   bool _hasMore = true;
 
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
   @override
   void initState() {
     super.initState();
@@ -29,8 +32,8 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     _repos = ref.read(profileProvider).repos;
     _filteredRepos = _repos;
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 300) {
         _loadMore();
       }
     });
@@ -41,6 +44,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     super.dispose();
     _scrollController.dispose();
     _searchController.dispose();
+    _debouncer.dispose();
   }
 
   Future<void> _loadMore() async {
@@ -100,7 +104,11 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         title: TextField(
           controller: _searchController,
           autofocus: false,
-          onChanged: _filterRepos,
+          onChanged: (value) {
+            _debouncer.run(() {
+              _filterRepos(value);
+            });
+          },
           decoration: InputDecoration(
             hintText: '搜索你的仓库...',
             hintStyle: TextStyle(color: Colors.grey[500]),

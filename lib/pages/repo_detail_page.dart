@@ -25,20 +25,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   @override
   bool get wantKeepAlive => true;
   late TabController _tabController;
-  final _issuesScrollController = ScrollController();
-  final _commitsScrollController = ScrollController();
   String? readmeContent;
   bool isLoading = true;
   List<dynamic> issues = [];
   List<dynamic> commits = [];
   List<dynamic> contributors = [];
-
-  // 分页加载相关状态
-  bool isLoadingMore = false;
-  int issuesPage = 1;
-  int commitsPage = 1;
-  bool hasMoreIssues = true;
-  bool hasMoreCommits = true;
 
   // 缓存 Markdown 样式表和预处理内容
   MarkdownStyleSheet? _cachedStyleSheet;
@@ -48,8 +39,6 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _issuesScrollController.addListener(_onIssuesScroll);
-    _commitsScrollController.addListener(_onCommitsScroll);
     _fetchRepoDetails();
   }
 
@@ -58,98 +47,6 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     super.didChangeDependencies();
     // 在主题变化时重建样式表
     _cachedStyleSheet = _buildMarkdownStyleSheet(context);
-  }
-
-  void _onIssuesScroll() {
-    if (_issuesScrollController.position.pixels ==
-        _issuesScrollController.position.maxScrollExtent) {
-      _loadMoreIssues();
-    }
-  }
-
-  void _onCommitsScroll() {
-    if (_commitsScrollController.position.pixels ==
-        _commitsScrollController.position.maxScrollExtent) {
-      _loadMoreCommits();
-    }
-  }
-
-  Future<void> _loadMoreIssues() async {
-    if (isLoadingMore || !hasMoreIssues) return;
-
-    setState(() {
-      isLoadingMore = true;
-    });
-
-    try {
-      final githubService = ref.read(githubServiceProvider);
-      final (newIssues, error) = await githubService.getIssues(
-        widget.repo.owner,
-        widget.repo.name,
-        widget.token,
-        page: issuesPage + 1,
-      );
-
-      if (mounted) {
-        setState(() {
-          if (error != null) {
-            print('加载更多 Issues 失败：$error');
-          } else if (newIssues == null || newIssues.isEmpty) {
-            hasMoreIssues = false;
-          } else {
-            issues.addAll(newIssues);
-            issuesPage++;
-          }
-        });
-      }
-    } catch (e) {
-      print('加载更多 Issues 失败：$e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoadingMore = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadMoreCommits() async {
-    if (isLoadingMore || !hasMoreCommits) return;
-
-    setState(() {
-      isLoadingMore = true;
-    });
-
-    try {
-      final githubService = ref.read(githubServiceProvider);
-      final (newCommits, error) = await githubService.getCommits(
-        widget.repo.owner,
-        widget.repo.name,
-        widget.token,
-        page: commitsPage + 1,
-      );
-
-      if (mounted) {
-        setState(() {
-          if (error != null) {
-            print('加载更多提交记录失败：$error');
-          } else if (newCommits == null || newCommits.isEmpty) {
-            hasMoreCommits = false;
-          } else {
-            commits.addAll(newCommits);
-            commitsPage++;
-          }
-        });
-      }
-    } catch (e) {
-      print('加载更多提交记录失败：$e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoadingMore = false;
-        });
-      }
-    }
   }
 
   Future<void> _fetchRepoDetails() async {
@@ -199,12 +96,6 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
           issues = issuesResult.$1 ?? [];
           commits = commitsResult.$1 ?? [];
           contributors = contributorsResult.$1 ?? [];
-          if (issues.length < 10) {
-            hasMoreIssues = false;
-          }
-          if (commits.length < 10) {
-            hasMoreCommits = false;
-          }
         });
       }
     } catch (e) {
@@ -221,8 +112,6 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   @override
   void dispose() {
     _tabController.dispose();
-    _issuesScrollController.dispose();
-    _commitsScrollController.dispose();
     super.dispose();
   }
 
@@ -250,247 +139,30 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
               : TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildOverviewTab(),
-                  _buildIssuesTab(),
-                  _buildCommitsTab(),
-                  _buildContributorsTab(),
+                  OverviewTab(
+                    repo: widget.repo,
+                    readmeContent: readmeContent,
+                    preprocessedReadme: _preprocessedReadme,
+                    styleSheet: _cachedStyleSheet,
+                  ),
+                  IssuesTab(
+                    repo: widget.repo,
+                    token: widget.token,
+                    initialIssues: issues,
+                  ),
+                  CommitsTab(
+                    repo: widget.repo,
+                    token: widget.token,
+                    initialCommits: commits,
+                  ),
+                  ContributorsTab(contributors: contributors),
                 ],
               ),
-    );
-  }
-
-  Widget _buildOverviewTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.repo.description != null &&
-                      widget.repo.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        widget.repo.description!,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  Row(
-                    children: [
-                      _buildStatItem(
-                        OctIcons.star_fill_16,
-                        widget.repo.starCount.toString(),
-                        '星标',
-                      ),
-                      const SizedBox(width: 16),
-                      _buildStatItem(
-                        OctIcons.repo_forked_16,
-                        widget.repo.forkCount.toString(),
-                        '分支',
-                      ),
-                      const SizedBox(width: 16),
-                      if (widget.repo.language != null)
-                        _buildStatItem(
-                          OctIcons.code_16,
-                          widget.repo.language!,
-                          '语言',
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(
-                        'https://github.com/${widget.repo.owner}/${widget.repo.name}',
-                      );
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      }
-                    },
-                    icon: const Icon(OctIcons.mark_github_16),
-                    label: const Text('在GitHub上查看'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (readmeContent != null) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'README',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-
-                child: MarkdownBody(
-                  // 使用预处理后的缓存内容
-                  data: _preprocessedReadme ?? '',
-                  selectable: true,
-                  // 使用缓存的样式表
-                  styleSheet: _cachedStyleSheet,
-                  onTapLink: (text, href, title) {
-                    launchUrl(Uri.parse(href!));
-                  },
-                  imageBuilder: (uri, title, alt) {
-                    return _buildMarkdownImage(uri, title, alt);
-                  },
-                  extensionSet: md.ExtensionSet(
-                    md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                    [
-                      md.EmojiSyntax(),
-                      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ] else
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('此仓库没有README文件'),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIssuesTab() {
-    if (issues.isEmpty && !isLoading) {
-      return const Center(child: Text('没有 Issues'));
-    }
-
-    return ListView.builder(
-      controller: _issuesScrollController,
-      itemCount: issues.length + (hasMoreIssues || isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == issues.length) {
-          // 加载更多指示器
-          return Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.center,
-            child:
-                isLoadingMore
-                    ? const CircularProgressIndicator()
-                    : hasMoreIssues
-                    ? const Text('下拉加载更多')
-                    : const Text('没有更多了'),
-          );
-        }
-
-        final issue = issues[index];
-        final isOpen = issue['state'] == 'open';
-
-        return ListTile(
-          leading: Icon(
-            isOpen ? OctIcons.issue_opened_16 : OctIcons.issue_closed_16,
-            color: isOpen ? Colors.green : Colors.purple,
-          ),
-          title: Text(issue['title']),
-          subtitle: Text('#${issue['number']} 由 ${issue['user']['login']} 创建'),
-          onTap: () async {
-            final url = Uri.parse(issue['html_url']);
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url);
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildCommitsTab() {
-    if (commits.isEmpty && !isLoading) {
-      return const Center(child: Text('没有提交记录'));
-    }
-
-    return ListView.builder(
-      controller: _commitsScrollController,
-      itemCount: commits.length + (hasMoreCommits || isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == commits.length) {
-          // 加载更多指示器
-          return Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.center,
-            child:
-                isLoadingMore
-                    ? const CircularProgressIndicator()
-                    : hasMoreCommits
-                    ? const Text('下拉加载更多')
-                    : const Text('没有更多了'),
-          );
-        }
-
-        final commit = commits[index];
-        final commitInfo = commit['commit'];
-        final author = commitInfo['author'];
-        final committer = commit['author'] ?? {'login': author['name']};
-        return ListTile(
-          leading:
-              committer['avatar_url'] != null
-                  ? CircleAvatar(
-                    backgroundImage: NetworkImage(committer['avatar_url']),
-                  )
-                  : const CircleAvatar(child: Icon(OctIcons.person_16)),
-          title: Text(
-            commitInfo['message'].toString().split('\n').first,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${committer['login'] ?? author['name']} 提交于 ${_formatDate(author['date'])}',
-          ),
-          onTap: () async {
-            final url = Uri.parse(commit['html_url']);
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url);
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildContributorsTab() {
-    if (contributors.isEmpty) {
-      return const Center(child: Text('没有贡献者信息'));
-    }
-    return ListView.builder(
-      itemCount: contributors.length,
-      itemBuilder: (context, index) {
-        final contributor = contributors[index];
-        final String? avatarUrl = contributor['avatar_url'];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-          ),
-          title: Text(contributor['login']),
-          subtitle: Text('贡献：${contributor['contributions']}次'),
-          onTap: () async {
-            final url = Uri.parse(contributor['html_url']);
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url);
-            }
-          },
-        );
-      },
     );
   }
 
   String _preprocessMarkdownContent(String content) {
-    // 处理各种格式的 HTML img 标签，将其转换为 Markdown 格式
+    // 处理各种格式 of HTML img tags
     return content.replaceAllMapped(
       RegExp(r'<img[^>]*>', caseSensitive: false),
       (match) {
@@ -501,9 +173,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         int srcStart = imgTag.toLowerCase().indexOf('src=');
         if (srcStart != -1) {
           int quoteStart = imgTag.indexOf('"', srcStart);
-          if (quoteStart == -1) {
-            quoteStart = imgTag.indexOf("'", srcStart);
-          }
+          if (quoteStart == -1) quoteStart = imgTag.indexOf("'", srcStart);
           if (quoteStart != -1) {
             int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
             if (quoteEnd != -1) {
@@ -511,15 +181,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             }
           }
         }
-
-        // 简单的字符串查找方法提取 alt
         String alt = '图片';
         int altStart = imgTag.toLowerCase().indexOf('alt=');
         if (altStart != -1) {
           int quoteStart = imgTag.indexOf('"', altStart);
-          if (quoteStart == -1) {
-            quoteStart = imgTag.indexOf("'", altStart);
-          }
+          if (quoteStart == -1) quoteStart = imgTag.indexOf("'", altStart);
           if (quoteStart != -1) {
             int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
             if (quoteEnd != -1) {
@@ -527,27 +193,17 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             }
           }
         }
-
-        if (src.isEmpty) {
-          return imgTag; // 如果没有 src，保持原样
-        }
-
-        // 将 HTML img 转换为 Markdown 格式
+        if (src.isEmpty) return imgTag;
         return '![$alt]($src)';
       },
     );
   }
 
-  /// 构建自定义 Markdown 样式表 ✨
-  /// 针对深色/浅色模式进行优化，使引用块、代码块等区域更加醒目
   MarkdownStyleSheet _buildMarkdownStyleSheet(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final baseSheet = MarkdownStyleSheet.fromTheme(theme);
 
-    // 引用块的装饰配色 - 使用更温和、对比度更高的颜色
-    // 深色模式：使用金色边框 + 深灰背景
-    // 浅色模式：使用蓝灰边框 + 淡灰背景
     final blockquoteDecoration = BoxDecoration(
       color:
           isDark ? Colors.grey.shade800.withOpacity(0.6) : Colors.grey.shade100,
@@ -631,6 +287,136 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
       ),
     );
   }
+}
+
+class OverviewTab extends StatefulWidget {
+  final Repo repo;
+  final String? readmeContent;
+  final String? preprocessedReadme;
+  final MarkdownStyleSheet? styleSheet;
+
+  const OverviewTab({
+    super.key,
+    required this.repo,
+    this.readmeContent,
+    this.preprocessedReadme,
+    this.styleSheet,
+  });
+
+  @override
+  State<OverviewTab> createState() => _OverviewTabState();
+}
+
+class _OverviewTabState extends State<OverviewTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    final repo = widget.repo;
+    final readmeContent = widget.readmeContent;
+    final preprocessedReadme = widget.preprocessedReadme;
+    final styleSheet = widget.styleSheet;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (repo.description != null && repo.description!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        repo.description!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
+                    children: [
+                      _buildStatItem(
+                        OctIcons.star_fill_16,
+                        repo.starCount.toString(),
+                        '星标',
+                      ),
+                      _buildStatItem(
+                        OctIcons.repo_forked_16,
+                        repo.forkCount.toString(),
+                        '分支',
+                      ),
+                      if (repo.language != null)
+                        _buildStatItem(OctIcons.code_16, repo.language!, '语言'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final url = Uri.parse(
+                        'https://github.com/${repo.owner}/${repo.name}',
+                      );
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url);
+                      }
+                    },
+                    icon: const Icon(OctIcons.mark_github_16),
+                    label: const Text('在GitHub上查看'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (readmeContent != null) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'README',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: RepaintBoundary(
+                  child: MarkdownBody(
+                    data: preprocessedReadme ?? '',
+                    selectable: false, // 性能优化：对于大文档，禁用选择可提升滑动性能
+                    styleSheet: styleSheet,
+                    onTapLink: (text, href, title) {
+                      if (href != null) launchUrl(Uri.parse(href));
+                    },
+                    imageBuilder: _buildMarkdownImage,
+                    extensionSet: md.ExtensionSet(
+                      md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                      [
+                        md.EmojiSyntax(),
+                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ] else
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('此仓库没有README文件'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildMarkdownImage(Uri uri, String? title, String? alt) {
     String imageUrl = uri.toString();
@@ -685,23 +471,293 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
       ),
     );
   }
+
+  Widget _buildStatItem(IconData icon, String value, String label) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: icon == OctIcons.star_fill_16 ? Colors.yellow.shade700 : null,
+        ),
+        const SizedBox(width: 4),
+        Text('$value $label'),
+      ],
+    );
+  }
+}
+
+class IssuesTab extends ConsumerStatefulWidget {
+  final Repo repo;
+  final String token;
+  final List<dynamic> initialIssues;
+
+  const IssuesTab({
+    super.key,
+    required this.repo,
+    required this.token,
+    required this.initialIssues,
+  });
+
+  @override
+  ConsumerState<IssuesTab> createState() => _IssuesTabState();
+}
+
+class _IssuesTabState extends ConsumerState<IssuesTab>
+    with AutomaticKeepAliveClientMixin {
+  late List<dynamic> _issues;
+  late int _page;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  final _scrollController = ScrollController();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _issues = List.from(widget.initialIssues);
+    _page = 1;
+    _hasMore = _issues.length >= 10;
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newIssues, error) = await githubService.getIssues(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+        page: _page + 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (error == null && newIssues != null && newIssues.isNotEmpty) {
+            _issues.addAll(newIssues);
+            _page++;
+            _hasMore = newIssues.length >= 10;
+          } else {
+            _hasMore = false;
+          }
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_issues.isEmpty) return const Center(child: Text('没有 Issues'));
+
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _issues.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _issues.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final issue = _issues[index];
+        final isOpen = issue['state'] == 'open';
+
+        return ListTile(
+          leading: Icon(
+            isOpen ? OctIcons.issue_opened_16 : OctIcons.issue_closed_16,
+            color: isOpen ? Colors.green : Colors.purple,
+          ),
+          title: Text(issue['title']),
+          subtitle: Text('#${issue['number']} 由 ${issue['user']['login']} 创建'),
+          onTap: () async {
+            final url = Uri.parse(issue['html_url']);
+            if (await canLaunchUrl(url)) await launchUrl(url);
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+}
+
+class CommitsTab extends ConsumerStatefulWidget {
+  final Repo repo;
+  final String token;
+  final List<dynamic> initialCommits;
+
+  const CommitsTab({
+    super.key,
+    required this.repo,
+    required this.token,
+    required this.initialCommits,
+  });
+
+  @override
+  ConsumerState<CommitsTab> createState() => _CommitsTabState();
+}
+
+class _CommitsTabState extends ConsumerState<CommitsTab>
+    with AutomaticKeepAliveClientMixin {
+  late List<dynamic> _commits;
+  late int _page;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  final _scrollController = ScrollController();
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _commits = List.from(widget.initialCommits);
+    _page = 1;
+    _hasMore = _commits.length >= 10;
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newCommits, error) = await githubService.getCommits(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+        page: _page + 1,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (error == null && newCommits != null && newCommits.isNotEmpty) {
+            _commits.addAll(newCommits);
+            _page++;
+            _hasMore = newCommits.length >= 10;
+          } else {
+            _hasMore = false;
+          }
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_commits.isEmpty) return const Center(child: Text('没有提交记录'));
+
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _commits.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _commits.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final commit = _commits[index];
+        final commitInfo = commit['commit'];
+        final author = commitInfo['author'];
+        final committer = commit['author'] ?? {'login': author['name']};
+        return ListTile(
+          leading:
+              committer['avatar_url'] != null
+                  ? CircleAvatar(
+                    backgroundImage: NetworkImage(committer['avatar_url']),
+                  )
+                  : const CircleAvatar(child: Icon(OctIcons.person_16)),
+          title: Text(
+            commitInfo['message'].toString().split('\n').first,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '${committer['login'] ?? author['name']} 提交于 ${_formatDate(author['date'])}',
+          ),
+          onTap: () async {
+            final url = Uri.parse(commit['html_url']);
+            if (await canLaunchUrl(url)) await launchUrl(url);
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+}
+
+class ContributorsTab extends StatelessWidget {
+  final List<dynamic> contributors;
+
+  const ContributorsTab({super.key, required this.contributors});
+
+  @override
+  Widget build(BuildContext context) {
+    if (contributors.isEmpty) return const Center(child: Text('没有贡献者信息'));
+    return ListView.builder(
+      itemCount: contributors.length,
+      itemBuilder: (context, index) {
+        final contributor = contributors[index];
+        final String? avatarUrl = contributor['avatar_url'];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+          ),
+          title: Text(contributor['login']),
+          subtitle: Text('贡献：${contributor['contributions']}次'),
+          onTap: () async {
+            final url = Uri.parse(contributor['html_url']);
+            if (await canLaunchUrl(url)) await launchUrl(url);
+          },
+        );
+      },
+    );
+  }
 }
 
 String _formatDate(String dateString) {
   final date = DateTime.parse(dateString).toLocal();
   return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
-}
-
-Widget _buildStatItem(IconData icon, String value, String label) {
-  return Row(
-    children: [
-      Icon(
-        icon,
-        size: 16,
-        color: icon == OctIcons.star_fill_16 ? Colors.yellow.shade700 : null,
-      ),
-      const SizedBox(width: 4),
-      Text('$value $label'),
-    ],
-  );
 }

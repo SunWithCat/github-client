@@ -34,6 +34,7 @@ dependencies:
   dio: ^5.8.0+1 # 网络请求
   # shared_preferences: ^2.5.3 # 本地存储
   flutter_markdown: ^0.6.0 # markdown渲染
+  markdown: ^7.2.2 # markdown解析
   url_launcher: ^6.3.1 # 打开外部浏览器进行OAuth授权
   cupertino_icons: ^1.0.8
   app_links: ^6.3.1

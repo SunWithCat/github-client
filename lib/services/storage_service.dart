@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:hive/hive.dart';
@@ -34,7 +35,7 @@ class StorageService {
         _initialized = true;
       } else {
         // 如果Box未打开，这可能是一个错误，因为main.dart应该已经打开了Box
-        print('警告: authBox未在main.dart中打开');
+        debugPrint('警告: authBox未在main.dart中打开');
         // 这里不应该尝试重新打开Box，因为缺少加密参数
         // 应该依赖main.dart中的初始化
       }
@@ -67,7 +68,7 @@ class StorageService {
     try {
       return User.fromJson(jsonDecode(data));
     } catch (e) {
-      print('读取缓存 User 失败: $e 😅');
+      debugPrint('读取缓存 User 失败: $e 😅');
       return null;
     }
   }
@@ -88,7 +89,7 @@ class StorageService {
       final List<dynamic> list = jsonDecode(data);
       return list.map((e) => Repo.fromJson(e)).toList();
     } catch (e) {
-      print('读取缓存 Repos 失败: $e 😅');
+      debugPrint('读取缓存 Repos 失败: $e 😅');
       return [];
     }
   }
@@ -109,7 +110,7 @@ class StorageService {
       final List<dynamic> list = jsonDecode(data);
       return list.map((e) => Repo.fromJson(e)).toList();
     } catch (e) {
-      print('读取缓存 Starred Repos 失败: $e 😅');
+      debugPrint('读取缓存 Starred Repos 失败: $e 😅');
       return [];
     }
   }

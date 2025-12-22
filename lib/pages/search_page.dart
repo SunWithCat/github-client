@@ -77,7 +77,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            print('搜索仓库失败：$error');
+            debugPrint('搜索仓库失败：$error');
             _repos = [];
           } else {
             _repos = repos ?? [];
@@ -85,7 +85,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         });
       }
     } catch (e) {
-      print('搜索仓库失败：$e');
+      debugPrint('搜索仓库失败：$e');
     } finally {
       if (mounted) {
         setState(() {
@@ -123,7 +123,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            print('加载更多搜索结果失败：$error');
+            debugPrint('加载更多搜索结果失败：$error');
             // 可以在这里处理错误，比如不增加页码
             _page--;
           } else if (newRepos == null || newRepos.isEmpty) {
@@ -134,7 +134,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         });
       }
     } catch (e) {
-      print('加载更多搜索结果失败：$e');
+      debugPrint('加载更多搜索结果失败：$e');
     } finally {
       if (mounted) {
         _isLoadingMore = false;

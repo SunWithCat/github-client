@@ -68,7 +68,7 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
         });
       }
     } catch (e) {
-      print('加载更多星标仓库失败：$e');
+      debugPrint('加载更多星标仓库失败：$e');
     } finally {
       if (mounted) {
         setState(() {

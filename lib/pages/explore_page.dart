@@ -52,7 +52,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            print('加载热门仓库失败：$error'); // 实际项目中这里可以弹 Toast
+            debugPrint('加载热门仓库失败：$error'); // 实际项目中这里可以弹 Toast
             // 保持 _trendingRepos 不变或清空，视需求而定
           } else {
             _trendingRepos = repos ?? [];
@@ -62,7 +62,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         });
       }
     } catch (e) {
-      print('加载热门仓库发生未知错误：$e');
+      debugPrint('加载热门仓库发生未知错误：$e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -151,13 +151,13 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
                       ],
                       border: Border.all(
-                        color: theme.dividerColor.withOpacity(0.05),
+                        color: theme.dividerColor.withValues(alpha: 0.05),
                       ),
                     ),
                     padding: const EdgeInsets.all(6),
@@ -230,7 +230,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                         Text(
                           '正在探索...',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                             fontSize: 14,
                           ),
                         ),
@@ -247,13 +247,13 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                         Icon(
                           OctIcons.telescope_16,
                           size: 64,
-                          color: theme.colorScheme.onSurface.withOpacity(0.2),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           '暂无趋势数据',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                       ],

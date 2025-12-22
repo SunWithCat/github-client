@@ -46,7 +46,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       },
       onError: (err) {
         // 处理错误
-        print('app_links error: $err');
+        debugPrint('app_links error: $err');
       },
     );
   }
@@ -91,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           navigator.pushReplacementNamed('/');
         }
       } catch (e) {
-        print('换取 token 失败： $e');
+        debugPrint('换取 token 失败： $e');
         if (!mounted) return;
         Fluttertoast.showToast(
           msg: '登录失败，请重试',

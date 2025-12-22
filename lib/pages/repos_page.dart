@@ -69,7 +69,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         });
       }
     } catch (e) {
-      print('加载更多仓库失败：$e');
+      debugPrint('加载更多仓库失败：$e');
     } finally {
       if (mounted) {
         setState(() {

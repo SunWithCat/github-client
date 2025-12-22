@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class CounterSingleton {
   // 私有构造函数
   CounterSingleton._();
@@ -15,7 +17,7 @@ class CounterSingleton {
 }
 
 void main() {
-  print(CounterSingleton.instance._count);
+  debugPrint('${CounterSingleton.instance._count}');
   CounterSingleton.instance.increment();
-  print(CounterSingleton.instance._count);
+  debugPrint('${CounterSingleton.instance._count}');
 }

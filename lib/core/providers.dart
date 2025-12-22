@@ -100,10 +100,10 @@ class ProfileNotifier extends Notifier<ProfileState> {
 
       if (hasCache) {
         state = state.copyWith(isLoading: false);
-        print('🚀 命中缓存，进入静默刷新模式');
+        debugPrint('🚀 命中缓存，进入静默刷新模式');
         silentLogin(accessToken);
       } else {
-        print('🐢 无缓存，进入常规登录模式');
+        debugPrint('🐢 无缓存，进入常规登录模式');
         await login(accessToken);
       }
     } else {
@@ -129,7 +129,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
       return true;
     } catch (e) {
-      print('读取缓存失败：$e');
+      debugPrint('读取缓存失败：$e');
       return false;
     }
   }
@@ -150,9 +150,9 @@ class ProfileNotifier extends Notifier<ProfileState> {
   Future<void> silentLogin(String token) async {
     try {
       await _performLoginLogic(token);
-      print('静默刷新成功');
+      debugPrint('静默刷新成功');
     } catch (e) {
-      print('静默刷新失败：$e');
+      debugPrint('静默刷新失败：$e');
     }
   }
 
@@ -162,7 +162,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
     try {
       await _performLoginLogic(token);
     } catch (e) {
-      print('登录或获取用户信息失败：$e');
+      debugPrint('登录或获取用户信息失败：$e');
       logout();
     } finally {
       state = state.copyWith(isLoading: false);
@@ -197,9 +197,9 @@ class ProfileNotifier extends Notifier<ProfileState> {
     final starredResult = results[1] as ApiResult<List<Repo>>;
     final readmeResult = results[2] as ApiResult<String?>;
 
-    if (reposResult.$2 != null) print('Repos Error: ${reposResult.$2}');
-    if (starredResult.$2 != null) print('Starred Error: ${starredResult.$2}');
-    if (readmeResult.$2 != null) print('Readme Error: ${readmeResult.$2}');
+    if (reposResult.$2 != null) debugPrint('Repos Error: ${reposResult.$2}');
+    if (starredResult.$2 != null) debugPrint('Starred Error: ${starredResult.$2}');
+    if (readmeResult.$2 != null) debugPrint('Readme Error: ${readmeResult.$2}');
 
     state = state.copyWith(
       repos: reposResult.$1 ?? state.repos,
@@ -217,7 +217,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
     try {
       await _performLoginLogic(state.token!);
     } catch (e) {
-      print('刷新数据失败：$e');
+      debugPrint('刷新数据失败：$e');
     }
   }
 
@@ -239,7 +239,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
 
       if (error != null) {
-        print('加载更多星标仓库失败：$error');
+        debugPrint('加载更多星标仓库失败：$error');
         return [];
       }
 
@@ -253,7 +253,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       }
       return newRepos ?? [];
     } catch (e) {
-      print('加载更多星标仓库失败：$e');
+      debugPrint('加载更多星标仓库失败：$e');
       return [];
     }
   }
@@ -270,7 +270,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
 
       if (error != null) {
-        print('加载更多仓库失败：$error');
+        debugPrint('加载更多仓库失败：$error');
         return [];
       }
 
@@ -284,7 +284,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       }
       return newRepos ?? [];
     } catch (e) {
-      print('加载更多仓库失败：$e');
+      debugPrint('加载更多仓库失败：$e');
       return [];
     }
   }

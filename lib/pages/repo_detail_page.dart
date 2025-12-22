@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/common/utils/date_formatter.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -99,7 +100,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         });
       }
     } catch (e) {
-      print('获取仓库详情失败：$e');
+      debugPrint('获取仓库详情失败：$e');
     } finally {
       if (mounted) {
         setState(() {
@@ -206,7 +207,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
 
     final blockquoteDecoration = BoxDecoration(
       color:
-          isDark ? Colors.grey.shade800.withOpacity(0.6) : Colors.grey.shade100,
+          isDark ? Colors.grey.shade800.withValues(alpha: 0.6) : Colors.grey.shade100,
       border: Border(
         left: BorderSide(
           color: isDark ? Colors.amber.shade600 : Colors.blueGrey.shade400,
@@ -272,8 +273,8 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         decoration: TextDecoration.underline,
         decorationColor:
             isDark
-                ? Colors.lightBlue.shade300.withOpacity(0.5)
-                : Colors.blue.shade700.withOpacity(0.5),
+                ? Colors.lightBlue.shade300.withValues(alpha: 0.5)
+                : Colors.blue.shade700.withValues(alpha: 0.5),
       ),
 
       // 水平分隔线
@@ -710,7 +711,7 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            '${committer['login'] ?? author['name']} 提交于 ${_formatDate(author['date'])}',
+            '${committer['login'] ?? author['name']} 提交于 ${DateFormatter.format(author['date'])}',
           ),
           onTap: () async {
             final url = Uri.parse(commit['html_url']);
@@ -755,9 +756,4 @@ class ContributorsTab extends StatelessWidget {
       },
     );
   }
-}
-
-String _formatDate(String dateString) {
-  final date = DateTime.parse(dateString).toLocal();
-  return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
 }

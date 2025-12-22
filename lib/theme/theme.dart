@@ -9,7 +9,6 @@ ThemeData lightMode = ThemeData(
   primaryColor: primaryColor,
   scaffoldBackgroundColor: const Color(0xFFF5F7F9), // GitHub 风格的背景色
   colorScheme: ColorScheme.light(
-    background: const Color.fromARGB(255, 2, 4, 7),
     primary: primaryColor,
     secondary: const Color(0xFFB3D4FC),
     surface: Colors.white,
@@ -36,7 +35,6 @@ ThemeData darkMode = ThemeData(
   brightness: Brightness.dark,
   scaffoldBackgroundColor: const Color(0xFF121212), // 匹配 colorScheme 的背景色
   colorScheme: ColorScheme.dark(
-    background: const Color(0xFF121212), // 更深的背景色
     primary: Colors.grey.shade400,
     secondary: lightGreyColor,
     surface: const Color(0xFF1E1E1E), // 较浅的表面颜色

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
-import 'package:ghclient/common/utils/date_formatter.dart';
+import 'package:ghclient/common/widgets/skeleton_loader.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/pages/repo_detail/commit_card.dart';
+import 'package:ghclient/pages/repo_detail/date_separator.dart';
+import 'package:ghclient/pages/repo_detail/issue_card.dart';
+import 'package:ghclient/pages/repo_detail/repo_stats_card.dart';
+import 'package:ghclient/pages/repo_detail/contributor_card.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -134,31 +140,40 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
           dividerColor: Colors.transparent,
         ),
       ),
-      body:
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // OverviewTab - 加载时显示骨架屏
           isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : TabBarView(
-                controller: _tabController,
-                children: [
-                  OverviewTab(
-                    repo: widget.repo,
-                    readmeContent: readmeContent,
-                    preprocessedReadme: _preprocessedReadme,
-                    styleSheet: _cachedStyleSheet,
-                  ),
-                  IssuesTab(
-                    repo: widget.repo,
-                    token: widget.token,
-                    initialIssues: issues,
-                  ),
-                  CommitsTab(
-                    repo: widget.repo,
-                    token: widget.token,
-                    initialCommits: commits,
-                  ),
-                  ContributorsTab(contributors: contributors),
-                ],
-              ),
+              ? const SkeletonLoader(type: SkeletonType.overview)
+              : OverviewTab(
+                  repo: widget.repo,
+                  readmeContent: readmeContent,
+                  preprocessedReadme: _preprocessedReadme,
+                  styleSheet: _cachedStyleSheet,
+                ),
+          // IssuesTab - 加载时显示列表骨架屏
+          isLoading
+              ? const SkeletonLoader(type: SkeletonType.list)
+              : IssuesTab(
+                  repo: widget.repo,
+                  token: widget.token,
+                  initialIssues: issues,
+                ),
+          // CommitsTab - 加载时显示列表骨架屏
+          isLoading
+              ? const SkeletonLoader(type: SkeletonType.list)
+              : CommitsTab(
+                  repo: widget.repo,
+                  token: widget.token,
+                  initialCommits: commits,
+                ),
+          // ContributorsTab - 加载时显示列表骨架屏
+          isLoading
+              ? const SkeletonLoader(type: SkeletonType.list)
+              : ContributorsTab(contributors: contributors),
+        ],
+      ),
     );
   }
 
@@ -326,94 +341,174 @@ class _OverviewTabState extends State<OverviewTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (repo.description != null && repo.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        repo.description!,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    children: [
-                      _buildStatItem(
-                        OctIcons.star_fill_16,
-                        repo.starCount.toString(),
-                        '星标',
-                      ),
-                      _buildStatItem(
-                        OctIcons.repo_forked_16,
-                        repo.forkCount.toString(),
-                        '分支',
-                      ),
-                      if (repo.language != null)
-                        _buildStatItem(OctIcons.code_16, repo.language!, '语言'),
-                    ],
+          // 使用新的 RepoStatsCard 组件
+          RepoStatsCard(repo: repo),
+          
+          const SizedBox(height: 16),
+          if (readmeContent != null) ...[
+            _buildReadmeSection(context, preprocessedReadme, styleSheet),
+          ] else
+            _buildEmptyReadmeCard(context),
+        ],
+      ),
+    );
+  }
+
+  /// 构建 README 区域，包含清晰的 section header 和适当间距
+  Widget _buildReadmeSection(
+    BuildContext context,
+    String? preprocessedReadme,
+    MarkdownStyleSheet? styleSheet,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.grey.shade800.withValues(alpha: 0.5)
+                  : Colors.grey.shade100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  OctIcons.book_16,
+                  size: 18,
+                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'README',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(
-                        'https://github.com/${repo.owner}/${repo.name}',
-                      );
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      }
-                    },
-                    icon: const Icon(OctIcons.mark_github_16),
-                    label: const Text('在GitHub上查看'),
+                ),
+              ],
+            ),
+          ),
+          // README Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: RepaintBoundary(
+              child: MarkdownBody(
+                data: preprocessedReadme ?? '',
+                selectable: false,
+                styleSheet: styleSheet,
+                onTapLink: (text, href, title) {
+                  if (href != null) launchUrl(Uri.parse(href));
+                },
+                imageBuilder: _buildMarkdownImage,
+                extensionSet: md.ExtensionSet(
+                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                  [
+                    md.EmojiSyntax(),
+                    ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建空 README 状态卡片
+  Widget _buildEmptyReadmeCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.grey.shade800.withValues(alpha: 0.5)
+                  : Colors.grey.shade100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  OctIcons.book_16,
+                  size: 18,
+                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'README',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Empty State
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    OctIcons.file_16,
+                    size: 32,
+                    color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '此仓库没有 README 文件',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          if (readmeContent != null) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'README',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: RepaintBoundary(
-                  child: MarkdownBody(
-                    data: preprocessedReadme ?? '',
-                    selectable: false, // 性能优化：对于大文档，禁用选择可提升滑动性能
-                    styleSheet: styleSheet,
-                    onTapLink: (text, href, title) {
-                      if (href != null) launchUrl(Uri.parse(href));
-                    },
-                    imageBuilder: _buildMarkdownImage,
-                    extensionSet: md.ExtensionSet(
-                      md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                      [
-                        md.EmojiSyntax(),
-                        ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ] else
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('此仓库没有README文件'),
-              ),
-            ),
         ],
       ),
     );
@@ -470,20 +565,6 @@ class _OverviewTabState extends State<OverviewTab>
         fit: BoxFit.contain,
         fadeInDuration: const Duration(milliseconds: 300),
       ),
-    );
-  }
-
-  Widget _buildStatItem(IconData icon, String value, String label) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: icon == OctIcons.star_fill_16 ? Colors.yellow.shade700 : null,
-        ),
-        const SizedBox(width: 4),
-        Text('$value $label'),
-      ],
     );
   }
 }
@@ -565,10 +646,26 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (_issues.isEmpty) return const Center(child: Text('没有 Issues'));
+    
+    // 空状态处理 - Requirements 8.1
+    if (_issues.isEmpty) {
+      return EmptyState(
+        icon: OctIcons.issue_opened_16,
+        title: '没有 Issues',
+        message: '这个仓库目前没有任何 Issues',
+        actionLabel: '创建第一个 Issue',
+        onAction: () async {
+          final url = Uri.parse(
+            'https://github.com/${widget.repo.owner}/${widget.repo.name}/issues/new',
+          );
+          if (await canLaunchUrl(url)) await launchUrl(url);
+        },
+      );
+    }
 
     return ListView.builder(
       controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: _issues.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _issues.length) {
@@ -579,15 +676,8 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
         }
 
         final issue = _issues[index];
-        final isOpen = issue['state'] == 'open';
-
-        return ListTile(
-          leading: Icon(
-            isOpen ? OctIcons.issue_opened_16 : OctIcons.issue_closed_16,
-            color: isOpen ? Colors.green : Colors.purple,
-          ),
-          title: Text(issue['title']),
-          subtitle: Text('#${issue['number']} 由 ${issue['user']['login']} 创建'),
+        return IssueCard(
+          issue: issue as Map<String, dynamic>,
           onTap: () async {
             final url = Uri.parse(issue['html_url']);
             if (await canLaunchUrl(url)) await launchUrl(url);
@@ -678,47 +768,80 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    if (_commits.isEmpty) return const Center(child: Text('没有提交记录'));
+  DateTime? _getCommitDate(dynamic commit) {
+    try {
+      final commitInfo = commit['commit'];
+      if (commitInfo == null) return null;
+      
+      final author = commitInfo['author'];
+      if (author == null) return null;
+      
+      final dateStr = author['date']?.toString();
+      if (dateStr == null || dateStr.isEmpty) return null;
+      
+      final dateTime = DateTime.parse(dateStr);
+      // 返回仅日期部分（去除时间）
+      return DateTime(dateTime.year, dateTime.month, dateTime.day);
+    } catch (e) {
+      return null;
+    }
+  }
 
-    return ListView.builder(
-      controller: _scrollController,
-      itemCount: _commits.length + (_hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == _commits.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+  List<Widget> _buildGroupedCommitList() {
+    final List<Widget> items = [];
+    DateTime? lastDate;
 
-        final commit = _commits[index];
-        final commitInfo = commit['commit'];
-        final author = commitInfo['author'];
-        final committer = commit['author'] ?? {'login': author['name']};
-        return ListTile(
-          leading:
-              committer['avatar_url'] != null
-                  ? CircleAvatar(
-                    backgroundImage: NetworkImage(committer['avatar_url']),
-                  )
-                  : const CircleAvatar(child: Icon(OctIcons.person_16)),
-          title: Text(
-            commitInfo['message'].toString().split('\n').first,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            '${committer['login'] ?? author['name']} 提交于 ${DateFormatter.format(author['date'])}',
-          ),
+    for (int i = 0; i < _commits.length; i++) {
+      final commit = _commits[i];
+      final commitDate = _getCommitDate(commit);
+
+      // 如果日期变化，插入日期分隔符
+      if (commitDate != null && (lastDate == null || commitDate != lastDate)) {
+        items.add(DateSeparator(date: commitDate));
+        lastDate = commitDate;
+      }
+
+      items.add(
+        CommitCard(
+          commit: commit as Map<String, dynamic>,
           onTap: () async {
             final url = Uri.parse(commit['html_url']);
             if (await canLaunchUrl(url)) await launchUrl(url);
           },
-        );
-      },
+        ),
+      );
+    }
+
+    // 如果还有更多数据，添加加载指示器
+    if (_hasMore) {
+      items.add(
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    
+    if (_commits.isEmpty) {
+      return EmptyState(
+        icon: OctIcons.git_commit_16,
+        title: '没有提交记录',
+        message: '这个仓库目前没有任何提交历史',
+      );
+    }
+
+    // 使用 ListView 展示按日期分组的提交列表
+    return ListView(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: _buildGroupedCommitList(),
     );
   }
 
@@ -734,20 +857,37 @@ class ContributorsTab extends StatelessWidget {
 
   const ContributorsTab({super.key, required this.contributors});
 
+  /// 获取项目总贡献数（所有贡献者贡献数之和）
+  int get totalContributions {
+    if (contributors.isEmpty) return 0;
+    int total = 0;
+    for (final contributor in contributors) {
+      total += (contributor['contributions'] ?? 0) as int;
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (contributors.isEmpty) return const Center(child: Text('没有贡献者信息'));
+    if (contributors.isEmpty) {
+      return EmptyState(
+        icon: OctIcons.people_16,
+        title: '没有贡献者信息',
+        message: '这个仓库目前没有贡献者数据',
+      );
+    }
+
+    final total = totalContributions;
+
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: contributors.length,
       itemBuilder: (context, index) {
         final contributor = contributors[index];
-        final String? avatarUrl = contributor['avatar_url'];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-          ),
-          title: Text(contributor['login']),
-          subtitle: Text('贡献：${contributor['contributions']}次'),
+
+        return ContributorCard(
+          contributor: contributor as Map<String, dynamic>,
+          totalContributions: total,
           onTap: () async {
             final url = Uri.parse(contributor['html_url']);
             if (await canLaunchUrl(url)) await launchUrl(url);

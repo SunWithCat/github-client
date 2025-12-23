@@ -42,6 +42,9 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   MarkdownStyleSheet? _cachedStyleSheet;
   String? _preprocessedReadme;
 
+  // 刷新状态跟踪
+  bool _isRefreshing = false;
+
   @override
   void initState() {
     super.initState();
@@ -116,6 +119,171 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     }
   }
 
+  /// 刷新概览数据（README）
+  Future<void> _refreshOverview() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newReadme, error) = await githubService.getReadme(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+      );
+
+      if (error != null && mounted) {
+        _showRefreshError(error);
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          readmeContent = newReadme;
+          _preprocessedReadme =
+              readmeContent != null
+                  ? _preprocessMarkdownContent(readmeContent!)
+                  : null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showRefreshError(e.toString());
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  /// 刷新 Issues 数据
+  Future<void> _refreshIssues() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newIssues, error) = await githubService.getIssues(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+      );
+
+      if (error != null && mounted) {
+        _showRefreshError(error);
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          issues = newIssues ?? [];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showRefreshError(e.toString());
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  /// 刷新 Commits 数据
+  Future<void> _refreshCommits() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newCommits, error) = await githubService.getCommits(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+      );
+
+      if (error != null && mounted) {
+        _showRefreshError(error);
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          commits = newCommits ?? [];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showRefreshError(e.toString());
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  /// 刷新 Contributors 数据
+  Future<void> _refreshContributors() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newContributors, error) = await githubService.getContributors(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+      );
+
+      if (error != null && mounted) {
+        _showRefreshError(error);
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          contributors = newContributors ?? [];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showRefreshError(e.toString());
+      }
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  /// 显示刷新失败的错误消息
+  void _showRefreshError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('刷新失败：$message'),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: '重试',
+          textColor: Colors.white,
+          onPressed: () {
+            // 根据当前 tab 重试刷新
+            switch (_tabController.index) {
+              case 0:
+                _refreshOverview();
+                break;
+              case 1:
+                _refreshIssues();
+                break;
+              case 2:
+                _refreshCommits();
+                break;
+              case 3:
+                _refreshContributors();
+                break;
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -151,6 +319,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                   readmeContent: readmeContent,
                   preprocessedReadme: _preprocessedReadme,
                   styleSheet: _cachedStyleSheet,
+                  onRefresh: _refreshOverview,
                 ),
           // IssuesTab - 加载时显示列表骨架屏
           isLoading
@@ -159,6 +328,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                   repo: widget.repo,
                   token: widget.token,
                   initialIssues: issues,
+                  onRefresh: _refreshIssues,
                 ),
           // CommitsTab - 加载时显示列表骨架屏
           isLoading
@@ -167,11 +337,15 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                   repo: widget.repo,
                   token: widget.token,
                   initialCommits: commits,
+                  onRefresh: _refreshCommits,
                 ),
           // ContributorsTab - 加载时显示列表骨架屏
           isLoading
               ? const SkeletonLoader(type: SkeletonType.list)
-              : ContributorsTab(contributors: contributors),
+              : ContributorsTab(
+                  contributors: contributors,
+                  onRefresh: _refreshContributors,
+                ),
         ],
       ),
     );
@@ -310,6 +484,7 @@ class OverviewTab extends StatefulWidget {
   final String? readmeContent;
   final String? preprocessedReadme;
   final MarkdownStyleSheet? styleSheet;
+  final Future<void> Function() onRefresh;
 
   const OverviewTab({
     super.key,
@@ -317,6 +492,7 @@ class OverviewTab extends StatefulWidget {
     this.readmeContent,
     this.preprocessedReadme,
     this.styleSheet,
+    required this.onRefresh,
   });
 
   @override
@@ -336,20 +512,24 @@ class _OverviewTabState extends State<OverviewTab>
     final preprocessedReadme = widget.preprocessedReadme;
     final styleSheet = widget.styleSheet;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 使用新的 RepoStatsCard 组件
-          RepoStatsCard(repo: repo),
-          
-          const SizedBox(height: 16),
-          if (readmeContent != null) ...[
-            _buildReadmeSection(context, preprocessedReadme, styleSheet),
-          ] else
-            _buildEmptyReadmeCard(context),
-        ],
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 使用新的 RepoStatsCard 组件
+            RepoStatsCard(repo: repo),
+            
+            const SizedBox(height: 16),
+            if (readmeContent != null) ...[
+              _buildReadmeSection(context, preprocessedReadme, styleSheet),
+            ] else
+              _buildEmptyReadmeCard(context),
+          ],
+        ),
       ),
     );
   }
@@ -573,12 +753,14 @@ class IssuesTab extends ConsumerStatefulWidget {
   final Repo repo;
   final String token;
   final List<dynamic> initialIssues;
+  final Future<void> Function() onRefresh;
 
   const IssuesTab({
     super.key,
     required this.repo,
     required this.token,
     required this.initialIssues,
+    required this.onRefresh,
   });
 
   @override
@@ -603,6 +785,19 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
     _page = 1;
     _hasMore = _issues.length >= 10;
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(IssuesTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当父组件刷新数据后，更新本地状态
+    if (widget.initialIssues != oldWidget.initialIssues) {
+      setState(() {
+        _issues = List.from(widget.initialIssues);
+        _page = 1;
+        _hasMore = _issues.length >= 10;
+      });
+    }
   }
 
   void _onScroll() {
@@ -643,47 +838,65 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await widget.onRefresh();
+    // didUpdateWidget 会处理数据同步和分页重置
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     
     // 空状态处理 - Requirements 8.1
     if (_issues.isEmpty) {
-      return EmptyState(
-        icon: OctIcons.issue_opened_16,
-        title: '没有 Issues',
-        message: '这个仓库目前没有任何 Issues',
-        actionLabel: '创建第一个 Issue',
-        onAction: () async {
-          final url = Uri.parse(
-            'https://github.com/${widget.repo.owner}/${widget.repo.name}/issues/new',
-          );
-          if (await canLaunchUrl(url)) await launchUrl(url);
-        },
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: EmptyState(
+              icon: OctIcons.issue_opened_16,
+              title: '没有 Issues',
+              message: '这个仓库目前没有任何 Issues',
+              actionLabel: '创建第一个 Issue',
+              onAction: () async {
+                final url = Uri.parse(
+                  'https://github.com/${widget.repo.owner}/${widget.repo.name}/issues/new',
+                );
+                if (await canLaunchUrl(url)) await launchUrl(url);
+              },
+            ),
+          ),
+        ),
       );
     }
 
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _issues.length + (_hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == _issues.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _issues.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _issues.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-        final issue = _issues[index];
-        return IssueCard(
-          issue: issue as Map<String, dynamic>,
-          onTap: () async {
-            final url = Uri.parse(issue['html_url']);
-            if (await canLaunchUrl(url)) await launchUrl(url);
-          },
-        );
-      },
+          final issue = _issues[index];
+          return IssueCard(
+            issue: issue as Map<String, dynamic>,
+            onTap: () async {
+              final url = Uri.parse(issue['html_url']);
+              if (await canLaunchUrl(url)) await launchUrl(url);
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -698,12 +911,14 @@ class CommitsTab extends ConsumerStatefulWidget {
   final Repo repo;
   final String token;
   final List<dynamic> initialCommits;
+  final Future<void> Function() onRefresh;
 
   const CommitsTab({
     super.key,
     required this.repo,
     required this.token,
     required this.initialCommits,
+    required this.onRefresh,
   });
 
   @override
@@ -728,6 +943,19 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
     _page = 1;
     _hasMore = _commits.length >= 10;
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(CommitsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当父组件刷新数据后，更新本地状态
+    if (widget.initialCommits != oldWidget.initialCommits) {
+      setState(() {
+        _commits = List.from(widget.initialCommits);
+        _page = 1;
+        _hasMore = _commits.length >= 10;
+      });
+    }
   }
 
   void _onScroll() {
@@ -766,6 +994,11 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
     } catch (e) {
       if (mounted) setState(() => _isLoadingMore = false);
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    await widget.onRefresh();
+    // didUpdateWidget 会处理数据同步和分页重置
   }
 
   DateTime? _getCommitDate(dynamic commit) {
@@ -830,18 +1063,31 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
     super.build(context);
     
     if (_commits.isEmpty) {
-      return EmptyState(
-        icon: OctIcons.git_commit_16,
-        title: '没有提交记录',
-        message: '这个仓库目前没有任何提交历史',
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: EmptyState(
+              icon: OctIcons.git_commit_16,
+              title: '没有提交记录',
+              message: '这个仓库目前没有任何提交历史',
+            ),
+          ),
+        ),
       );
     }
 
     // 使用 ListView 展示按日期分组的提交列表
-    return ListView(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      children: _buildGroupedCommitList(),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: _buildGroupedCommitList(),
+      ),
     );
   }
 
@@ -852,16 +1098,30 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
   }
 }
 
-class ContributorsTab extends StatelessWidget {
+class ContributorsTab extends StatefulWidget {
   final List<dynamic> contributors;
+  final Future<void> Function() onRefresh;
 
-  const ContributorsTab({super.key, required this.contributors});
+  const ContributorsTab({
+    super.key,
+    required this.contributors,
+    required this.onRefresh,
+  });
+
+  @override
+  State<ContributorsTab> createState() => _ContributorsTabState();
+}
+
+class _ContributorsTabState extends State<ContributorsTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   /// 获取项目总贡献数（所有贡献者贡献数之和）
   int get totalContributions {
-    if (contributors.isEmpty) return 0;
+    if (widget.contributors.isEmpty) return 0;
     int total = 0;
-    for (final contributor in contributors) {
+    for (final contributor in widget.contributors) {
       total += (contributor['contributions'] ?? 0) as int;
     }
     return total;
@@ -869,31 +1129,46 @@ class ContributorsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (contributors.isEmpty) {
-      return EmptyState(
-        icon: OctIcons.people_16,
-        title: '没有贡献者信息',
-        message: '这个仓库目前没有贡献者数据',
+    super.build(context);
+    
+    if (widget.contributors.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: widget.onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: EmptyState(
+              icon: OctIcons.people_16,
+              title: '没有贡献者信息',
+              message: '这个仓库目前没有贡献者数据',
+            ),
+          ),
+        ),
       );
     }
 
     final total = totalContributions;
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: contributors.length,
-      itemBuilder: (context, index) {
-        final contributor = contributors[index];
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: widget.contributors.length,
+        itemBuilder: (context, index) {
+          final contributor = widget.contributors[index];
 
-        return ContributorCard(
-          contributor: contributor as Map<String, dynamic>,
-          totalContributions: total,
-          onTap: () async {
-            final url = Uri.parse(contributor['html_url']);
-            if (await canLaunchUrl(url)) await launchUrl(url);
-          },
-        );
-      },
+          return ContributorCard(
+            contributor: contributor as Map<String, dynamic>,
+            totalContributions: total,
+            onTap: () async {
+              final url = Uri.parse(contributor['html_url']);
+              if (await canLaunchUrl(url)) await launchUrl(url);
+            },
+          );
+        },
+      ),
     );
   }
 }

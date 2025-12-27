@@ -428,7 +428,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     );
 
     return baseSheet.copyWith(
-      // 引用块样式 - 核心优化点 ⭐
+      // 引用块样式
       blockquote: theme.textTheme.bodyMedium?.copyWith(
         color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
         fontStyle: FontStyle.italic,
@@ -504,6 +504,11 @@ class _OverviewTabState extends State<OverviewTab>
   @override
   bool get wantKeepAlive => true;
 
+  // 控制 README 是否展开
+  bool _isReadmeExpanded = false;
+  // 默认显示的字符数限制
+  static const int _collapsedCharLimit = 2000;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -534,6 +539,27 @@ class _OverviewTabState extends State<OverviewTab>
     );
   }
 
+  /// 获取截断后的 README 内容
+  String _getTruncatedReadme(String? content) {
+    if (content == null || content.length <= _collapsedCharLimit) {
+      return content ?? '';
+    }
+    if (_isReadmeExpanded) {
+      return content;
+    }
+    // 在字符限制附近找一个换行符截断，避免截断在单词中间
+    int cutIndex = content.lastIndexOf('\n', _collapsedCharLimit);
+    if (cutIndex < _collapsedCharLimit * 0.7) {
+      cutIndex = _collapsedCharLimit;
+    }
+    return content.substring(0, cutIndex);
+  }
+
+  /// 判断 README 是否需要展开按钮
+  bool _needsExpansion(String? content) {
+    return content != null && content.length > _collapsedCharLimit;
+  }
+
   /// 构建 README 区域，包含清晰的 section header 和适当间距
   Widget _buildReadmeSection(
     BuildContext context,
@@ -542,6 +568,8 @@ class _OverviewTabState extends State<OverviewTab>
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final needsExpansion = _needsExpansion(preprocessedReadme);
+    final displayContent = _getTruncatedReadme(preprocessedReadme);
 
     return Card(
       elevation: 1,
@@ -592,25 +620,75 @@ class _OverviewTabState extends State<OverviewTab>
           // README Content
           Padding(
             padding: const EdgeInsets.all(16),
-            child: RepaintBoundary(
-              child: MarkdownBody(
-                data: preprocessedReadme ?? '',
-                selectable: false,
-                styleSheet: styleSheet,
-                onTapLink: (text, href, title) {
-                  if (href != null) launchUrl(Uri.parse(href));
-                },
-                imageBuilder: _buildMarkdownImage,
-                extensionSet: md.ExtensionSet(
-                  md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-                  [
-                    md.EmojiSyntax(),
-                    ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
-                  ],
+            child: ExcludeSemantics(
+              child: RepaintBoundary(
+                child: MarkdownBody(
+                  data: displayContent,
+                  selectable: false,
+                  styleSheet: styleSheet,
+                  onTapLink: (text, href, title) {
+                    if (href != null) launchUrl(Uri.parse(href));
+                  },
+                  imageBuilder: _buildMarkdownImage,
+                  extensionSet: md.ExtensionSet(
+                    md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                    [
+                      md.EmojiSyntax(),
+                      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes,
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
+          // 展开/收起按钮
+          if (needsExpansion)
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _isReadmeExpanded = !_isReadmeExpanded;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.grey.shade800.withValues(alpha: 0.3)
+                      : Colors.grey.shade50,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _isReadmeExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isReadmeExpanded ? '收起' : '展开全部',
+                      style: TextStyle(
+                        color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -846,8 +924,6 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
-    // 空状态处理 - Requirements 8.1
     if (_issues.isEmpty) {
       return RefreshIndicator(
         onRefresh: _handleRefresh,

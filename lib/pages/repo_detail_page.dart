@@ -790,36 +790,8 @@ class _OverviewTabState extends State<OverviewTab>
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
-        placeholder:
-            (context, url) => Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        errorWidget:
-            (context, url, error) => Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    alt ?? '图片加载失败',
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+        placeholder: (context, url) => const SizedBox.shrink(),
+        errorWidget: (context, url, error) => const SizedBox.shrink(),
         fit: BoxFit.contain,
         fadeInDuration: const Duration(milliseconds: 300),
       ),

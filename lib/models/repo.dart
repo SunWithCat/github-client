@@ -13,6 +13,8 @@ class Repo {
   int forkCount;
   @JsonKey(name: 'owner')
   Map<String, dynamic> ownerData;
+  @JsonKey(name: 'default_branch')
+  String? defaultBranch;
 
   String get owner => ownerData['login'];
 
@@ -22,7 +24,8 @@ class Repo {
     this.language,
     required this.starCount,
     required this.forkCount,
-    required this.ownerData
+    required this.ownerData,
+    this.defaultBranch,
   });
 
   factory Repo.fromJson(Map<String, dynamic> json) => _$RepoFromJson(json);

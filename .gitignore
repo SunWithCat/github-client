@@ -48,3 +48,4 @@ lib/config.dart
 
 # FVM Version Cache
 .fvm/
+docs/

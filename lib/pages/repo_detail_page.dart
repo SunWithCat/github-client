@@ -352,41 +352,91 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   }
 
   String _preprocessMarkdownContent(String content) {
-    // 处理各种格式 of HTML img tags
-    return content.replaceAllMapped(
-      RegExp(r'<img[^>]*>', caseSensitive: false),
+    var result = content;
+    
+    // 移除包裹图片的 HTML 容器标签（div, p, center, span 等）
+    // 保留内容，只移除标签本身
+    result = result.replaceAll(RegExp(r'<(div|p|center|span|figure|figcaption)[^>]*>', caseSensitive: false), '\n');
+    result = result.replaceAll(RegExp(r'</(div|p|center|span|figure|figcaption)>', caseSensitive: false), '\n');
+    
+    // 处理 <a> 标签包裹的 <img> 标签
+    // <a href="..."><img src="..." /></a> → [![alt](img-src)](link-href)
+    result = result.replaceAllMapped(
+      RegExp(r'<a\s+[^>]*href\s*=\s*["\x27]([^"\x27]+)["\x27][^>]*>\s*<img\s+[^>]*src\s*=\s*["\x27]([^"\x27]+)["\x27][^>]*/?\s*>\s*</a>', caseSensitive: false),
       (match) {
-        final imgTag = match.group(0) ?? '';
-
-        // 简单的字符串查找方法提取 src
-        String src = '';
-        int srcStart = imgTag.toLowerCase().indexOf('src=');
-        if (srcStart != -1) {
-          int quoteStart = imgTag.indexOf('"', srcStart);
-          if (quoteStart == -1) quoteStart = imgTag.indexOf("'", srcStart);
-          if (quoteStart != -1) {
-            int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
-            if (quoteEnd != -1) {
-              src = imgTag.substring(quoteStart + 1, quoteEnd);
-            }
-          }
-        }
-        String alt = '图片';
-        int altStart = imgTag.toLowerCase().indexOf('alt=');
-        if (altStart != -1) {
-          int quoteStart = imgTag.indexOf('"', altStart);
-          if (quoteStart == -1) quoteStart = imgTag.indexOf("'", altStart);
-          if (quoteStart != -1) {
-            int quoteEnd = imgTag.indexOf(imgTag[quoteStart], quoteStart + 1);
-            if (quoteEnd != -1) {
-              alt = imgTag.substring(quoteStart + 1, quoteEnd);
-            }
-          }
-        }
-        if (src.isEmpty) return imgTag;
-        return '![$alt]($src)';
+        final href = match.group(1) ?? '';
+        final src = match.group(2) ?? '';
+        if (src.isEmpty) return match.group(0) ?? '';
+        return '\n[![image]($src)]($href)\n';
       },
     );
+    
+    // 处理 <a> 标签包裹的 <img>（没有 href 在前的情况）
+    result = result.replaceAllMapped(
+      RegExp(r'<a\s+[^>]*>\s*<img\s+[^>]*src\s*=\s*["\x27]([^"\x27]+)["\x27][^>]*/?\s*>\s*</a>', caseSensitive: false),
+      (match) {
+        final src = match.group(1) ?? '';
+        if (src.isEmpty) return match.group(0) ?? '';
+        return '\n![image]($src)\n';
+      },
+    );
+    
+    // 处理 <picture> 标签（GitHub 深色/浅色模式图片）
+    // 简化处理：只取 <img> 标签
+    result = result.replaceAllMapped(
+      RegExp(r'<picture[^>]*>.*?<img\s+[^>]*src\s*=\s*["\x27]([^"\x27]+)["\x27][^>]*/?\s*>.*?</picture>', caseSensitive: false, dotAll: true),
+      (match) {
+        final src = match.group(1) ?? '';
+        if (src.isEmpty) return match.group(0) ?? '';
+        return '\n![image]($src)\n';
+      },
+    );
+    
+    // 处理独立的 <img> 标签（包括自闭合和非自闭合）
+    // 匹配 <img ... > 或 <img ... />
+    result = result.replaceAllMapped(
+      RegExp(r'<img\s+[^>]*?/?>', caseSensitive: false),
+      (match) {
+        final imgTag = match.group(0) ?? '';
+        
+        // 提取 src 属性
+        String src = _extractHtmlAttribute(imgTag, 'src');
+        if (src.isEmpty) return imgTag;
+        
+        // 提取 alt 属性
+        String alt = _extractHtmlAttribute(imgTag, 'alt');
+        if (alt.isEmpty) alt = 'image';
+        
+        // 返回 Markdown 格式，并添加换行确保每个图片独立
+        return '\n![$alt]($src)\n';
+      },
+    );
+    
+    // 处理 <video> 标签的 poster 属性（视频封面图）
+    result = result.replaceAllMapped(
+      RegExp(r'<video\s+[^>]*poster\s*=\s*["\x27]([^"\x27]+)["\x27][^>]*>.*?</video>', caseSensitive: false, dotAll: true),
+      (match) {
+        final poster = match.group(1) ?? '';
+        if (poster.isEmpty) return match.group(0) ?? '';
+        return '\n![video poster]($poster)\n';
+      },
+    );
+    
+    // 清理多余的空行
+    result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    
+    return result;
+  }
+  
+  /// 从 HTML 标签中提取属性值
+  String _extractHtmlAttribute(String tag, String attrName) {
+    // 匹配 attr="value" 或 attr='value'
+    final pattern = RegExp(
+      attrName + r'\s*=\s*["\x27]([^"\x27]*)["\x27]',
+      caseSensitive: false,
+    );
+    final match = pattern.firstMatch(tag);
+    return match?.group(1) ?? '';
   }
 
   MarkdownStyleSheet _buildMarkdownStyleSheet(BuildContext context) {
@@ -774,28 +824,152 @@ class _OverviewTabState extends State<OverviewTab>
 
   Widget _buildMarkdownImage(Uri uri, String? title, String? alt) {
     String imageUrl = uri.toString();
+    
+    // Data URI - 直接使用（Base64 内嵌图片）
+    if (imageUrl.startsWith('data:')) {
+      return _buildImageWidget(imageUrl, alt);
+    }
+    
+    // 处理绝对 URL
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      imageUrl = _normalizeGitHubUrl(imageUrl);
+      return _buildImageWidget(imageUrl, alt);
+    }
+    
+    // 处理相对路径
+    imageUrl = _resolveRelativePath(imageUrl);
+    return _buildImageWidget(imageUrl, alt);
+  }
 
-    // 如果是相对路径，转换为 GitHub raw 文件 URL
-    if (!imageUrl.startsWith('http')) {
-      // 移除开头的 './' 或直接以文件名开始的情况
-      if (imageUrl.startsWith('./')) {
-        imageUrl = imageUrl.substring(2);
+  /// 构建图片 Widget
+  Widget _buildImageWidget(String imageUrl, String? alt) {
+    // Data URI 使用 Image.memory
+    if (imageUrl.startsWith('data:')) {
+      try {
+        final dataUri = Uri.parse(imageUrl);
+        final base64Data = dataUri.data?.contentAsBytes();
+        if (base64Data != null) {
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Image.memory(
+              base64Data,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('解析 Data URI 失败: $e');
       }
-      // 构建 GitHub raw 文件 URL
-      imageUrl =
-          'https://raw.githubusercontent.com/${widget.repo.owner}/${widget.repo.name}/main/$imageUrl';
+      return const SizedBox.shrink();
     }
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: CachedNetworkImage(
         imageUrl: imageUrl,
-        placeholder: (context, url) => const SizedBox.shrink(),
-        errorWidget: (context, url, error) => const SizedBox.shrink(),
+        placeholder: (context, url) => Container(
+          height: 100,
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) {
+          debugPrint('图片加载失败: $url, 错误: $error');
+          return const SizedBox.shrink();
+        },
         fit: BoxFit.contain,
         fadeInDuration: const Duration(milliseconds: 300),
       ),
     );
+  }
+
+  /// 标准化 GitHub URL
+  /// 将 github.com/blob/ 和 github.com/raw/ 格式转换为 raw.githubusercontent.com
+  String _normalizeGitHubUrl(String url) {
+    // 移除 URL 锚点 (#xxx)
+    final hashIndex = url.indexOf('#');
+    if (hashIndex != -1) {
+      url = url.substring(0, hashIndex);
+    }
+    
+    // github.com/owner/repo/blob/branch/path → raw.githubusercontent.com/owner/repo/branch/path
+    final blobPattern = RegExp(
+      r'https?://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.+)',
+    );
+    final blobMatch = blobPattern.firstMatch(url);
+    if (blobMatch != null) {
+      final owner = blobMatch.group(1);
+      final repo = blobMatch.group(2);
+      final branch = blobMatch.group(3);
+      var path = blobMatch.group(4) ?? '';
+      // 移除 ?raw=true 等查询参数
+      final queryIndex = path.indexOf('?');
+      if (queryIndex != -1) {
+        path = path.substring(0, queryIndex);
+      }
+      return 'https://raw.githubusercontent.com/$owner/$repo/$branch/$path';
+    }
+    
+    // github.com/owner/repo/raw/branch/path → raw.githubusercontent.com/owner/repo/branch/path
+    final rawPattern = RegExp(
+      r'https?://github\.com/([^/]+)/([^/]+)/raw/([^/]+)/(.+)',
+    );
+    final rawMatch = rawPattern.firstMatch(url);
+    if (rawMatch != null) {
+      final owner = rawMatch.group(1);
+      final repo = rawMatch.group(2);
+      final branch = rawMatch.group(3);
+      var path = rawMatch.group(4) ?? '';
+      // 移除查询参数
+      final queryIndex = path.indexOf('?');
+      if (queryIndex != -1) {
+        path = path.substring(0, queryIndex);
+      }
+      return 'https://raw.githubusercontent.com/$owner/$repo/$branch/$path';
+    }
+    
+    return url;
+  }
+
+  /// 解析相对路径，转换为 raw.githubusercontent.com URL
+  String _resolveRelativePath(String path) {
+    // 移除 URL 锚点 (#xxx)
+    final hashIndex = path.indexOf('#');
+    if (hashIndex != -1) {
+      path = path.substring(0, hashIndex);
+    }
+    
+    // 移除查询参数 (?xxx)
+    final queryIndex = path.indexOf('?');
+    if (queryIndex != -1) {
+      path = path.substring(0, queryIndex);
+    }
+    
+    // 移除开头的 './'
+    if (path.startsWith('./')) {
+      path = path.substring(2);
+    }
+    
+    // 移除开头的 '/'
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+    
+    // 处理 '../'（简化处理，假设 README 在根目录）
+    while (path.startsWith('../')) {
+      path = path.substring(3);
+    }
+    
+    // 使用仓库的默认分支，如果没有则尝试 main
+    final branch = widget.repo.defaultBranch ?? 'main';
+    
+    return 'https://raw.githubusercontent.com/${widget.repo.owner}/${widget.repo.name}/$branch/$path';
   }
 }
 

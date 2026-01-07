@@ -6,7 +6,6 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/utils/debouncer.dart';
 
-/// 仓库列表页：使用 ConsumerStatefulWidget 来支持有状态组件
 class ReposPage extends ConsumerStatefulWidget {
   const ReposPage({super.key});
 
@@ -28,23 +27,25 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   @override
   void initState() {
     super.initState();
-    // 🔄 使用 ref.read 获取初始数据
     _repos = ref.read(profileProvider).repos;
     _filteredRepos = _repos;
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 300) {
-        _loadMore();
-      }
-    });
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      _loadMore();
+    }
   }
 
   @override
   void dispose() {
-    super.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
     _debouncer.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMore() async {
@@ -53,7 +54,6 @@ class _ReposPageState extends ConsumerState<ReposPage> {
       _isLoading = true;
     });
     try {
-      // 🔄 使用 ref.read 获取 notifier 来加载更多
       final notifier = ref.read(profileProvider.notifier);
       final newRepos = await notifier.loadMoreRepos();
       if (newRepos.isEmpty) {
@@ -138,6 +138,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     }
     return ListView.builder(
       controller: _scrollController,
+      cacheExtent: 500,
       itemCount: _filteredRepos.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _filteredRepos.length) {

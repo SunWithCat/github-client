@@ -105,6 +105,8 @@ class ContributorCard extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: avatarUrl,
+      memCacheWidth: 96, // 48 * 2 (for high DPI)
+      memCacheHeight: 96,
       imageBuilder: (context, imageProvider) => CircleAvatar(
         radius: 24,
         backgroundImage: imageProvider,

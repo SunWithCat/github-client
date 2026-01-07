@@ -234,6 +234,8 @@ class _CommitCardState extends State<CommitCard> {
           imageUrl: avatarUrl!,
           width: 36,
           height: 36,
+          memCacheWidth: 72, // 36 * 2 (for high DPI)
+          memCacheHeight: 72,
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             width: 36,

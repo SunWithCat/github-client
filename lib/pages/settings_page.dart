@@ -49,6 +49,8 @@ class SettingsPage extends ConsumerWidget {
                   child: CachedNetworkImage(
                     key: ValueKey(avatarUrl),
                     imageUrl: avatarUrl,
+                    memCacheWidth: 80, // 40 * 2 (for high DPI)
+                    memCacheHeight: 80,
                     imageBuilder:
                         (context, imageProvider) =>
                             CircleAvatar(backgroundImage: imageProvider),

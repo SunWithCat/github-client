@@ -232,6 +232,8 @@ class HomePage extends ConsumerWidget {
                 child: CachedNetworkImage(
                   key: ValueKey(user.avatarUrl),
                   imageUrl: user.avatarUrl,
+                  memCacheWidth: 140, // 70 * 2 (for high DPI)
+                  memCacheHeight: 140,
                   imageBuilder:
                       (context, imageProvider) => CircleAvatar(
                         radius: 35,

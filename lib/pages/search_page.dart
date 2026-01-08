@@ -6,7 +6,6 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 
-/// 搜索页：使用 ConsumerStatefulWidget 来支持有状态组件
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -56,7 +55,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       _currentQuery = query;
     });
 
-    // 🔄 使用 ref.read 获取 token
     final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
@@ -67,7 +65,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       return;
     }
     try {
-      // 🔄 使用 ref.read 获取 GitHub 服务
       final githubService = ref.read(githubServiceProvider);
       final (repos, error) = await githubService.searchRepos(
         token,

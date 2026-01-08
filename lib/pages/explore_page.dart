@@ -7,7 +7,6 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/search_page.dart';
 
-/// 探索页：使用 ConsumerStatefulWidget 来支持有状态组件
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
 
@@ -31,7 +30,6 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
     setState(() {
       _isLoading = true;
     });
-    // 🔄 使用 ref.read 获取 token
     final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
@@ -42,7 +40,6 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       return;
     }
     try {
-      // 🔄 使用 ref.read 获取 GitHub 服务
       final githubService = ref.read(githubServiceProvider);
       final (repos, error) = await githubService.getTrendingRepos(
         token,
@@ -52,8 +49,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            debugPrint('加载热门仓库失败：$error'); // 实际项目中这里可以弹 Toast
-            // 保持 _trendingRepos 不变或清空，视需求而定
+            debugPrint('加载热门仓库失败：$error'); 
           } else {
             _trendingRepos = repos ?? [];
             _loadingCompleteTime = DateTime.now(); // 记录加载完成时间

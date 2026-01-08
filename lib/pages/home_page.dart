@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/widgets/github_markdown.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/my_user_model.dart';
@@ -11,9 +11,7 @@ import 'package:ghclient/pages/explore_page.dart';
 import 'package:ghclient/pages/repos_page.dart';
 import 'package:ghclient/pages/settings_page.dart';
 import 'package:ghclient/pages/starred_repos_page.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-/// 首页：使用 ConsumerWidget 来监听 Riverpod 状态
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -31,7 +29,6 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 🔄 使用 ref.watch 监听 Profile 状态
     final profileState = ref.watch(profileProvider);
     final user = profileState.user;
     final brightness = Theme.of(context).brightness;
@@ -157,14 +154,11 @@ class HomePage extends ConsumerWidget {
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8),
-                                      child: MarkdownBody(
+                                      child: GitHubMarkdown(
                                         data: profileReadme,
+                                        owner: user.login,
+                                        repo: user.login, // profile readme 仓库名与用户名相同
                                         selectable: true,
-                                        onTapLink: (text, href, title) {
-                                          if (href != null) {
-                                            launchUrl(Uri.parse(href));
-                                          }
-                                        },
                                       ),
                                     ),
                                   )
@@ -178,7 +172,6 @@ class HomePage extends ConsumerWidget {
             ),
           ),
           onRefresh: () async {
-            // 🔄 使用 ref.read 获取 notifier 来执行刷新
             await ref.read(profileProvider.notifier).refreshData();
           },
         ),

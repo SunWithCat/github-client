@@ -6,7 +6,6 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/utils/debouncer.dart';
 
-/// 星标仓库页：使用 ConsumerStatefulWidget 来支持有状态组件
 class StarredReposPage extends ConsumerStatefulWidget {
   const StarredReposPage({super.key});
 
@@ -26,7 +25,6 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
   @override
   void initState() {
     super.initState();
-    // 🔄 使用 ref.read 获取初始数据
     _repos = ref.read(profileProvider).starredRepos;
     _filteredRepos = _repos;
     _scrollController.addListener(() {
@@ -52,7 +50,6 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
     });
 
     try {
-      // 🔄 使用 ref.read 获取 notifier 来加载更多
       final notifier = ref.read(profileProvider.notifier);
       final newRepos = await notifier.loadMoreStarredRepos();
       if (newRepos.isEmpty) {

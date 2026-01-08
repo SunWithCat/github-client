@@ -1,9 +1,3 @@
-// =============================================================
-// 📱 GhClient 应用入口
-// =============================================================
-// 使用 Riverpod 进行状态管理
-// =============================================================
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -55,11 +49,9 @@ void main() async {
     ),
   );
 
-  // 🎉 使用 ProviderScope 包装应用（Riverpod 的根组件）
   runApp(const ProviderScope(child: MyApp()));
 }
 
-/// 应用根组件 - 使用 ConsumerStatefulWidget 来监听 Riverpod 状态
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
@@ -72,9 +64,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // 🚀 在应用启动时初始化 Profile 状态
-    // 使用 addPostFrameCallback 确保 build 完成后再初始化
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileProvider.notifier).init();
     });
@@ -95,7 +84,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // 🔄 使用 ref.watch 监听状态变化
     final themeData = ref.watch(themeProvider);
     final profileState = ref.watch(profileProvider);
     final bool isLoading = profileState.isLoading;

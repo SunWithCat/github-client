@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
 
-/// 登录页：使用 ConsumerStatefulWidget
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -57,7 +56,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-      // 🔄 使用 ref.read 获取 notifier
       final profileNotifier = ref.read(profileProvider.notifier);
       final navigator = Navigator.of(context);
 

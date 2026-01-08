@@ -7,7 +7,6 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// 设置页：使用 ConsumerWidget
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -15,7 +14,6 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final githubBlue = const Color(0xFFB3D4FC);
-    // 🔄 使用 ref.watch 获取用户数据
     final profileUser = ref.watch(userProvider);
 
     if (profileUser == null) {
@@ -89,7 +87,6 @@ class SettingsPage extends ConsumerWidget {
                             ),
                             TextButton(
                               onPressed: () {
-                                // 🔄 使用 ref.read 获取 notifier 来执行退出
                                 ref.read(profileProvider.notifier).logout();
                                 final navigator = Navigator.of(dialogContext);
                                 navigator.pop();

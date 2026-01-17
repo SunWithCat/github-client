@@ -1,72 +1,156 @@
-# GhClient - 一款 Flutter 开发的 GitHub 客户端
+# GhClient
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.7.2+-02569B?logo=flutter" alt="Flutter Version" />
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" />
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+  <strong>一款精美的 Flutter GitHub 客户端</strong>
 </p>
 
-GhClient 是一款使用 Flutter 构建的、功能丰富的第三方 GitHub 客户端应用。它旨在提供一个流畅、美观且功能全面的移动端 GitHub 体验，让您随时随地管理您的 GitHub 项目和活动。
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/github/stars/SunWithCat/github-client?style=flat-square" alt="Stars" />
+</p>
 
-## ✨ 主要功能
 
-- **安全登录**: 通过 GitHub OAuth 实现安全可靠的用户认证
-- **仓库管理**: 浏览、搜索和管理您的仓库
-- **主题切换**: 内置浅色和深色两种主题模式
+<p align="center">
+  <a href="https://github.com/SunWithCat/github-client/stargazers">
+    <img src="https://img.shields.io/github/stars/SunWithCat/github-client?style=social" alt="Stars" />
+  </a>
+  <a href="https://github.com/SunWithCat/github-client/network/members">
+    <img src="https://img.shields.io/github/forks/SunWithCat/github-client?style=social" alt="Forks" />
+  </a>
+  <a href="https://github.com/SunWithCat/github-client/issues">
+    <img src="https://img.shields.io/github/issues/SunWithCat/github-client" alt="Issues" />
+  </a>
+  <img src="https://img.shields.io/github/last-commit/SunWithCat/github-client" alt="Last Commit" />
+</p>
+
+---
+
+GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨在提供流畅、美观且功能全面的移动端 GitHub 体验。
+
+## 📑 目录
+
+- [功能特性](#-功能特性)
+- [应用截图](#-应用截图)
+- [技术栈](#-技术栈)
+- [快速开始](#-快速开始)
+- [配置说明](#-配置说明)
+- [开发路线](#-开发路线)
+- [贡献指南](#-贡献指南)
+- [许可证](#-许可证)
+
+## ✨ 功能特性
+
+- 🔐 **安全登录** - 通过 GitHub OAuth 实现安全可靠的用户认证
+- 📂 **仓库管理** - 浏览、搜索和管理您的仓库
+- ⭐ **Star 管理** - 查看和管理您的 Star 仓库
+- 🔍 **仓库搜索** - 快速搜索 GitHub 仓库
+- 🌓 **主题切换** - 内置浅色和深色两种主题模式
+- 📄 **Markdown 渲染** - 完美渲染 README 和文档内容
 
 ## 📱 应用截图
 
-<div align="center" style="display: flex; gap: 20px; flex-wrap: wrap;">
-  <img src="home.jpg" alt="主页界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="repos.jpg" alt="仓库界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="starred_repos.jpg" alt="星标界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="detail.jpg" alt="详情界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="explore.jpg" alt="探索界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="search.jpg" alt="搜索界面预览" style="width: 30%; max-width: 300px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-</div>
+<p align="center">
+  <img src="home.jpg" width="24%" alt="主页" />
+  <img src="repos.jpg" width="24%" alt="仓库" />
+  <img src="starred_repos.jpg" width="24%" alt="星标" />
+  <img src="detail.jpg" width="24%" alt="详情" />
+</p>
+<p align="center">
+  <img src="explore.jpg" width="24%" alt="探索" />
+  <img src="search.jpg" width="24%" alt="搜索" />
+</p>
 
-## 🚀 技术栈
+## 🛠️ 技术栈
 
-- **UI框架**: [Flutter](https://flutter.dev/) - Google 的 UI 工具包
-- **状态管理**: [Provider](https://pub.dev/packages/provider) - 轻量级状态管理解决方案
-- **网络请求**: [Dio](https://pub.dev/packages/dio) - 强大的 HTTP 客户端
-- **本地存储**: [Hive](https://pub.dev/packages/hive) & [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) - 高性能的键值数据库和安全存储
-- **OAuth 流程**: [uni_links](https://pub.dev/packages/uni_links) & [url_launcher](https://pub.dev/packages/url_launcher) - 处理深度链接和外部浏览器启动
-- **Markdown 渲染**: [flutter_markdown](https://pub.dev/packages/flutter_markdown) - 渲染 GitHub 的 Markdown 内容
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Riverpod-0553B1?style=flat-square&logo=riverpod&logoColor=white" alt="Riverpod" />
+  <img src="https://img.shields.io/badge/Dio-0175C2?style=flat-square&logo=dart&logoColor=white" alt="Dio" />
+  <img src="https://img.shields.io/badge/Hive-FFD43B?style=flat-square&logo=hive&logoColor=black" alt="Hive" />
+</p>
 
-## 🛠️ 安装与运行
+| 类别 | 库 | 用途 |
+|------|-----|------|
+| **状态管理** | [Flutter Riverpod](https://pub.dev/packages/flutter_riverpod) | 声明式响应式状态管理 |
+| **网络请求** | [Dio](https://pub.dev/packages/dio) | HTTP 客户端 |
+| **本地存储** | [Hive](https://pub.dev/packages/hive) + [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) | 数据持久化 & 安全存储 |
+| **Deep Links** | [app_links](https://pub.dev/packages/app_links) | OAuth 回调处理 |
+| **Markdown** | [flutter_markdown](https://pub.dev/packages/flutter_markdown) | README 渲染 |
+| **图标** | [flutter_octicons](https://pub.dev/packages/flutter_octicons) | GitHub 图标库 |
+| **图片** | [cached_network_image](https://pub.dev/packages/cached_network_image) | 网络图片缓存 |
 
-### 前提条件
+## 🚀 快速开始
 
-- Flutter SDK
-- Dart SDK (随 Flutter 一起安装)
+### 环境要求
+
+- Flutter SDK `>=3.7.2`
+- Dart SDK `>=3.7.2`
 - Android Studio / VS Code
-- Android SDK / Xcode (取决于目标平台)
+- Android SDK / Xcode
 
-
-### 运行应用
+### 安装运行
 
 ```bash
-# 调试模式运行
-flutter run
+# 克隆项目
+git clone https://github.com/SunWithCat/github-client.git
+cd ghclient
 
-# 或构建发布版本
-flutter build apk  # Android
-flutter build ios  # iOS
+# 安装依赖
+flutter pub get
+
+# 运行应用
+flutter run
 ```
 
-## 🔧 配置
+### 构建发布
 
-要使用 GitHub OAuth 功能，您需要：
+```bash
+# Android
+flutter build apk --release
 
-1. 在 [GitHub Developer Settings](https://github.com/settings/developers) 创建一个 OAuth 应用
-2. 设置回调 URL (例如: `com.yourdomain.ghclient://oauth-callback`)
-3. 获取 Client ID 和 Client Secret
+# iOS
+flutter build ios --release
+```
+
+## ⚙️ 配置说明
+
+要使用 GitHub OAuth 功能：
+
+1. 在 [GitHub Developer Settings](https://github.com/settings/developers) 创建 OAuth 应用
+2. 设置回调 URL: `com.yourdomain.ghclient://oauth-callback`
+3. 获取 `Client ID` 和 `Client Secret`
 4. 在项目中配置相应的值
 
+## 🗺️ 开发路线
 
-## 📊 项目状态
+- [x] GitHub OAuth 登录
+- [x] 仓库浏览与搜索
+- [x] Star 仓库管理
+- [x] README 渲染
+- [x] 浅色/深色主题
+- [ ] Issues 管理
+- [ ] Pull Requests 查看
+- [ ] 通知中心
+- [ ] 用户 Profile 页面
+- [ ] 仓库文件浏览器
 
-该项目目前处于积极开发阶段。欢迎 Star ⭐ 关注项目进展！
+## 🤝 贡献指南
 
+欢迎贡献代码！请遵循以下步骤：
 
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
+
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE) 许可证。
+
+---
+
+<p align="center">
+  如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！
+</p>

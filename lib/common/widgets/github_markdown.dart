@@ -227,7 +227,9 @@ class GitHubMarkdown extends StatelessWidget {
     // 移除 ./ 和 /
     if (cleanPath.startsWith('./')) cleanPath = cleanPath.substring(2);
     if (cleanPath.startsWith('/')) cleanPath = cleanPath.substring(1);
-    while (cleanPath.startsWith('../')) cleanPath = cleanPath.substring(3);
+    while (cleanPath.startsWith('../')) {
+      cleanPath = cleanPath.substring(3);
+    }
     
     // 如果没有 owner/repo，无法构建完整 URL
     if (owner == null || repo == null) {

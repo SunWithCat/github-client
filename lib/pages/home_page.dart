@@ -3,14 +3,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/github_markdown.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/my_user_model.dart';
-import 'package:ghclient/pages/explore_page.dart';
-import 'package:ghclient/pages/repos_page.dart';
-import 'package:ghclient/pages/settings_page.dart';
-import 'package:ghclient/pages/starred_repos_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -42,10 +39,7 @@ class HomePage extends ConsumerWidget {
       child: SafeScaffold(
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ExplorePage()),
-            );
+            context.push('/explore');
           },
           backgroundColor: const Color(0xFFB3D4FC),
           foregroundColor: const Color(0xFF003566),
@@ -78,25 +72,14 @@ class HomePage extends ConsumerWidget {
                                   const Spacer(),
                                   TextButton.icon(
                                     onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ReposPage(),
-                                        ),
-                                      );
+                                      context.push('/repos');
                                     },
                                     icon: Icon(OctIcons.repo_16),
                                     label: Text('仓库'),
                                   ),
                                   TextButton.icon(
                                     onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => StarredReposPage(),
-                                        ),
-                                      );
+                                      context.push('/starred');
                                     },
                                     icon: Icon(
                                       OctIcons.star_fill_16,
@@ -287,10 +270,7 @@ class HomePage extends ConsumerWidget {
             ),
             IconButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()),
-                );
+                context.push('/settings');
               },
               icon: const Icon(Icons.settings),
             ),

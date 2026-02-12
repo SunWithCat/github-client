@@ -5,8 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
-import 'pages/login_page.dart';
-import 'pages/home_page.dart';
+import 'router/app_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -85,9 +84,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final themeData = ref.watch(themeProvider);
-    final profileState = ref.watch(profileProvider);
-    final bool isLoading = profileState.isLoading;
-    final bool isLoggedIn = profileState.isLoggedIn;
+    final router = ref.watch(routerProvider);
 
     // 根据当前主题的亮度决定状态栏图标的颜色
     final Brightness statusBarIconBrightness =
@@ -101,26 +98,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: Colors.transparent,
       ),
-      child: MaterialApp(
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         title: 'GhClient',
-        home:
-            isLoading
-                ? Scaffold(
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 15.0),
-                        const Text('登陆中'),
-                      ],
-                    ),
-                  ),
-                )
-                : isLoggedIn
-                ? const HomePage()
-                : const LoginPage(),
+        routerConfig: router,
         theme: themeData,
       ),
     );

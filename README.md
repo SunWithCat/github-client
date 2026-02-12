@@ -66,6 +66,7 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
   <img src="https://img.shields.io/badge/Riverpod-0553B1?style=flat-square&logo=riverpod&logoColor=white" alt="Riverpod" />
+  <img src="https://img.shields.io/badge/go__router-00ADD8?style=flat-square&logo=flutter&logoColor=white" alt="go_router" />
   <img src="https://img.shields.io/badge/Dio-0175C2?style=flat-square&logo=dart&logoColor=white" alt="Dio" />
   <img src="https://img.shields.io/badge/Hive-FFD43B?style=flat-square&logo=hive&logoColor=black" alt="Hive" />
 </p>
@@ -73,6 +74,7 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 | 类别 | 库 | 用途 |
 |------|-----|------|
 | **状态管理** | [Flutter Riverpod](https://pub.dev/packages/flutter_riverpod) | 声明式响应式状态管理 |
+| **路由管理** | [go_router](https://pub.dev/packages/go_router) | 声明式路由与重定向 |
 | **网络请求** | [Dio](https://pub.dev/packages/dio) | HTTP 客户端 |
 | **本地存储** | [Hive](https://pub.dev/packages/hive) + [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) | 数据持久化 & 安全存储 |
 | **Deep Links** | [app_links](https://pub.dev/packages/app_links) | OAuth 回调处理 |
@@ -94,7 +96,7 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 ```bash
 # 克隆项目
 git clone https://github.com/SunWithCat/github-client.git
-cd ghclient
+cd github-client
 
 # 安装依赖
 flutter pub get
@@ -118,9 +120,18 @@ flutter build ios --release
 要使用 GitHub OAuth 功能：
 
 1. 在 [GitHub Developer Settings](https://github.com/settings/developers) 创建 OAuth 应用
-2. 设置回调 URL: `com.yourdomain.ghclient://oauth-callback`
+2. 设置回调 URL（与 `lib/config.dart` 保持一致）: `myfluttergithubapp://callback`
 3. 获取 `Client ID` 和 `Client Secret`
-4. 在项目中配置相应的值
+4. 在 `lib/config.dart` 中配置 `githubClientId`、`githubClientSecret`、`githubCallbackUrl`
+
+### 依赖版本（与 `pubspec.yaml` 对应）
+
+- `flutter_riverpod: ^3.0.3`
+- `go_router: ^17.0.0`
+- `dio: ^5.8.0+1`
+- `app_links: ^6.3.1`
+- `hive: ^2.2.3`
+- `flutter_secure_storage: ^9.2.4`
 
 ## 🗺️ 开发路线
 

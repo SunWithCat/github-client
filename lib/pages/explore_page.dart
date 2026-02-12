@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/pages/search_page.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
@@ -109,10 +109,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchPage()),
-                );
+                context.push('/search');
               },
               icon: const Icon(OctIcons.search_16, size: 20),
             ),

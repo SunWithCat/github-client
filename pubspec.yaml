@@ -45,6 +45,7 @@ dependencies:
   flutter_octicons: ^1.58.0
   fluttertoast: ^9.0.0
   cached_network_image: ^3.4.1
+  go_router: ^17.0.0
 
 dev_dependencies:
   flutter_test:

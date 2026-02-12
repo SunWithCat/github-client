@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -88,12 +89,8 @@ class SettingsPage extends ConsumerWidget {
                             TextButton(
                               onPressed: () {
                                 ref.read(profileProvider.notifier).logout();
-                                final navigator = Navigator.of(dialogContext);
-                                navigator.pop();
-                                navigator.pushNamedAndRemoveUntil(
-                                  '/',
-                                  (route) => false,
-                                );
+                                Navigator.pop(dialogContext);
+                                context.go('/login');
                               },
                               child: const Text(
                                 '确定',

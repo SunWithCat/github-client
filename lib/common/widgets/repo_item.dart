@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/pages/repo_detail_page.dart';
+import 'package:ghclient/router/app_router.dart';
 
 /// 仓库列表项组件：使用 ConsumerWidget
 class RepoItem extends ConsumerWidget {
@@ -78,11 +79,9 @@ class RepoItem extends ConsumerWidget {
           // 🔄 使用 ref.read 获取 token
           final token = ref.read(tokenProvider);
           if (token != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RepoPage(repo: repo, token: token),
-              ),
+            context.push(
+              '/repo',
+              extra: RepoDetailArgs(repo: repo, token: token),
             );
           }
         },

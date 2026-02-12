@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -57,7 +58,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _isLoading = true;
       });
       final profileNotifier = ref.read(profileProvider.notifier);
-      final navigator = Navigator.of(context);
 
       try {
         if (!mounted) return;
@@ -86,7 +86,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           await storage.saveToken(accessToken);
           if (!mounted) return;
           profileNotifier.login(accessToken);
-          navigator.pushReplacementNamed('/');
+          context.go('/');
         }
       } catch (e) {
         debugPrint('换取 token 失败： $e');

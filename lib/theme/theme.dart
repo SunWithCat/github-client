@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 const primaryColor = Color(0xFF24292E); // GitHub 头部黑
 const accentColor = Color(0xFF0366D6); // GitHub 链接蓝
 const lightGreyColor = Color(0xFFF5F7F9); // 浅灰背景
+
+TextTheme _buildBaseTextTheme(Brightness brightness) {
+  final fallback =
+      brightness == Brightness.dark
+          ? ThemeData.dark().textTheme
+          : ThemeData.light().textTheme;
+  return fallback.copyWith(
+    headlineSmall: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+    titleLarge: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+    bodyMedium: const TextStyle(fontSize: 14, height: 1.5),
+  );
+}
 
 ThemeData lightMode = ThemeData(
   brightness: Brightness.light,
@@ -24,10 +37,8 @@ ThemeData lightMode = ThemeData(
       side: BorderSide(color: Colors.grey.shade200, width: 1.0),
     ),
   ),
-  textTheme: const TextTheme(
-    headlineSmall: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-    titleLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-    bodyMedium: TextStyle(fontSize: 14, height: 1.5),
+  textTheme: GoogleFonts.notoSansScTextTheme(
+    _buildBaseTextTheme(Brightness.light),
   ),
 );
 
@@ -46,9 +57,7 @@ ThemeData darkMode = ThemeData(
     shadowColor: Colors.black.withValues(alpha: 0.5), // 增加阴影不透明度
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
-  textTheme: const TextTheme(
-    headlineSmall: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-    titleLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-    bodyMedium: TextStyle(fontSize: 14, height: 1.5),
+  textTheme: GoogleFonts.notoSansScTextTheme(
+    _buildBaseTextTheme(Brightness.dark),
   ),
 );

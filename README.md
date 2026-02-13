@@ -34,9 +34,6 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 - [应用截图](#-应用截图)
 - [技术栈](#-技术栈)
 - [快速开始](#-快速开始)
-- [配置说明](#-配置说明)
-- [开发路线](#-开发路线)
-- [贡献指南](#-贡献指南)
 - [许可证](#-许可证)
 
 ## ✨ 功能特性
@@ -123,38 +120,6 @@ flutter build ios --release
 2. 设置回调 URL（与 `lib/config.dart` 保持一致）: `myfluttergithubapp://callback`
 3. 获取 `Client ID` 和 `Client Secret`
 4. 在 `lib/config.dart` 中配置 `githubClientId`、`githubClientSecret`、`githubCallbackUrl`
-
-### 依赖版本（与 `pubspec.yaml` 对应）
-
-- `flutter_riverpod: ^3.0.3`
-- `go_router: ^17.0.0`
-- `dio: ^5.8.0+1`
-- `app_links: ^6.3.1`
-- `hive: ^2.2.3`
-- `flutter_secure_storage: ^9.2.4`
-
-## 🗺️ 开发路线
-
-- [x] GitHub OAuth 登录
-- [x] 仓库浏览与搜索
-- [x] Star 仓库管理
-- [x] README 渲染
-- [x] 浅色/深色主题
-- [ ] Issues 管理
-- [ ] Pull Requests 查看
-- [ ] 通知中心
-- [ ] 用户 Profile 页面
-- [ ] 仓库文件浏览器
-
-## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
 
 ## 📄 许可证
 

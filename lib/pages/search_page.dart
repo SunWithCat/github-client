@@ -163,7 +163,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             ),
           );
         }
-        return RepoItem(repo: _repos[index]);
+        return RepoItem(repo: _repos[index], showVisibilityBadge: true);
       },
     );
   }

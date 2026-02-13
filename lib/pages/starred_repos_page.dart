@@ -143,7 +143,10 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
           );
         }
         // 否则，显示仓库信息
-        return RepoItem(repo: _filteredRepos[index]);
+        return RepoItem(
+          repo: _filteredRepos[index],
+          showVisibilityBadge: true,
+        );
       },
     );
   }

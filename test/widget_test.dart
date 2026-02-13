@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/utils/date_formatter.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/skeleton_loader.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/my_user_model.dart';
+import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/home_page.dart';
 
 void main() {
@@ -126,6 +128,100 @@ void main() {
       );
 
       expect(find.byType(SkeletonLoader), findsOneWidget);
+    });
+  });
+
+  group('Repo Model', () {
+    test('fromJson parses private=true correctly', () {
+      final repo = Repo.fromJson({
+        'name': 'private-repo',
+        'description': 'demo',
+        'language': 'Dart',
+        'private': true,
+        'stargazers_count': 1,
+        'forks_count': 2,
+        'owner': {'login': 'octocat'},
+        'default_branch': 'main',
+      });
+
+      expect(repo.isPrivate, isTrue);
+    });
+
+    test('fromJson defaults private to false when missing', () {
+      final repo = Repo.fromJson({
+        'name': 'public-repo',
+        'description': 'demo',
+        'language': 'Dart',
+        'stargazers_count': 1,
+        'forks_count': 2,
+        'owner': {'login': 'octocat'},
+        'default_branch': 'main',
+      });
+
+      expect(repo.isPrivate, isFalse);
+    });
+
+    test('toJson contains private field', () {
+      final json = _fakeRepo(isPrivate: true).toJson();
+      expect(json.containsKey('private'), isTrue);
+      expect(json['private'], isTrue);
+    });
+  });
+
+  group('RepoItem Visibility Badge', () {
+    testWidgets('shows Private badge when repo is private', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: RepoItem(
+                repo: _fakeRepo(isPrivate: true),
+                showVisibilityBadge: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Private'), findsOneWidget);
+      expect(find.text('Public'), findsNothing);
+    });
+
+    testWidgets('shows Public badge when repo is public', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: RepoItem(
+                repo: _fakeRepo(isPrivate: false),
+                showVisibilityBadge: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Public'), findsOneWidget);
+      expect(find.text('Private'), findsNothing);
+    });
+
+    testWidgets('does not show badge when showVisibilityBadge is false', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(body: RepoItem(repo: _fakeRepo(isPrivate: true))),
+          ),
+        ),
+      );
+
+      expect(find.text('Public'), findsNothing);
+      expect(find.text('Private'), findsNothing);
     });
   });
 
@@ -257,6 +353,19 @@ User _fakeUser() {
     publicRepos: 12,
     location: 'San Francisco',
     createdAt: '2020-01-01T00:00:00Z',
+  );
+}
+
+Repo _fakeRepo({required bool isPrivate}) {
+  return Repo(
+    name: 'sample-repo',
+    description: 'sample description',
+    language: 'Dart',
+    isPrivate: isPrivate,
+    starCount: 10,
+    forkCount: 2,
+    ownerData: {'login': 'octocat'},
+    defaultBranch: 'main',
   );
 }
 

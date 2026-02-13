@@ -9,7 +9,12 @@ import 'package:ghclient/router/app_router.dart';
 /// 仓库列表项组件：使用 ConsumerWidget
 class RepoItem extends ConsumerWidget {
   final Repo repo;
-  const RepoItem({super.key, required this.repo});
+  final bool showVisibilityBadge;
+  const RepoItem({
+    super.key,
+    required this.repo,
+    this.showVisibilityBadge = false,
+  });
 
   Color getLanguageColor(String? language) {
     if (language == null) return Colors.grey;
@@ -105,6 +110,8 @@ class RepoItem extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       repo.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color:
                             theme.brightness == Brightness.light
@@ -114,6 +121,10 @@ class RepoItem extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  if (showVisibilityBadge) ...[
+                    const SizedBox(width: 8),
+                    _VisibilityBadge(isPrivate: repo.isPrivate),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),
@@ -166,6 +177,52 @@ class RepoItem extends ConsumerWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VisibilityBadge extends StatelessWidget {
+  final bool isPrivate;
+
+  const _VisibilityBadge({required this.isPrivate});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final background =
+        isPrivate
+            ? colorScheme.primaryContainer.withValues(alpha: 0.72)
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.75);
+    final border =
+        isPrivate
+            ? colorScheme.primary.withValues(alpha: 0.35)
+            : colorScheme.outlineVariant.withValues(alpha: 0.65);
+    final foreground =
+        isPrivate
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.onSurfaceVariant;
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 56, minHeight: 22),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: border),
+      ),
+      child: Center(
+        child: Text(
+          isPrivate ? 'Private' : 'Public',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11.5,
+            height: 1.1,
+            fontWeight: FontWeight.w600,
+            color: foreground,
           ),
         ),
       ),

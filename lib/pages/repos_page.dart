@@ -147,7 +147,10 @@ class _ReposPageState extends ConsumerState<ReposPage> {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        return RepoItem(repo: _filteredRepos[index]);
+        return RepoItem(
+          repo: _filteredRepos[index],
+          showVisibilityBadge: true,
+        );
       },
     );
   }

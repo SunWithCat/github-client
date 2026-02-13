@@ -7,6 +7,8 @@ class Repo {
   String name;
   String? description;
   String? language;
+  @JsonKey(name: 'private', defaultValue: false)
+  bool isPrivate;
   @JsonKey(name: 'stargazers_count')
   int starCount;
   @JsonKey(name: 'forks_count')
@@ -22,6 +24,7 @@ class Repo {
     required this.name,
     this.description,
     this.language,
+    required this.isPrivate,
     required this.starCount,
     required this.forkCount,
     required this.ownerData,

@@ -63,7 +63,11 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, ProfileState profileState, User? user) {
+  Widget _buildBody(
+    BuildContext context,
+    ProfileState profileState,
+    User? user,
+  ) {
     if (profileState.isLoading && user == null) {
       return ListView(
         key: const ValueKey('home_loading'),
@@ -77,7 +81,12 @@ class HomePage extends ConsumerWidget {
       return ListView(
         key: const ValueKey('home_empty'),
         physics: const AlwaysScrollableScrollPhysics(),
-        children: [SizedBox(height: MediaQuery.of(context).size.height * 0.68, child: const _HomeEmptyState())],
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.68,
+            child: const _HomeEmptyState(),
+          ),
+        ],
       );
     }
 
@@ -87,50 +96,58 @@ class HomePage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       children: [
         _HomeHeaderCard(
-          user: user,
-          joinDateText: formatJoinDate(user.createdAt),
-          onOpenSettings: () => context.push('/settings'),
-        ).animate().fadeIn(duration: const Duration(milliseconds: 220)).slideY(
-          begin: 0.05,
-          end: 0,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-        ),
+              user: user,
+              joinDateText: formatJoinDate(user.createdAt),
+              onOpenSettings: () => context.push('/settings'),
+            )
+            .animate()
+            .fadeIn(duration: const Duration(milliseconds: 220))
+            .slideY(
+              begin: 0.05,
+              end: 0,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+            ),
         const SizedBox(height: 12),
         _HomeQuickActions(
-          publicRepos: user.publicRepos,
-          starredRepos: profileState.starredRepos.length,
-          onOpenRepos: () => context.push('/repos'),
-          onOpenStarred: () => context.push('/starred'),
-        ).animate(delay: const Duration(milliseconds: 60)).fadeIn(
-          duration: const Duration(milliseconds: 220),
-        ).slideY(
-          begin: 0.05,
-          end: 0,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-        ),
+              publicRepos: user.publicRepos,
+              starredReposLoaded: profileState.starredRepos.length,
+              starredReposTotalCount: profileState.starredReposTotalCount,
+              starredReposHasMore: profileState.starredReposHasMore,
+              onOpenRepos: () => context.push('/repos'),
+              onOpenStarred: () => context.push('/starred'),
+            )
+            .animate(delay: const Duration(milliseconds: 60))
+            .fadeIn(duration: const Duration(milliseconds: 220))
+            .slideY(
+              begin: 0.05,
+              end: 0,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+            ),
         const SizedBox(height: 16),
-        _HomeMetaSection(user: user).animate(delay: const Duration(milliseconds: 120)).fadeIn(
-          duration: const Duration(milliseconds: 240),
-        ).slideY(
-          begin: 0.05,
-          end: 0,
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-        ),
+        _HomeMetaSection(user: user)
+            .animate(delay: const Duration(milliseconds: 120))
+            .fadeIn(duration: const Duration(milliseconds: 240))
+            .slideY(
+              begin: 0.05,
+              end: 0,
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+            ),
         const SizedBox(height: 16),
         _HomeReadmeSection(
-          user: user,
-          profileReadme: profileState.profileReadme,
-        ).animate(delay: const Duration(milliseconds: 180)).fadeIn(
-          duration: const Duration(milliseconds: 260),
-        ).slideY(
-          begin: 0.05,
-          end: 0,
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-        ),
+              user: user,
+              profileReadme: profileState.profileReadme,
+            )
+            .animate(delay: const Duration(milliseconds: 180))
+            .fadeIn(duration: const Duration(milliseconds: 260))
+            .slideY(
+              begin: 0.05,
+              end: 0,
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+            ),
       ],
     );
   }
@@ -265,7 +282,7 @@ class _HomeHeaderCard extends StatelessWidget {
             IconButton.filledTonal(
               style: IconButton.styleFrom(
                 backgroundColor: Colors.transparent,
-                foregroundColor: colorScheme.primaryContainer
+                foregroundColor: colorScheme.primaryContainer,
               ),
               onPressed: onOpenSettings,
               tooltip: '设置',
@@ -280,16 +297,34 @@ class _HomeHeaderCard extends StatelessWidget {
 
 class _HomeQuickActions extends StatelessWidget {
   final int publicRepos;
-  final int starredRepos;
+  final int starredReposLoaded;
+  final int? starredReposTotalCount;
+  final bool starredReposHasMore;
   final VoidCallback onOpenRepos;
   final VoidCallback onOpenStarred;
 
   const _HomeQuickActions({
     required this.publicRepos,
-    required this.starredRepos,
+    required this.starredReposLoaded,
+    required this.starredReposTotalCount,
+    required this.starredReposHasMore,
     required this.onOpenRepos,
     required this.onOpenStarred,
   });
+
+  String _buildStarredValueText() {
+    final total = starredReposTotalCount;
+    if (total != null) {
+      if (starredReposLoaded >= total) {
+        return '$total 个';
+      }
+      return '$starredReposLoaded/$total 个已加载';
+    }
+    if (starredReposHasMore) {
+      return '$starredReposLoaded+ 个已加载';
+    }
+    return '$starredReposLoaded 个';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +345,7 @@ class _HomeQuickActions extends StatelessWidget {
             icon: OctIcons.star_fill_16,
             iconColor: Colors.amber.shade700,
             title: '星标',
-            value: '$starredRepos 个已加载',
+            value: _buildStarredValueText(),
             onTap: onOpenStarred,
           ),
         ),
@@ -361,7 +396,9 @@ class _QuickActionButton extends StatelessWidget {
                 height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.6,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
@@ -407,7 +444,8 @@ class _HomeMetaSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasBio = user.bio != null && user.bio!.trim().isNotEmpty;
-    final hasLocation = user.location != null && user.location!.trim().isNotEmpty;
+    final hasLocation =
+        user.location != null && user.location!.trim().isNotEmpty;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -421,9 +459,9 @@ class _HomeMetaSection extends StatelessWidget {
             if (hasBio)
               Text(
                 user.bio!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             if (hasBio) const SizedBox(height: 12),
             Wrap(
@@ -515,9 +553,9 @@ class _HomeReadmeSection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Profile README',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -553,7 +591,9 @@ class _HomeReadmeSection extends StatelessWidget {
                       color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -567,9 +607,8 @@ class _HomeReadmeSection extends StatelessWidget {
                         const SizedBox(height: 10),
                         Text(
                           '还没有个人主页仓库，快去添加吧~',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -590,58 +629,66 @@ class _HomeInitialLoadingView extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 36),
-        child: Card(
-          margin: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 36),
+            child: Card(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.6,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      '正在同步 GitHub 数据...',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '首次加载可能稍慢，请耐心等待...',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.6,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  '正在同步 GitHub 数据...',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '首次加载可能稍慢，请耐心等待...',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
           ),
-        ),
-      ),
-    ).animate().fadeIn(duration: const Duration(milliseconds: 220)).slideY(
-      begin: 0.04,
-      end: 0,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
-    );
+        )
+        .animate()
+        .fadeIn(duration: const Duration(milliseconds: 220))
+        .slideY(
+          begin: 0.04,
+          end: 0,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        );
   }
 }

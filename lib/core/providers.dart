@@ -22,6 +22,7 @@ class ProfileState {
   final User? user;
   final List<Repo> repos;
   final List<Repo> starredRepos;
+  final int? starredReposTotalCount;
   final String? profileReadme;
   final bool isLoading;
   final int reposCurrentPage;
@@ -34,6 +35,7 @@ class ProfileState {
     this.user,
     this.repos = const [],
     this.starredRepos = const [],
+    this.starredReposTotalCount,
     this.profileReadme,
     this.isLoading = true,
     this.reposCurrentPage = 1,
@@ -51,6 +53,7 @@ class ProfileState {
     User? user,
     List<Repo>? repos,
     List<Repo>? starredRepos,
+    int? starredReposTotalCount,
     String? profileReadme,
     bool? isLoading,
     int? reposCurrentPage,
@@ -65,6 +68,8 @@ class ProfileState {
       user: clearUser ? null : (user ?? this.user),
       repos: repos ?? this.repos,
       starredRepos: starredRepos ?? this.starredRepos,
+      starredReposTotalCount:
+          starredReposTotalCount ?? this.starredReposTotalCount,
       profileReadme: profileReadme ?? this.profileReadme,
       isLoading: isLoading ?? this.isLoading,
       reposCurrentPage: reposCurrentPage ?? this.reposCurrentPage,
@@ -190,21 +195,50 @@ class ProfileNotifier extends Notifier<ProfileState> {
     final results = await Future.wait([
       _githubService.getRepos(token),
       _githubService.getStarredRepos(token, page: 1),
+      _githubService.getStarredReposTotalCount(token),
       _githubService.getProfileReadme(user!.login, token),
     ]);
 
     final reposResult = results[0] as ApiResult<List<Repo>>;
     final starredResult = results[1] as ApiResult<List<Repo>>;
-    final readmeResult = results[2] as ApiResult<String?>;
+    final starredTotalCountResult = results[2] as ApiResult<int>;
+    final readmeResult = results[3] as ApiResult<String?>;
 
-    if (reposResult.$2 != null) debugPrint('Repos Error: ${reposResult.$2}');
-    if (starredResult.$2 != null) debugPrint('Starred Error: ${starredResult.$2}');
-    if (readmeResult.$2 != null) debugPrint('Readme Error: ${readmeResult.$2}');
+    if (reposResult.$2 != null) {
+      debugPrint('Repos Error: ${reposResult.$2}');
+    }
+    if (starredResult.$2 != null) {
+      debugPrint('Starred Error: ${starredResult.$2}');
+    }
+    if (starredTotalCountResult.$2 != null) {
+      debugPrint('Starred Total Count Error: ${starredTotalCountResult.$2}');
+    }
+    if (readmeResult.$2 != null) {
+      debugPrint('Readme Error: ${readmeResult.$2}');
+    }
+
+    final initialRepos = reposResult.$1;
+    final initialStarredRepos = starredResult.$1;
 
     state = state.copyWith(
-      repos: reposResult.$1 ?? state.repos,
-      starredRepos: starredResult.$1 ?? state.starredRepos,
+      repos: initialRepos ?? state.repos,
+      starredRepos: initialStarredRepos ?? state.starredRepos,
+      starredReposTotalCount:
+          starredTotalCountResult.$1 ?? state.starredReposTotalCount,
       profileReadme: readmeResult.$1 ?? state.profileReadme,
+      reposCurrentPage: 1,
+      starredReposCurrentPage: 1,
+      reposHasMore:
+          initialRepos != null
+              ? initialRepos.length >= GithubService.defaultPerPage
+              : state.reposHasMore,
+      starredReposHasMore:
+          initialStarredRepos != null
+              ? (starredTotalCountResult.$1 != null
+                    ? initialStarredRepos.length < starredTotalCountResult.$1!
+                    : initialStarredRepos.length >=
+                          GithubService.defaultPerPage)
+              : state.starredReposHasMore,
     );
 
     // 🎉 获取成功后，更新缓存
@@ -244,11 +278,23 @@ class ProfileNotifier extends Notifier<ProfileState> {
       }
 
       if (newRepos == null || newRepos.isEmpty) {
-        state = state.copyWith(starredReposHasMore: false);
+        state = state.copyWith(
+          starredReposHasMore: false,
+          starredReposTotalCount:
+              state.starredReposTotalCount ?? state.starredRepos.length,
+        );
       } else {
+        final updatedStarredRepos = [...state.starredRepos, ...newRepos];
+        final loadedAllByCount =
+            state.starredReposTotalCount != null &&
+            updatedStarredRepos.length >= state.starredReposTotalCount!;
+
         state = state.copyWith(
           starredReposCurrentPage: state.starredReposCurrentPage + 1,
-          starredRepos: [...state.starredRepos, ...newRepos],
+          starredRepos: updatedStarredRepos,
+          starredReposHasMore:
+              !loadedAllByCount &&
+              newRepos.length >= GithubService.defaultPerPage,
         );
       }
       return newRepos ?? [];
@@ -280,6 +326,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
         state = state.copyWith(
           reposCurrentPage: state.reposCurrentPage + 1,
           repos: [...state.repos, ...newRepos],
+          reposHasMore: newRepos.length >= GithubService.defaultPerPage,
         );
       }
       return newRepos ?? [];

@@ -6,6 +6,8 @@ import 'package:ghclient/models/repo.dart';
 typedef ApiResult<T> = (T?, String?);
 
 class GithubService {
+  static const int defaultPerPage = 30;
+
   // 私有构造，保证全局唯一
   GithubService._();
   static final GithubService instance = GithubService._();
@@ -52,7 +54,7 @@ class GithubService {
     return _safeCall(
       () => _dio.get(
         '/user/repos',
-        queryParameters: {'page': page, 'per_page': 30},
+        queryParameters: {'page': page, 'per_page': defaultPerPage},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       ),
       (data) => (data as List).map((e) => Repo.fromJson(e)).toList(),
@@ -67,11 +69,46 @@ class GithubService {
     return _safeCall(
       () => _dio.get(
         '/user/starred',
-        queryParameters: {'page': page, 'per-page': 30},
+        queryParameters: {'page': page, 'per_page': defaultPerPage},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       ),
       (data) => (data as List).map((e) => Repo.fromJson(e)).toList(),
     );
+  }
+
+  // 获取星标仓库总数（不需要拉取所有分页）
+  Future<ApiResult<int>> getStarredReposTotalCount(String token) async {
+    try {
+      final response = await _dio.get(
+        '/user/starred',
+        queryParameters: const {'page': 1, 'per_page': 1},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      final total = _extractTotalCountFromLinkHeader(
+        response.headers.value('link'),
+      );
+      if (total != null) return (total, null);
+
+      final data = response.data;
+      if (data is List) return (data.length, null); // 仅 0 或 1（per_page=1）
+      return (0, null);
+    } on DioException catch (e) {
+      return (null, _handleDioError(e));
+    } catch (e) {
+      return (null, '未知错误:$e');
+    }
+  }
+
+  int? _extractTotalCountFromLinkHeader(String? linkHeader) {
+    if (linkHeader == null || linkHeader.isEmpty) return null;
+
+    final lastPageMatch = RegExp(
+      r'[?&]page=(\d+)[^>]*>; rel="last"',
+    ).firstMatch(linkHeader);
+    if (lastPageMatch == null) return null;
+
+    return int.tryParse(lastPageMatch.group(1)!);
   }
 
   // 获取用户主页

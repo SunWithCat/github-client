@@ -33,7 +33,7 @@ dependencies:
   flutter_riverpod: ^3.0.3 # 状态管理 (从 provider 迁移)
   dio: ^5.8.0+1 # 网络请求
   # shared_preferences: ^2.5.3 # 本地存储
-  flutter_widget_from_html: ^0.15.2 # HTML 渲染（替代 flutter_markdown）
+  flutter_widget_from_html_core: ^0.15.2 # 轻量级 HTML 渲染，不带视频/音频支持
   url_launcher: ^6.3.1 # 打开外部浏览器进行OAuth授权
   cupertino_icons: ^1.0.8
   app_links: ^6.3.1

@@ -122,7 +122,7 @@ class GithubService {
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
-            'Accept': 'application/vnd.github.raw+json',
+            'Accept': 'application/vnd.github.html+json',
           },
           responseType: ResponseType.plain,
         ),
@@ -160,6 +160,29 @@ class GithubService {
             'Authorization': 'Bearer $token',
             'Accept': 'application/vnd.github.v3.raw',
           },
+          responseType: ResponseType.plain,
+        ),
+      ),
+      (data) => data.toString(),
+    );
+  }
+
+  /// 获取 README 的 HTML 渲染版本
+  /// GitHub API 会返回已经渲染好的 HTML，无需客户端再做 Markdown → HTML 转换
+  Future<ApiResult<String?>> getReadmeHtml(
+    String owner,
+    String repoName,
+    String token,
+  ) async {
+    return _safeCall(
+      () => _dio.get(
+        '/repos/$owner/$repoName/readme',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/vnd.github.html+json',
+          },
+          responseType: ResponseType.plain,
         ),
       ),
       (data) => data.toString(),

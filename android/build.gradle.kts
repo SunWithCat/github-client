@@ -9,7 +9,7 @@ subprojects {
     afterEvaluate {
         if (project.plugins.hasPlugin("com.android.library") || project.plugins.hasPlugin("com.android.application")) {
             project.extensions.findByType(com.android.build.api.dsl.CommonExtension::class.java)?.apply {
-                compileSdkVersion(34)
+                compileSdkVersion(35)
             }
         }
     }

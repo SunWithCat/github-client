@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
+import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/common/widgets/skeleton_loader.dart';
 import 'package:ghclient/core/providers.dart';
@@ -233,33 +234,28 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   /// 显示刷新失败的错误消息
   void _showRefreshError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('刷新失败：$message'),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: '重试',
-          textColor: Colors.white,
-          onPressed: () {
-            // 根据当前 tab 重试刷新
-            switch (_tabController.index) {
-              case 0:
-                _refreshOverview();
-                break;
-              case 1:
-                _refreshIssues();
-                break;
-              case 2:
-                _refreshCommits();
-                break;
-              case 3:
-                _refreshContributors();
-                break;
-            }
-          },
-        ),
-      ),
+    ToastUtils.show(
+      context,
+      message: '刷新失败：$message',
+      type: ToastType.error,
+      actionLabel: '重试',
+      onAction: () {
+        // 根据当前 tab 重试刷新
+        switch (_tabController.index) {
+          case 0:
+            _refreshOverview();
+            break;
+          case 1:
+            _refreshIssues();
+            break;
+          case 2:
+            _refreshCommits();
+            break;
+          case 3:
+            _refreshContributors();
+            break;
+        }
+      },
     );
   }
 

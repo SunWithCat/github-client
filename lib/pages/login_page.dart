@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -61,11 +61,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       try {
         if (!mounted) return;
-        Fluttertoast.showToast(
-          msg: '登陆中，请稍后...',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
+        ToastUtils.show(
+          context,
+          message: '登录中，请稍后...',
+          type: ToastType.info,
         );
         final dio = Dio();
 
@@ -91,12 +90,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       } catch (e) {
         debugPrint('换取 token 失败： $e');
         if (!mounted) return;
-        Fluttertoast.showToast(
-          msg: '登录失败，请重试',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-        );
+        if (mounted) {
+          ToastUtils.show(
+            context,
+            message: '登录失败，请重试',
+            type: ToastType.error,
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {
@@ -145,12 +145,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     url,
                     mode: LaunchMode.externalApplication,
                   )) {
-                    if (!mounted) return;
-                    Fluttertoast.showToast(
-                      msg: "无法打开链接，请检查网络或浏览器设置！",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
-                      timeInSecForIosWeb: 1,
+                    if (!context.mounted) return;
+                    ToastUtils.show(
+                      context,
+                      message: "无法打开链接，请检查网络或浏览器设置！",
+                      type: ToastType.error,
                     );
                   }
                 },

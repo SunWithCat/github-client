@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -156,11 +156,10 @@ class SettingsPage extends ConsumerWidget {
                 title: const Text('版本'),
                 subtitle: const Text('1.0.0'),
                 onTap: () {
-                  Fluttertoast.showToast(
-                    msg: "目前已是最新版~",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
+                  ToastUtils.show(
+                    context,
+                    message: "目前已是最新版~",
+                    type: ToastType.success,
                   );
                 },
                 contentPadding: const EdgeInsets.symmetric(

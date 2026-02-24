@@ -3,6 +3,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class GitHubMarkdown extends StatelessWidget {
   /// HTML 内容（来自 GitHub API 的 application/vnd.github.html+json 响应）
@@ -67,12 +68,10 @@ class GitHubMarkdown extends StatelessWidget {
             return _buildImage(pngUrl, isBadge: true);
           }
 
-          // 2. 彻底跳过 readme-typing-svg (因为底层渲染引擎不支持其内部 CSS 动画)
           if (originalUrl.contains('readme-typing-svg')) {
-            return const SizedBox.shrink();
+            return _buildTypingSvgFallback(originalUrl);
           }
 
-          // 3. 如果是其它普通 SVG 图片（根据后缀识别）
           if (originalUrl.toLowerCase().contains('.svg')) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -91,13 +90,12 @@ class GitHubMarkdown extends StatelessWidget {
             );
           }
 
-          // 3. 处理普通仓库相对路径图片
           final fullUrl = _processImageUrl(src);
           if (fullUrl != src) {
             return _buildImage(fullUrl);
           }
 
-          return null; // 其他情况交给原生处理
+          return null;
         }
         return null;
       },
@@ -210,5 +208,92 @@ class GitHubMarkdown extends StatelessWidget {
     } catch (_) {
       return url;
     }
+  }
+
+  /// 解析 readme-typing-svg URL 参数，用原生 Text 静态展示文字内容
+  Widget _buildTypingSvgFallback(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return const SizedBox.shrink();
+
+    final params = uri.queryParameters;
+    final lines = params['lines']?.split(';') ?? [];
+    if (lines.isEmpty) return const SizedBox.shrink();
+
+    final colorHex = params['color'] ?? '000000';
+    final colorVal =
+        int.tryParse(colorHex.replaceAll('#', ''), radix: 16) ?? 0x000000;
+    final fontSize = double.tryParse(params['size'] ?? '20') ?? 20.0;
+    final isCenter = params['center'] == 'true';
+    final pauseMs = int.tryParse(params['pause'] ?? '2000') ?? 2000;
+
+    return _TypingCarouselWidget(
+      lines: lines,
+      color: Color(colorVal | 0xFF000000),
+      fontSize: fontSize,
+      isCenter: isCenter,
+      fontFamily: params['font'],
+      pauseMs: pauseMs,
+    );
+  }
+}
+
+/// 专门为 readme-typing-svg 打造的原生轮播组件
+class _TypingCarouselWidget extends StatefulWidget {
+  final List<String> lines;
+  final Color color;
+  final double fontSize;
+  final bool isCenter;
+  final String? fontFamily;
+  final int pauseMs;
+
+  const _TypingCarouselWidget({
+    required this.lines,
+    required this.color,
+    required this.fontSize,
+    required this.isCenter,
+    this.fontFamily,
+    required this.pauseMs,
+  });
+
+  @override
+  State<_TypingCarouselWidget> createState() => _TypingCarouselWidgetState();
+}
+
+class _TypingCarouselWidgetState extends State<_TypingCarouselWidget> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      alignment: widget.isCenter ? Alignment.center : Alignment.centerLeft,
+      padding: EdgeInsets.zero,
+      child: Animate(
+            key: ValueKey(_currentIndex),
+            onComplete: (controller) {
+              if (mounted) {
+                setState(() {
+                  _currentIndex = (_currentIndex + 1) % widget.lines.length;
+                });
+              }
+            },
+            child: Text(
+              widget.lines[_currentIndex],
+              style: TextStyle(
+                color: widget.color,
+                fontSize: widget.fontSize,
+                fontWeight: FontWeight.w600,
+                fontFamily: widget.fontFamily ?? 'monospace',
+                height: 1.0,
+              ),
+              textAlign: widget.isCenter ? TextAlign.center : TextAlign.left,
+            ),
+          )
+          .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+          .slideY(begin: 0.2, end: 0, duration: 600.ms)
+          .then(delay: widget.pauseMs.ms)
+          .fadeOut(duration: 400.ms)
+          .slideY(begin: 0, end: -0.2, duration: 400.ms),
+    );
   }
 }

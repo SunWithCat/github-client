@@ -47,6 +47,7 @@ dependencies:
   flutter_animate: ^4.5.2
   google_fonts: ^6.3.2
   flutter_svg: ^2.2.3
+  package_info_plus: ^8.2.1 # 获取应用版本信息
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,7 @@ import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:ghclient/theme/theme.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// GitHub API 服务的 Provider（单例模式）
 final githubServiceProvider = Provider<GithubService>((ref) {
@@ -384,4 +385,29 @@ final isLoggedInProvider = Provider<bool>((ref) {
 /// 是否正在加载 Provider（只读）
 final isLoadingProvider = Provider<bool>((ref) {
   return ref.watch(profileProvider).isLoading;
+});
+
+/// 应用包信息 Provider（异步）
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return await PackageInfo.fromPlatform();
+});
+
+/// 应用版本号 Provider（格式：x.y.z）
+final appVersionProvider = Provider<String>((ref) {
+  final packageInfoAsync = ref.watch(packageInfoProvider);
+  return packageInfoAsync.when(
+    data: (info) => info.version,
+    loading: () => '...',
+    error: (_, __) => '未知',
+  );
+});
+
+/// 应用完整版本号 Provider（格式：x.y.z+buildNumber）
+final appFullVersionProvider = Provider<String>((ref) {
+  final packageInfoAsync = ref.watch(packageInfoProvider);
+  return packageInfoAsync.when(
+    data: (info) => '${info.version}+${info.buildNumber}',
+    loading: () => '...',
+    error: (_, __) => '未知',
+  );
 });

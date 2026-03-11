@@ -138,7 +138,12 @@ class SettingsPage extends ConsumerWidget {
                 secondary: Icon(
                   isDarkMode ? OctIcons.moon_16 : OctIcons.sun_16,
                 ),
-                activeColor: githubBlue,
+                thumbColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return githubBlue;
+                  }
+                  return null;
+                }),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,
@@ -154,7 +159,7 @@ class SettingsPage extends ConsumerWidget {
               ListTile(
                 leading: const Icon(OctIcons.versions_16),
                 title: const Text('版本'),
-                subtitle: const Text('1.0.0'),
+                subtitle: Text(ref.watch(appVersionProvider)),
                 onTap: () {
                   ToastUtils.show(
                     context,

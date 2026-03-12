@@ -26,7 +26,7 @@
 
 ---
 
-GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨在提供流畅、美观且功能全面的移动端 GitHub 体验。
+GhClient 是一款使用 Flutter 构建的第三方 GitHub 客户端，旨在提供流畅、美观且功能丰富的移动端 GitHub 体验。
 
 ## 📑 目录
 
@@ -39,11 +39,10 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 ## ✨ 功能特性
 
 - 🔐 **安全登录** - 通过 GitHub OAuth 实现安全可靠的用户认证
-- 📂 **仓库管理** - 浏览、搜索和管理您的仓库
-- ⭐ **Star 管理** - 查看和管理您的 Star 仓库
-- 🔍 **仓库搜索** - 快速搜索 GitHub 仓库
+- 📂 **仓库阅览** - 浏览、搜索您的个人仓库和星标仓库
+- 🔍 **项目探索** - 查看、搜索本月/周/日的趋势项目
 - 🌓 **主题切换** - 内置浅色和深色两种主题模式
-- 📄 **Markdown 渲染** - 完美渲染 README 和文档内容
+- 📄 **HTML 渲染** - 使用轻量的 HTML 渲染 README 和文档内容
 
 ## 📱 应用截图
 
@@ -58,7 +57,7 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
   <img src="search.jpg" width="24%" alt="搜索" />
 </p>
 
-## 🛠️ 技术栈
+## 🔧 技术栈
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter" />
@@ -73,9 +72,12 @@ GhClient 是一款使用 Flutter 构建的精美第三方 GitHub 客户端。旨
 | **状态管理** | [Flutter Riverpod](https://pub.dev/packages/flutter_riverpod) | 声明式响应式状态管理 |
 | **路由管理** | [go_router](https://pub.dev/packages/go_router) | 声明式路由与重定向 |
 | **网络请求** | [Dio](https://pub.dev/packages/dio) | HTTP 客户端 |
-| **本地存储** | [Hive](https://pub.dev/packages/hive) + [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) | 数据持久化 & 安全存储 |
+| **本地存储** | [Hive](https://pub.dev/packages/hive) + [hive_flutter](https://pub.dev/packages/hive_flutter) + [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) | 数据持久化 & 安全存储 |
 | **Deep Links** | [app_links](https://pub.dev/packages/app_links) | OAuth 回调处理 |
-| **Markdown** | [flutter_markdown](https://pub.dev/packages/flutter_markdown) | README 渲染 |
+| **Markdown** | [flutter_widget_from_html_core](https://pub.dev/packages/flutter_widget_from_html_core) | HTML/Markdown 渲染 |
+| **OAuth 授权** | [url_launcher](https://pub.dev/packages/url_launcher) | 打开外部浏览器进行授权 |
+| **动画效果** | [flutter_animate](https://pub.dev/packages/flutter_animate) | 流畅的动画效果 |
+| **SVG 支持** | [flutter_svg](https://pub.dev/packages/flutter_svg) | SVG 图标和图像渲染 |
 | **图标** | [flutter_octicons](https://pub.dev/packages/flutter_octicons) | GitHub 图标库 |
 | **图片** | [cached_network_image](https://pub.dev/packages/cached_network_image) | 网络图片缓存 |
 
@@ -106,7 +108,7 @@ flutter run
 
 ```bash
 # Android
-flutter build apk --release
+flutter build apk --release # 构建分包使用 flutter build apk --split-per-abi
 
 # iOS
 flutter build ios --release
@@ -114,7 +116,18 @@ flutter build ios --release
 
 ## ⚙️ 配置说明
 
-要使用 GitHub OAuth 功能：
+在 lib/config.dart 中配置 GitHub OAuth 相关参数：
+
+```dart
+class AppConfig {
+  static const String githubClientId = 'Ovxxxxxxxxxxx';
+  static const String githubClientSecret =
+      'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  static const String githubCallbackUrl = 'myfluttergithubapp://callback';
+}
+```
+
+使用 GitHub OAuth 功能需要：
 
 1. 在 [GitHub Developer Settings](https://github.com/settings/developers) 创建 OAuth 应用
 2. 设置回调 URL（与 `lib/config.dart` 保持一致）: `myfluttergithubapp://callback`

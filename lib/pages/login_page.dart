@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
 import 'dart:async';
@@ -61,11 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       try {
         if (!mounted) return;
-        ToastUtils.show(
-          context,
-          message: '登录中，请稍后...',
-          type: ToastType.info,
-        );
+        ToastUtils.show(context, message: '登录中，请稍后...', type: ToastType.info);
         final dio = Dio();
 
         final response = await dio.post(
@@ -91,11 +88,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         debugPrint('换取 token 失败： $e');
         if (!mounted) return;
         if (mounted) {
-          ToastUtils.show(
-            context,
-            message: '登录失败，请重试',
-            type: ToastType.error,
-          );
+          ToastUtils.show(context, message: '登录失败，请重试', type: ToastType.error);
         }
       } finally {
         if (mounted) {
@@ -127,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             const SizedBox(height: 10),
             Text(
               '登录到 GitHub ',
-              style: TextStyle(
+              style: GoogleFonts.notoSansSc(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.primary,
               ),

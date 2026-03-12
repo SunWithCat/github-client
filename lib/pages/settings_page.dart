@@ -14,7 +14,6 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final githubBlue = const Color(0xFFB3D4FC);
     final profileUser = ref.watch(userProvider);
 
     if (profileUser == null) {
@@ -132,7 +131,6 @@ class SettingsPage extends ConsumerWidget {
                 subtitle: Text(isDarkMode ? '已开启' : '已关闭'),
                 value: isDarkMode,
                 onChanged: (bool value) {
-                  // 🔄 使用 ref.read 获取 notifier 来切换主题
                   ref.read(themeProvider.notifier).toggleTheme();
                 },
                 secondary: Icon(
@@ -140,10 +138,17 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 thumbColor: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) {
-                    return githubBlue;
+                    return const Color(0xFF58A6FF); // 更清爽的 GitHub 蓝
                   }
-                  return null;
+                  return isDarkMode ? Colors.grey.shade400 : Colors.white;
                 }),
+                trackColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const Color(0xFF1F6FEB).withValues(alpha: 0.5);
+                  }
+                  return isDarkMode ? const Color(0xFF30363D) : Colors.grey.shade300;
+                }),
+                trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,
@@ -234,7 +239,7 @@ class SettingsPage extends ConsumerWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(color: Theme.of(context).dividerColor, width: 1.5),
+        side: BorderSide(color: Theme.of(context).dividerColor, width: 1.0),
       ),
       child: Column(children: children),
     );

@@ -37,6 +37,7 @@ ThemeData lightMode = ThemeData(
       side: BorderSide(color: Colors.grey.shade200, width: 1.0),
     ),
   ),
+  fontFamily: GoogleFonts.notoSansSc().fontFamily,
   textTheme: GoogleFonts.notoSansScTextTheme(
     _buildBaseTextTheme(Brightness.light),
   ),
@@ -44,12 +45,13 @@ ThemeData lightMode = ThemeData(
 
 ThemeData darkMode = ThemeData(
   brightness: Brightness.dark,
-  scaffoldBackgroundColor: const Color(0xFF121212), // 匹配 colorScheme 的背景色
+  scaffoldBackgroundColor: const Color(0xFF0D1117), // 匹配 colorScheme 的背景色
   colorScheme: ColorScheme.dark(
     primary: Colors.grey.shade400,
     secondary: lightGreyColor,
     surface: const Color(0xFF1E1E1E), // 较浅的表面颜色
     surfaceContainer: const Color(0xFF1E1E1E),
+    surfaceTint: Colors.transparent,
   ),
   cardTheme: CardThemeData(
     color: const Color(0xFF2C2C2C), // 使用明显更浅的灰色
@@ -57,6 +59,7 @@ ThemeData darkMode = ThemeData(
     shadowColor: Colors.black.withValues(alpha: 0.5), // 增加阴影不透明度
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
+  fontFamily: GoogleFonts.notoSansSc().fontFamily,
   textTheme: GoogleFonts.notoSansScTextTheme(
     _buildBaseTextTheme(Brightness.dark),
   ),

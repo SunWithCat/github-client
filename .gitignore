@@ -49,3 +49,7 @@ lib/config.dart
 # FVM Version Cache
 .fvm/
 docs/
+
+android/key.properties
+*.jks
+*.keystore

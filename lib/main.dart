@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'router/app_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,6 +13,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 void main() async {
   // 确保Flutter应用在运行前已经初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化 Google Fonts
+  Future.microtask(() {
+    GoogleFonts.notoSansSc();
+  });
 
   // 初始化 Hive
   await Hive.initFlutter();

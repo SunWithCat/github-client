@@ -1,10 +1,10 @@
 allprojects {
     repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
         maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://storage.flutter-io.cn/download.flutter.io") }
+        google()
+        mavenCentral()
     }
 }
 
@@ -12,7 +12,7 @@ subprojects {
     afterEvaluate {
         if (project.plugins.hasPlugin("com.android.library") || project.plugins.hasPlugin("com.android.application")) {
             project.extensions.findByType(com.android.build.api.dsl.CommonExtension::class.java)?.apply {
-                compileSdkVersion(36)
+                compileSdkVersion(34)
             }
         }
     }

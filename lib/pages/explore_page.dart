@@ -8,6 +8,8 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 
+import '../common/utils/app_log.dart';
+
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
 
@@ -50,7 +52,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            debugPrint('加载热门仓库失败：$error'); 
+            AppLog.e('加载热门仓库失败：$error'); 
           } else {
             _trendingRepos = repos ?? [];
             _loadingCompleteTime = DateTime.now(); // 记录加载完成时间
@@ -58,8 +60,8 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
           _isLoading = false;
         });
       }
-    } catch (e) {
-      debugPrint('加载热门仓库发生未知错误：$e');
+    } catch (e, s) {
+      AppLog.e('加载热门仓库发生未知错误', e, s);
       if (mounted) {
         setState(() {
           _isLoading = false;

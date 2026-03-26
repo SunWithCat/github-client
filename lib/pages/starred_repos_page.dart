@@ -6,6 +6,8 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/utils/debouncer.dart';
 
+import '../common/utils/app_log.dart';
+
 class StarredReposPage extends ConsumerStatefulWidget {
   const StarredReposPage({super.key});
 
@@ -64,8 +66,8 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
           _filterRepos(_searchController.text);
         });
       }
-    } catch (e) {
-      debugPrint('加载更多星标仓库失败：$e');
+    } catch (e, s) {
+      AppLog.e('加载更多星标仓库失败', e, s);
     } finally {
       if (mounted) {
         setState(() {

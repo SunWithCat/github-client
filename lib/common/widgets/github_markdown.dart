@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../utils/app_log.dart';
+
 class GitHubMarkdown extends StatelessWidget {
   /// HTML 内容（来自 GitHub API 的 application/vnd.github.html+json 响应）
   final String data;
@@ -161,7 +163,7 @@ class GitHubMarkdown extends StatelessWidget {
         fit: isBadge ? BoxFit.contain : BoxFit.fitWidth,
         fadeInDuration: const Duration(milliseconds: 300),
         errorWidget: (context, url, error) {
-          debugPrint('图片加载失败: $url');
+          AppLog.w('图片加载失败: $url');
           return const SizedBox.shrink();
         },
       ),

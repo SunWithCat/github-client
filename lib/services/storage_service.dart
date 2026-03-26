@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:ghclient/common/utils/app_log.dart';
 import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:hive/hive.dart';
@@ -35,7 +35,7 @@ class StorageService {
         _initialized = true;
       } else {
         // 如果Box未打开，这可能是一个错误，因为main.dart应该已经打开了Box
-        debugPrint('警告: authBox未在main.dart中打开');
+        AppLog.w('authBox 未在 main.dart 中打开');
         // 这里不应该尝试重新打开Box，因为缺少加密参数
         // 应该依赖main.dart中的初始化
       }
@@ -67,8 +67,8 @@ class StorageService {
     if (data == null) return null;
     try {
       return User.fromJson(jsonDecode(data));
-    } catch (e) {
-      debugPrint('读取缓存 User 失败: $e 😅');
+    } catch (e, s) {
+      AppLog.e('读取缓存 User 失败😅', e, s);
       return null;
     }
   }
@@ -88,8 +88,8 @@ class StorageService {
     try {
       final List<dynamic> list = jsonDecode(data);
       return list.map((e) => Repo.fromJson(e)).toList();
-    } catch (e) {
-      debugPrint('读取缓存 Repos 失败: $e 😅');
+    } catch (e, s) {
+      AppLog.e('读取缓存 Repos 失败😅', e, s);
       return [];
     }
   }
@@ -109,8 +109,8 @@ class StorageService {
     try {
       final List<dynamic> list = jsonDecode(data);
       return list.map((e) => Repo.fromJson(e)).toList();
-    } catch (e) {
-      debugPrint('读取缓存 Starred Repos 失败: $e 😅');
+    } catch (e, s) {
+      AppLog.e('读取缓存 Starred Repos 失败😅', e, s);
       return [];
     }
   }

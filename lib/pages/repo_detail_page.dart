@@ -16,6 +16,8 @@ import 'package:ghclient/services/github_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 
+import '../common/utils/app_log.dart';
+
 class RepoPage extends ConsumerStatefulWidget {
   final Repo repo;
   final String token;
@@ -92,8 +94,8 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
           contributors = contributorsResult.$1 ?? [];
         });
       }
-    } catch (e) {
-      debugPrint('获取仓库详情失败：$e');
+    } catch (e, s) {
+      AppLog.e('获取仓库详情失败', e, s);
     } finally {
       if (mounted) {
         setState(() {

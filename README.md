@@ -86,8 +86,8 @@ GhClient 是一款使用 Flutter 构建的第三方 GitHub 客户端，旨在提
 
 ### 环境要求
 
-- Flutter SDK `>=3.7.2`（建议用最新版，旧版可能有惊喜）
-- Dart SDK `>=3.7.2`（和Flutter配套的）
+- Flutter SDK `>=3.29.0`（建议用最新版，旧版可能有惊喜）
+- Dart SDK `>=3.7.2`（Flutter自带，不用担心）
 - Android Studio / VS Code（看你喜欢哪个IDE）
 - Android SDK / Xcode（想跑哪个平台就装哪个）
 

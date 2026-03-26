@@ -6,6 +6,8 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 
+import '../common/utils/app_log.dart';
+
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -74,15 +76,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            debugPrint('搜索仓库失败：$error');
+            AppLog.e('搜索仓库失败：$error');
             _repos = [];
           } else {
             _repos = repos ?? [];
           }
         });
       }
-    } catch (e) {
-      debugPrint('搜索仓库失败：$e');
+    } catch (e, s) {
+      AppLog.e('搜索仓库失败', e, s);
     } finally {
       if (mounted) {
         setState(() {
@@ -120,7 +122,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            debugPrint('加载更多搜索结果失败：$error');
+            AppLog.e('加载更多搜索结果失败：$error');
             // 可以在这里处理错误，比如不增加页码
             _page--;
           } else if (newRepos == null || newRepos.isEmpty) {
@@ -130,8 +132,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           }
         });
       }
-    } catch (e) {
-      debugPrint('加载更多搜索结果失败：$e');
+    } catch (e, s) {
+      AppLog.e('加载更多搜索结果失败', e, s);
     } finally {
       if (mounted) {
         _isLoadingMore = false;

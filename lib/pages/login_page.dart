@@ -7,6 +7,7 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/services/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../common/utils/app_log.dart';
 import '../config.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
@@ -47,7 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       },
       onError: (err) {
         // 处理错误
-        debugPrint('app_links error: $err');
+        AppLog.e('app_links error: $err');
       },
     );
   }
@@ -84,8 +85,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           profileNotifier.login(accessToken);
           context.go('/');
         }
-      } catch (e) {
-        debugPrint('换取 token 失败： $e');
+      } catch (e, s) {
+        AppLog.e('换取 token 失败', e, s);
         if (!mounted) return;
         if (mounted) {
           ToastUtils.show(context, message: '登录失败，请重试', type: ToastType.error);

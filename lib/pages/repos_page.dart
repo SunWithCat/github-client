@@ -6,6 +6,8 @@ import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/utils/debouncer.dart';
 
+import '../common/utils/app_log.dart';
+
 class ReposPage extends ConsumerStatefulWidget {
   const ReposPage({super.key});
 
@@ -68,8 +70,8 @@ class _ReposPageState extends ConsumerState<ReposPage> {
           _filterRepos(_searchController.text);
         });
       }
-    } catch (e) {
-      debugPrint('加载更多仓库失败：$e');
+    } catch (e, s) {
+      AppLog.e('加载更多仓库失败', e, s);
     } finally {
       if (mounted) {
         setState(() {

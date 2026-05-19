@@ -8,17 +8,17 @@ import 'package:ghclient/services/storage_service.dart';
 import 'package:ghclient/theme/theme.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-/// GitHub API 服务的 Provider（单例模式）
+// GitHub API 服务
 final githubServiceProvider = Provider<GithubService>((ref) {
   return GithubService.instance;
 });
 
-/// 本地存储服务的 Provider（单例模式）
+// 本地存储服务
 final storageServiceProvider = Provider<StorageService>((ref) {
   return StorageService();
 });
 
-/// Profile 状态类 - 使用不可变模式管理用户相关数据
+// Profile 状态类
 class ProfileState {
   final String? token;
   final User? user;
@@ -399,7 +399,7 @@ final appVersionProvider = Provider<String>((ref) {
   return packageInfoAsync.when(
     data: (info) => info.version,
     loading: () => '...',
-    error: (_, __) => '未知',
+    error: (_, _) => '未知',
   );
 });
 
@@ -409,6 +409,6 @@ final appFullVersionProvider = Provider<String>((ref) {
   return packageInfoAsync.when(
     data: (info) => '${info.version}+${info.buildNumber}',
     loading: () => '...',
-    error: (_, __) => '未知',
+    error: (_, _) => '未知',
   );
 });

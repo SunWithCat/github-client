@@ -53,3 +53,5 @@ docs/
 android/key.properties
 *.jks
 *.keystore
+
+.vscode/

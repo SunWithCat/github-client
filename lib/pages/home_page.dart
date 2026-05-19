@@ -224,7 +224,7 @@ class _HomeHeaderCard extends StatelessWidget {
                         backgroundColor: colorScheme.surfaceContainerHighest,
                       ),
                   errorWidget:
-                      (context, _, __) => CircleAvatar(
+                      (context, _, _) => CircleAvatar(
                         radius: 32,
                         backgroundColor: colorScheme.surfaceContainerHighest,
                         child: const Icon(Icons.person),

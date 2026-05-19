@@ -84,7 +84,6 @@ class RepoItem extends ConsumerWidget {
         shadowColor: theme.cardTheme.shadowColor,
         child: InkWell(
           onTap: () {
-            // 🔄 使用 ref.read 获取 token
             final token = ref.read(tokenProvider);
             if (token != null) {
               context.push(

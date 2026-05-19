@@ -36,11 +36,13 @@ class HomePage extends ConsumerWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness:
-            brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness:
-            brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: SafeScaffold(
         floatingActionButton: FloatingActionButton.extended(
@@ -202,35 +204,35 @@ class _HomeHeaderCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.10),
-                      blurRadius: 10,
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: CachedNetworkImage(
-                  key: ValueKey(user.avatarUrl),
-                  imageUrl: user.avatarUrl,
-                  memCacheWidth: 128,
-                  memCacheHeight: 128,
-                  imageBuilder:
-                      (context, imageProvider) => CircleAvatar(
-                        radius: 32,
-                        backgroundImage: imageProvider,
-                      ),
-                  placeholder:
-                      (context, _) => CircleAvatar(
-                        radius: 32,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                      ),
-                  errorWidget:
-                      (context, _, _) => CircleAvatar(
-                        radius: 32,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        child: const Icon(Icons.person),
-                      ),
-                  fadeInDuration: Duration.zero,
-                  fadeOutDuration: Duration.zero,
+                child: ClipOval(
+                  child: CachedNetworkImage(
+                    key: ValueKey(user.avatarUrl),
+                    imageUrl: user.avatarUrl,
+                    width: 64,
+                    height: 64,
+                    memCacheWidth: 128,
+                    memCacheHeight: 128,
+                    fit: BoxFit.cover,
+                    placeholder: (context, _) => Container(
+                      width: 64,
+                      height: 64,
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                    errorWidget: (context, _, _) => Container(
+                      width: 64,
+                      height: 64,
+                      color: colorScheme.surfaceContainerHighest,
+                      child: const Icon(Icons.person),
+                    ),
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
+                  ),
                 ),
               ),
             ),
@@ -568,56 +570,54 @@ class _HomeReadmeSection extends StatelessWidget {
           duration: const Duration(milliseconds: 240),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeOut,
-          child:
-              hasReadme
-                  ? Card(
-                    key: const ValueKey('readme_content'),
-                    margin: EdgeInsets.zero,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: GitHubMarkdown(
-                        data: profileReadme!,
-                        owner: user.login,
-                        repo: user.login,
-                        selectable: true,
-                      ),
-                    ),
-                  )
-                  : Container(
-                    key: const ValueKey('readme_empty'),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 18,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '还没有个人主页仓库，快去添加吧~',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+          child: hasReadme
+              ? Card(
+                  key: const ValueKey('readme_content'),
+                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: GitHubMarkdown(
+                      data: profileReadme!,
+                      owner: user.login,
+                      repo: user.login,
+                      selectable: true,
                     ),
                   ),
+                )
+              : Container(
+                  key: const ValueKey('readme_empty'),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '还没有个人主页仓库，快去添加吧~',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ],
     );

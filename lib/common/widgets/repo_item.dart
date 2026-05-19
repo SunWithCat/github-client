@@ -221,10 +221,12 @@ class _VisibilityBadge extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minWidth: 56, minHeight: 22),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: border),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: border, width: 1.0),
+        ),
       ),
       child: Center(
         child: Text(

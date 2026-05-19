@@ -197,7 +197,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
               ),
               shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedSuperellipseBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.8),
+                    width: 1.0,
+                  ),
+                ),
               ),
               onSubmitted: (query) {
                 _performSearch(query);

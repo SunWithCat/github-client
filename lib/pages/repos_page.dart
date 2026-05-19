@@ -138,8 +138,12 @@ class _ReposPageState extends ConsumerState<ReposPage> {
                 ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
               ),
               shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadiusGeometry.circular(12),
+                RoundedSuperellipseBorder(
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.8),
+                    width: 1.0,
+                  ),
                 ),
               ),
               onChanged: (value) {

@@ -44,24 +44,29 @@ class SettingsPage extends ConsumerWidget {
               ListTile(
                 leading: Hero(
                   tag: 'user_avatar',
-                  child: CachedNetworkImage(
-                    key: ValueKey(avatarUrl),
-                    imageUrl: avatarUrl,
-                    memCacheWidth: 80, // 40 * 2 (for high DPI)
-                    memCacheHeight: 80,
-                    imageBuilder:
-                        (context, imageProvider) =>
-                            CircleAvatar(backgroundImage: imageProvider),
-                    placeholder:
-                        (context, url) =>
-                            CircleAvatar(backgroundColor: Colors.transparent),
-                    errorWidget:
-                        (context, url, error) => CircleAvatar(
-                          backgroundColor: Colors.grey.shade300,
-                          child: const Icon(Icons.person),
-                        ),
-                    fadeInDuration: Duration.zero,
-                    fadeOutDuration: Duration.zero,
+                  child: ClipOval(
+                    child: CachedNetworkImage(
+                      key: ValueKey(avatarUrl),
+                      imageUrl: avatarUrl,
+                      width: 40,
+                      height: 40,
+                      memCacheWidth: 80, // 40 * 2 (for high DPI)
+                      memCacheHeight: 80,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 40,
+                        height: 40,
+                        color: Colors.transparent,
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 40,
+                        height: 40,
+                        color: Colors.grey.shade300,
+                        child: const Icon(Icons.person),
+                      ),
+                      fadeInDuration: Duration.zero,
+                      fadeOutDuration: Duration.zero,
+                    ),
                   ),
                 ),
                 trailing: IconButton(

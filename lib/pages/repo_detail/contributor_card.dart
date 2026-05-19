@@ -92,41 +92,48 @@ class ContributorCard extends StatelessWidget {
   /// 构建头像组件
   Widget _buildAvatar(bool isDark) {
     if (avatarUrl.isEmpty) {
-      return CircleAvatar(
-        radius: 24,
-        backgroundColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        child: Icon(
-          Icons.person,
-          size: 24,
-          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+      return ClipOval(
+        child: Container(
+          width: 48,
+          height: 48,
+          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          child: Icon(
+            Icons.person,
+            size: 24,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+          ),
         ),
       );
     }
 
-    return CachedNetworkImage(
-      imageUrl: avatarUrl,
-      memCacheWidth: 96, // 48 * 2 (for high DPI)
-      memCacheHeight: 96,
-      imageBuilder: (context, imageProvider) => CircleAvatar(
-        radius: 24,
-        backgroundImage: imageProvider,
-      ),
-      placeholder: (context, url) => CircleAvatar(
-        radius: 24,
-        backgroundColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        child: const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: avatarUrl,
+        width: 48,
+        height: 48,
+        memCacheWidth: 96, // 48 * 2 (for high DPI)
+        memCacheHeight: 96,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          width: 48,
+          height: 48,
+          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          alignment: Alignment.center,
+          child: const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         ),
-      ),
-      errorWidget: (context, url, error) => CircleAvatar(
-        radius: 24,
-        backgroundColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        child: Icon(
-          Icons.person,
-          size: 24,
-          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+        errorWidget: (context, url, error) => Container(
+          width: 48,
+          height: 48,
+          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          child: Icon(
+            Icons.person,
+            size: 24,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+          ),
         ),
       ),
     );

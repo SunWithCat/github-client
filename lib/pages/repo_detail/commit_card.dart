@@ -228,8 +228,7 @@ class _CommitCardState extends State<CommitCard> {
   /// 构建头像组件
   Widget _buildAvatar(bool isDark) {
     if (avatarUrl != null && avatarUrl!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+      return ClipOval(
         child: CachedNetworkImage(
           imageUrl: avatarUrl!,
           width: 36,
@@ -240,10 +239,7 @@ class _CommitCardState extends State<CommitCard> {
           placeholder: (context, url) => Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(18),
-            ),
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
           ),
           errorWidget: (context, url, error) => _buildDefaultAvatar(isDark),
         ),
@@ -254,17 +250,16 @@ class _CommitCardState extends State<CommitCard> {
 
   /// 构建默认头像
   Widget _buildDefaultAvatar(bool isDark) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
+    return ClipOval(
+      child: Container(
+        width: 36,
+        height: 36,
         color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Icon(
-        OctIcons.person_16,
-        size: 20,
-        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+        child: Icon(
+          OctIcons.person_16,
+          size: 20,
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+        ),
       ),
     );
   }

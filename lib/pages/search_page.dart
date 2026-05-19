@@ -182,17 +182,22 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SearchBar(
               controller: _textEditingController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: '输入关键词搜索...',
-                prefixIcon: Icon(OctIcons.search_16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: EdgeInsets.symmetric(vertical: 0),
+              hintText: '输入关键词搜索...',
+              leading: Icon(
+                OctIcons.search_16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              elevation: const WidgetStatePropertyAll(0),
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onSubmitted: (query) {
                 _performSearch(query);

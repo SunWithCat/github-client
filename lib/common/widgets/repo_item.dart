@@ -75,110 +75,123 @@ class RepoItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF161B22) : Colors.white;
+    final borderColor = isDark
+        ? const Color(0xFF30363D)
+        : const Color(0xFFE1E4E8);
+
     return ScaleWrapper(
       pressedScale: 0.98,
-      child: Card(
+      child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        color: theme.cardTheme.color,
-        elevation: theme.cardTheme.elevation,
-        shadowColor: theme.cardTheme.shadowColor,
-        child: InkWell(
-          onTap: () {
-            final token = ref.read(tokenProvider);
-            if (token != null) {
-              context.push(
-                '/repo',
-                extra: RepoDetailArgs(repo: repo, token: token),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      OctIcons.repo_16,
-                      size: 16,
-                      color:
-                          theme.brightness == Brightness.dark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        repo.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color:
-                              theme.brightness == Brightness.light
-                                  ? Color(0xFF0366D6)
-                                  : Colors.grey.shade300,
-                          fontWeight: FontWeight.bold,
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor, width: 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              final token = ref.read(tokenProvider);
+              if (token != null) {
+                context.push(
+                  '/repo',
+                  extra: RepoDetailArgs(repo: repo, token: token),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        OctIcons.repo_16,
+                        size: 16,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          repo.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: isDark
+                                    ? Colors.grey.shade300
+                                    : Color(0xFF0366D6),
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
-                    ),
-                    if (showVisibilityBadge) ...[
-                      const SizedBox(width: 8),
-                      _VisibilityBadge(isPrivate: repo.isPrivate),
+                      if (showVisibilityBadge) ...[
+                        const SizedBox(width: 8),
+                        _VisibilityBadge(isPrivate: repo.isPrivate),
+                      ],
                     ],
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (repo.description != null && repo.description!.isNotEmpty)
-                  Text(
-                    repo.description!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color:
-                          theme.brightness == Brightness.dark
-                              ? Colors.grey.shade300
-                              : Colors.grey.shade700,
-                    ),
                   ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    if (repo.language != null) ...[
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: getLanguageColor(repo.language),
-                          shape: BoxShape.circle,
+                  const SizedBox(height: 8),
+                  if (repo.description != null && repo.description!.isNotEmpty)
+                    Text(
+                      repo.description!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade700,
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (repo.language != null) ...[
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: getLanguageColor(repo.language),
+                            shape: BoxShape.circle,
+                          ),
                         ),
+                        const SizedBox(width: 4),
+                        Text(repo.language!),
+                        const SizedBox(width: 16),
+                      ],
+                      Icon(
+                        OctIcons.star_fill_16,
+                        size: 16,
+                        color: Colors.yellow.shade700,
                       ),
                       const SizedBox(width: 4),
-                      Text(repo.language!),
+                      Text(formatNumber(repo.starCount)),
                       const SizedBox(width: 16),
+                      Icon(
+                        OctIcons.repo_forked_16,
+                        size: 16,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(formatNumber(repo.forkCount)),
                     ],
-                    Icon(
-                      OctIcons.star_fill_16,
-                      size: 16,
-                      color: Colors.yellow.shade700,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(formatNumber(repo.starCount)),
-                    const SizedBox(width: 16),
-                    Icon(
-                      OctIcons.repo_forked_16,
-                      size: 16,
-                      color:
-                          theme.brightness == Brightness.dark
-                              ? Colors.grey.shade400
-                              : Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(formatNumber(repo.forkCount)),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -195,18 +208,15 @@ class _VisibilityBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final background =
-        isPrivate
-            ? colorScheme.primaryContainer.withValues(alpha: 0.72)
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.75);
-    final border =
-        isPrivate
-            ? colorScheme.primary.withValues(alpha: 0.35)
-            : colorScheme.outlineVariant.withValues(alpha: 0.65);
-    final foreground =
-        isPrivate
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurfaceVariant;
+    final background = isPrivate
+        ? colorScheme.primaryContainer.withValues(alpha: 0.72)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.75);
+    final border = isPrivate
+        ? colorScheme.primary.withValues(alpha: 0.35)
+        : colorScheme.outlineVariant.withValues(alpha: 0.65);
+    final foreground = isPrivate
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
 
     return Container(
       constraints: const BoxConstraints(minWidth: 56, minHeight: 22),

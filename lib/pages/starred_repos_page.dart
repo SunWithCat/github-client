@@ -35,6 +35,9 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
         _loadMore();
       }
     });
+    _searchController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -83,10 +86,9 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
         _filteredRepos = _repos;
       });
     } else {
-      final filtered =
-          _repos.where((repo) {
-            return repo.name.toLowerCase().contains(query.toLowerCase());
-          }).toList();
+      final filtered = _repos.where((repo) {
+        return repo.name.toLowerCase().contains(query.toLowerCase());
+      }).toList();
       setState(() {
         _filteredRepos = filtered;
       });
@@ -98,31 +100,51 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
     return SafeScaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          autofocus: false,
-          onChanged: (value) {
-            _debouncer.run(() {
-              _filterRepos(value);
-            });
-          },
-          decoration: InputDecoration(
-            hintText: '搜索你的星标仓库...',
-            hintStyle: TextStyle(color: Colors.grey[500]),
-            border: InputBorder.none,
+        title: const Text('星标仓库'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SearchBar(
+              controller: _searchController,
+              hintText: '搜索你的星标仓库...',
+              leading: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              trailing: [
+                if (_searchController.text.isNotEmpty)
+                  IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      _filterRepos('');
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
+              ],
+              elevation: const WidgetStatePropertyAll(0),
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onChanged: (value) {
+                _debouncer.run(() {
+                  _filterRepos(value);
+                });
+              },
+            ),
           ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _searchController.clear();
-              _filterRepos('');
-            },
-            icon: const Icon(Icons.clear),
-          ),
+          Expanded(child: _buildBody()),
         ],
       ),
-      body: _buildBody(),
     );
   }
 
@@ -145,10 +167,7 @@ class _StarredReposPageState extends ConsumerState<StarredReposPage> {
           );
         }
         // 否则，显示仓库信息
-        return RepoItem(
-          repo: _filteredRepos[index],
-          showVisibilityBadge: true,
-        );
+        return RepoItem(repo: _filteredRepos[index], showVisibilityBadge: true);
       },
     );
   }

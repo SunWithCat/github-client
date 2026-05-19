@@ -32,6 +32,9 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     _repos = ref.read(profileProvider).repos;
     _filteredRepos = _repos;
     _scrollController.addListener(_onScroll);
+    _searchController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   void _onScroll() {
@@ -88,10 +91,9 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         _filteredRepos = _repos; // 当搜索框为空时，显示所有仓库
       });
     } else {
-      final filtered =
-          _repos.where((repo) {
-            return repo.name.toLowerCase().contains(query.toLowerCase());
-          }).toList();
+      final filtered = _repos.where((repo) {
+        return repo.name.toLowerCase().contains(query.toLowerCase());
+      }).toList();
       setState(() {
         _filteredRepos = filtered;
       });
@@ -103,31 +105,53 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     return SafeScaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          autofocus: false,
-          onChanged: (value) {
-            _debouncer.run(() {
-              _filterRepos(value);
-            });
-          },
-          decoration: InputDecoration(
-            hintText: '搜索你的仓库...',
-            hintStyle: TextStyle(color: Colors.grey[500]),
-            border: InputBorder.none,
+        title: const Text('我的仓库'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SearchBar(
+              controller: _searchController,
+              hintText: '搜索你的仓库...',
+              leading: Icon(
+                Icons.search,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              trailing: [
+                if (_searchController.text.isNotEmpty)
+                  IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      _filterRepos('');
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
+              ],
+              elevation: const WidgetStatePropertyAll(0),
+              backgroundColor: WidgetStatePropertyAll(
+                Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              ),
+              shape: WidgetStatePropertyAll(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.circular(12),
+                ),
+              ),
+              onChanged: (value) {
+                _debouncer.run(() {
+                  _filterRepos(value);
+                });
+              },
+            ),
           ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _searchController.clear();
-              _filterRepos('');
-            },
-            icon: const Icon(Icons.clear),
-          ),
+          Expanded(child: _buildBody()),
         ],
       ),
-      body: _buildBody(),
     );
   }
 
@@ -149,10 +173,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        return RepoItem(
-          repo: _filteredRepos[index],
-          showVisibilityBadge: true,
-        );
+        return RepoItem(repo: _filteredRepos[index], showVisibilityBadge: true);
       },
     );
   }

@@ -36,7 +36,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   List<dynamic> contributors = [];
 
   // 刷新状态跟踪
-  bool _isRefreshing = false;
+  final Set<int> _refreshingTabs = {};
 
   @override
   void initState() {
@@ -103,8 +103,10 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
 
   /// 刷新概览数据（README）
   Future<void> _refreshOverview() async {
-    if (_isRefreshing) return;
-    _isRefreshing = true;
+    if (_refreshingTabs.contains(0)) return;
+    setState(() {
+      _refreshingTabs.add(0);
+    });
 
     try {
       final githubService = ref.read(githubServiceProvider);
@@ -129,14 +131,20 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         _showRefreshError(e.toString());
       }
     } finally {
-      _isRefreshing = false;
+      if (mounted) {
+        setState(() {
+          _refreshingTabs.remove(0);
+        });
+      }
     }
   }
 
   /// 刷新 Issues 数据
   Future<void> _refreshIssues() async {
-    if (_isRefreshing) return;
-    _isRefreshing = true;
+    if (_refreshingTabs.contains(1)) return;
+    setState(() {
+      _refreshingTabs.add(1);
+    });
 
     try {
       final githubService = ref.read(githubServiceProvider);
@@ -161,14 +169,20 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         _showRefreshError(e.toString());
       }
     } finally {
-      _isRefreshing = false;
+      if (mounted) {
+        setState(() {
+          _refreshingTabs.remove(1);
+        });
+      }
     }
   }
 
   /// 刷新 Commits 数据
   Future<void> _refreshCommits() async {
-    if (_isRefreshing) return;
-    _isRefreshing = true;
+    if (_refreshingTabs.contains(2)) return;
+    setState(() {
+      _refreshingTabs.add(2);
+    });
 
     try {
       final githubService = ref.read(githubServiceProvider);
@@ -193,14 +207,20 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         _showRefreshError(e.toString());
       }
     } finally {
-      _isRefreshing = false;
+      if (mounted) {
+        setState(() {
+          _refreshingTabs.remove(2);
+        });
+      }
     }
   }
 
   /// 刷新 Contributors 数据
   Future<void> _refreshContributors() async {
-    if (_isRefreshing) return;
-    _isRefreshing = true;
+    if (_refreshingTabs.contains(3)) return;
+    setState(() {
+      _refreshingTabs.add(3);
+    });
 
     try {
       final githubService = ref.read(githubServiceProvider);
@@ -225,7 +245,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
         _showRefreshError(e.toString());
       }
     } finally {
-      _isRefreshing = false;
+      if (mounted) {
+        setState(() {
+          _refreshingTabs.remove(3);
+        });
+      }
     }
   }
 

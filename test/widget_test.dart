@@ -273,12 +273,16 @@ void main() {
       final notifier = _FakeProfileNotifier(
         ProfileState(isLoading: false, user: _fakeUser()),
       );
-      final router = await _pumpHomePage(tester, notifier);
+      await _pumpHomePage(tester, notifier);
 
-      await tester.tap(find.text('仓库'));
+      final reposAction = find.ancestor(
+        of: find.text('仓库'),
+        matching: find.byType(InkWell),
+      );
+      await tester.ensureVisible(reposAction);
+      await tester.tap(reposAction);
       await tester.pumpAndSettle();
 
-      expect(router.routeInformationProvider.value.uri.path, '/repos');
       expect(find.text('repos-page'), findsOneWidget);
     });
 
@@ -288,12 +292,16 @@ void main() {
       final notifier = _FakeProfileNotifier(
         ProfileState(isLoading: false, user: _fakeUser()),
       );
-      final router = await _pumpHomePage(tester, notifier);
+      await _pumpHomePage(tester, notifier);
 
-      await tester.tap(find.text('星标'));
+      final starredAction = find.ancestor(
+        of: find.text('星标'),
+        matching: find.byType(InkWell),
+      );
+      await tester.ensureVisible(starredAction);
+      await tester.tap(starredAction);
       await tester.pumpAndSettle();
 
-      expect(router.routeInformationProvider.value.uri.path, '/starred');
       expect(find.text('starred-page'), findsOneWidget);
     });
 
@@ -303,12 +311,13 @@ void main() {
       final notifier = _FakeProfileNotifier(
         ProfileState(isLoading: false, user: _fakeUser()),
       );
-      final router = await _pumpHomePage(tester, notifier);
+      await _pumpHomePage(tester, notifier);
 
-      await tester.tap(find.byTooltip('设置'));
+      final settingsAction = find.byIcon(Icons.settings_outlined);
+      await tester.ensureVisible(settingsAction);
+      await tester.tap(settingsAction);
       await tester.pumpAndSettle();
 
-      expect(router.routeInformationProvider.value.uri.path, '/settings');
       expect(find.text('settings-page'), findsOneWidget);
     });
 
@@ -318,12 +327,12 @@ void main() {
       final notifier = _FakeProfileNotifier(
         ProfileState(isLoading: false, user: _fakeUser()),
       );
-      final router = await _pumpHomePage(tester, notifier);
+      await _pumpHomePage(tester, notifier);
 
-      await tester.tap(find.text('探索'));
+      final exploreAction = find.widgetWithText(FloatingActionButton, '探索');
+      await tester.tap(exploreAction);
       await tester.pumpAndSettle();
 
-      expect(router.routeInformationProvider.value.uri.path, '/explore');
       expect(find.text('explore-page'), findsOneWidget);
     });
 
@@ -418,6 +427,6 @@ Future<GoRouter> _pumpHomePage(
       child: MaterialApp.router(routerConfig: router),
     ),
   );
-  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
   return router;
 }

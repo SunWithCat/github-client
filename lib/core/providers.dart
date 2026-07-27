@@ -89,6 +89,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
   // 依赖的服务
   late final GithubService _githubService;
   late final StorageService _storageService;
+  int _session = 0;
 
   @override
   ProfileState build() {
@@ -164,25 +165,38 @@ class ProfileNotifier extends Notifier<ProfileState> {
   }
 
   /// 登录方法
-  Future<void> login(String token) async {
-    state = state.copyWith(token: token, isLoading: true);
+  Future<bool> login(String token) async {
+    final session = ++_session;
+    state = const ProfileState(isLoading: true);
     try {
-      await _performLoginLogic(token);
+      await _performLoginLogic(token, session: session);
+      if (session != _session) return false;
+      await _storageService.saveToken(token);
+      if (session != _session) {
+        await _storageService.clearToken();
+        return false;
+      }
+      state = state.copyWith(token: token);
+      return true;
     } catch (e, s) {
       AppLog.e('登录或获取用户信息失败', e, s);
-      logout();
+      if (session == _session) await _clearSession();
+      return false;
     } finally {
-      state = state.copyWith(isLoading: false);
+      if (session == _session) {
+        state = state.copyWith(isLoading: false);
+      }
     }
   }
 
   /// 提取公共的登录逻辑
-  Future<void> _performLoginLogic(String token) async {
+  Future<void> _performLoginLogic(String token, {int? session}) async {
     // 获取用户信息
     final (user, error) = await _githubService.getUser(token);
     if (error != null) {
       throw Exception(error);
     }
+    if (session != null && session != _session) return;
 
     // ✨ 智能更新：只在关键数据变化时才更新 User
     if (state.user == null ||
@@ -200,6 +214,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
       _githubService.getStarredReposTotalCount(token),
       _githubService.getProfileReadme(user!.login, token),
     ]);
+    if (session != null && session != _session) return;
 
     final reposResult = results[0] as ApiResult<List<Repo>>;
     final starredResult = results[1] as ApiResult<List<Repo>>;
@@ -230,17 +245,14 @@ class ProfileNotifier extends Notifier<ProfileState> {
       profileReadme: readmeResult.$1 ?? state.profileReadme,
       reposCurrentPage: 1,
       starredReposCurrentPage: 1,
-      reposHasMore:
-          initialRepos != null
-              ? initialRepos.length >= GithubService.defaultPerPage
-              : state.reposHasMore,
-      starredReposHasMore:
-          initialStarredRepos != null
-              ? (starredTotalCountResult.$1 != null
-                    ? initialStarredRepos.length < starredTotalCountResult.$1!
-                    : initialStarredRepos.length >=
-                          GithubService.defaultPerPage)
-              : state.starredReposHasMore,
+      reposHasMore: initialRepos != null
+          ? initialRepos.length >= GithubService.defaultPerPage
+          : state.reposHasMore,
+      starredReposHasMore: initialStarredRepos != null
+          ? (starredTotalCountResult.$1 != null
+                ? initialStarredRepos.length < starredTotalCountResult.$1!
+                : initialStarredRepos.length >= GithubService.defaultPerPage)
+          : state.starredReposHasMore,
     );
 
     // 🎉 获取成功后，更新缓存
@@ -258,9 +270,14 @@ class ProfileNotifier extends Notifier<ProfileState> {
   }
 
   /// 退出登录
-  void logout() {
+  Future<void> logout() async {
+    _session++;
+    await _clearSession();
+  }
+
+  Future<void> _clearSession() async {
     state = const ProfileState(isLoading: false);
-    _storageService.clearToken();
+    await _storageService.clearToken();
   }
 
   /// 加载更多星标仓库

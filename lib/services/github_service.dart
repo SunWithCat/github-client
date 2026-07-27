@@ -11,8 +11,7 @@ class GithubService {
   // 私有构造，保证全局唯一
   GithubService._();
   static final GithubService instance = GithubService._();
-  late final Dio _dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'))
-    ..interceptors.add(LogInterceptor(responseBody: true));
+  late final Dio _dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'));
 
   // 泛型封装，处理所有异常
   Future<ApiResult<T>> _safeCall<T>(

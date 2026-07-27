@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
@@ -91,10 +90,11 @@ class SettingsPage extends ConsumerWidget {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                ref.read(profileProvider.notifier).logout();
+                              onPressed: () async {
                                 Navigator.pop(dialogContext);
-                                context.go('/login');
+                                await ref
+                                    .read(profileProvider.notifier)
+                                    .logout();
                               },
                               child: const Text(
                                 '确定',
@@ -151,9 +151,13 @@ class SettingsPage extends ConsumerWidget {
                   if (states.contains(WidgetState.selected)) {
                     return const Color(0xFF1F6FEB).withValues(alpha: 0.5);
                   }
-                  return isDarkMode ? const Color(0xFF30363D) : Colors.grey.shade300;
+                  return isDarkMode
+                      ? const Color(0xFF30363D)
+                      : Colors.grey.shade300;
                 }),
-                trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+                trackOutlineColor: const WidgetStatePropertyAll(
+                  Colors.transparent,
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,

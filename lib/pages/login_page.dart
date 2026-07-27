@@ -1,17 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
-import 'package:ghclient/core/providers.dart';
-import 'package:ghclient/services/storage_service.dart';
+import 'package:ghclient/core/device_auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../common/utils/app_log.dart';
-import '../config.dart';
-import 'dart:async';
-import 'package:app_links/app_links.dart';
-import 'package:dio/dio.dart';
+
+typedef ExternalUrlLauncher = Future<bool> Function(Uri uri);
+typedef ClipboardWriter = Future<void> Function(String text);
+
+final externalUrlLauncherProvider = Provider<ExternalUrlLauncher>((ref) {
+  return (uri) => launchUrl(uri, mode: LaunchMode.externalApplication);
+});
+
+final clipboardWriterProvider = Provider<ClipboardWriter>((ref) {
+  return (text) => Clipboard.setData(ClipboardData(text: text));
+});
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -21,137 +28,212 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  bool _isLoading = false;
-  StreamSubscription? _sub; // 用于取消监听
-
-  @override
-  void initState() {
-    super.initState();
-    _initUniLinks(); // 初始化时就监听传入的链接
-  }
+  Timer? _countdownTimer;
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _countdownTimer?.cancel();
     super.dispose();
-  }
-
-  Future<void> _initUniLinks() async {
-    final appLinks = AppLinks();
-    _sub = appLinks.uriLinkStream.listen(
-      // 接收从外部传入的链接
-      (Uri? uri) {
-        if (uri != null &&
-            uri.toString().startsWith(AppConfig.githubCallbackUrl)) {
-          _handleAuthCallback(uri); // 如果链接正确，则处理
-        }
-      },
-      onError: (err) {
-        // 处理错误
-        AppLog.e('app_links error: $err');
-      },
-    );
-  }
-
-  Future<void> _handleAuthCallback(Uri uri) async {
-    final code = uri.queryParameters['code']; // 从回调URL中提取code
-    if (code != null) {
-      setState(() {
-        _isLoading = true;
-      });
-      final profileNotifier = ref.read(profileProvider.notifier);
-
-      try {
-        if (!mounted) return;
-        ToastUtils.show(context, message: '登录中，请稍后...', type: ToastType.info);
-        final dio = Dio();
-
-        final response = await dio.post(
-          'https://github.com/login/oauth/access_token',
-          data: {
-            'client_id': AppConfig.githubClientId,
-            'client_secret': AppConfig.githubClientSecret,
-            'code': code,
-          },
-          options: Options(headers: {'Accept': 'application/json'}),
-        );
-        if (!mounted) return;
-        if (response.statusCode == 200) {
-          final accessToken = response.data['access_token'];
-          final storage = StorageService();
-          await storage.init();
-          await storage.saveToken(accessToken);
-          if (!mounted) return;
-          profileNotifier.login(accessToken);
-          context.go('/');
-        }
-      } catch (e, s) {
-        AppLog.e('换取 token 失败', e, s);
-        if (!mounted) return;
-        if (mounted) {
-          ToastUtils.show(context, message: '登录失败，请重试', type: ToastType.error);
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    }
-  }
-
-  Uri get githubAuthUrl {
-    // 构建并返回一个用于发起Github的OAuth登录授权的完整Uri对象(URL)
-    return Uri.https('github.com', '/login/oauth/authorize', {
-      'client_id': AppConfig.githubClientId,
-      'scope': 'user repo',
-      'redirect_uri': AppConfig.githubCallbackUrl,
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(deviceAuthProvider);
+    ref.listen(deviceAuthProvider, (previous, next) {
+      if (next.phase == DeviceAuthPhase.waitingAuthorization &&
+          previous?.phase != DeviceAuthPhase.waitingAuthorization) {
+        _startCountdown();
+      } else if (next.phase != DeviceAuthPhase.waitingAuthorization) {
+        _countdownTimer?.cancel();
+      }
+    });
+
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(OctIcons.mark_github_16, size: 32),
-            const SizedBox(height: 10),
-            Text(
-              '登录到 GitHub ',
-              style: GoogleFonts.notoSansSc(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.primary,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _buildContent(authState),
               ),
             ),
-            const SizedBox(height: 5),
-            if (_isLoading)
-              const CircularProgressIndicator()
-            else
-              ElevatedButton.icon(
-                icon: const Icon(OctIcons.sign_in_16),
-                onPressed: () async {
-                  // 点击按钮后，启动URL
-                  final url = githubAuthUrl;
-                  if (!await launchUrl(
-                    url,
-                    mode: LaunchMode.externalApplication,
-                  )) {
-                    if (!context.mounted) return;
-                    ToastUtils.show(
-                      context,
-                      message: "无法打开链接，请检查网络或浏览器设置！",
-                      type: ToastType.error,
-                    );
-                  }
-                },
-                label: const Text('Login with GitHub'),
-              ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildContent(DeviceAuthState authState) {
+    return switch (authState.phase) {
+      DeviceAuthPhase.idle => _buildIdle(),
+      DeviceAuthPhase.requestingCode => _buildLoading('正在连接 GitHub...'),
+      DeviceAuthPhase.waitingAuthorization => _buildWaiting(authState),
+      DeviceAuthPhase.loadingProfile => _buildLoading('正在验证 GitHub 帐号...'),
+      DeviceAuthPhase.denied ||
+      DeviceAuthPhase.expired ||
+      DeviceAuthPhase.failure => _buildFailure(authState),
+    };
+  }
+
+  Widget _buildIdle() {
+    return Column(
+      key: const ValueKey('device_auth_idle'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(OctIcons.mark_github_16, size: 48),
+        const SizedBox(height: 18),
+        Text(
+          '登录到 GitHub',
+          style: GoogleFonts.notoSansSc(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          key: const ValueKey('device_auth_start'),
+          onPressed: () => ref.read(deviceAuthProvider.notifier).start(),
+          icon: const Icon(OctIcons.sign_in_16),
+          label: const Text('使用 GitHub 登录'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoading(String message) {
+    return Column(
+      key: ValueKey(message),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(
+          width: 32,
+          height: 32,
+          child: CircularProgressIndicator(strokeWidth: 3),
+        ),
+        const SizedBox(height: 18),
+        Text(message, textAlign: TextAlign.center),
+      ],
+    );
+  }
+
+  Widget _buildWaiting(DeviceAuthState authState) {
+    final userCode = authState.userCode!;
+    final verificationUri = authState.verificationUri!;
+    return Column(
+      key: const ValueKey('device_auth_waiting'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(OctIcons.device_mobile_16, size: 40),
+        const SizedBox(height: 16),
+        Text(
+          '在 GitHub 完成授权',
+          style: GoogleFonts.notoSansSc(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '使用下面的验证码继续登录',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SelectableText(
+            userCode,
+            key: const ValueKey('device_auth_user_code'),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.robotoMono(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _remainingText(authState.expiresAt),
+          key: const ValueKey('device_auth_countdown'),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        if (authState.message != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            authState.message!,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          key: const ValueKey('device_auth_open_github'),
+          onPressed: () => _copyAndOpen(userCode, verificationUri),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('复制并打开 GitHub'),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          key: const ValueKey('device_auth_cancel'),
+          onPressed: () => ref.read(deviceAuthProvider.notifier).cancel(),
+          child: const Text('取消'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFailure(DeviceAuthState authState) {
+    return Column(
+      key: const ValueKey('device_auth_failure'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.error_outline,
+          size: 40,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        const SizedBox(height: 16),
+        Text(authState.message ?? '登录失败，请重试', textAlign: TextAlign.center),
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          key: const ValueKey('device_auth_retry'),
+          onPressed: () => ref.read(deviceAuthProvider.notifier).start(),
+          icon: const Icon(Icons.refresh),
+          label: const Text('重新登录'),
+        ),
+      ],
+    );
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  String _remainingText(DateTime? expiresAt) {
+    if (expiresAt == null) return '';
+    final seconds = expiresAt.difference(DateTime.now()).inSeconds;
+    if (seconds <= 0) return '验证码即将过期';
+    final minutesPart = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secondsPart = (seconds % 60).toString().padLeft(2, '0');
+    return '验证码有效期 $minutesPart:$secondsPart';
+  }
+
+  Future<void> _copyAndOpen(String userCode, Uri verificationUri) async {
+    await ref.read(clipboardWriterProvider)(userCode);
+    final opened = await ref.read(externalUrlLauncherProvider)(verificationUri);
+    if (!mounted || opened) return;
+    ToastUtils.show(context, message: '无法打开浏览器，请稍后重试', type: ToastType.error);
   }
 }

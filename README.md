@@ -74,9 +74,8 @@ GhClient 是一款使用 Flutter 构建的第三方 GitHub 客户端，旨在提
 | **路由管理** | [go_router](https://pub.dev/packages/go_router) | 页面跳转，省代码 |
 | **网络请求** | [Dio](https://pub.dev/packages/dio) | 网络请求 |
 | **本地存储** | [Hive](https://pub.dev/packages/hive) + [hive_flutter](https://pub.dev/packages/hive_flutter) + [Flutter Secure Storage](https://pub.dev/packages/flutter_secure_storage) | 存数据的，安全又方便 |
-| **Deep Links** | [app_links](https://pub.dev/packages/app_links) | 处理GitHub的回调链接 |
 | **Markdown** | [flutter_widget_from_html_core](https://pub.dev/packages/flutter_widget_from_html_core) | 把Markdown的内容用HTML渲染 |
-| **OAuth 授权** | [url_launcher](https://pub.dev/packages/url_launcher) | 打开浏览器，让用户自己授权 |
+| **OAuth 授权** | GitHub Device Flow + [url_launcher](https://pub.dev/packages/url_launcher) | 无需在客户端保存 Client Secret |
 | **动画效果** | [flutter_animate](https://pub.dev/packages/flutter_animate) | 让页面动起来，显得高级 |
 | **SVG 支持** | [flutter_svg](https://pub.dev/packages/flutter_svg) | 显示SVG图片，比图片清晰 |
 | **图标** | [flutter_octicons](https://pub.dev/packages/flutter_octicons) | GitHub官方图标 |
@@ -101,15 +100,15 @@ cd github-client
 # 安装依赖（这个过程可能会下载很多东西，耐心等待）
 flutter pub get
 
-# 运行应用（祈祷一切正常）
-flutter run
+# 使用公开仓库权限运行应用
+flutter run --dart-define='GITHUB_CLIENT_ID=你的ClientID'
 ```
 
 ### 构建发布
 
 ```bash
 # Android
-flutter build apk --release # 构建分包使用 flutter build apk --split-per-abi
+flutter build apk --release --dart-define='GITHUB_CLIENT_ID=你的ClientID'
 
 # iOS（可以试试）
 flutter build ios --release
@@ -119,28 +118,21 @@ flutter build ios --release
 
 ## ⚙️ 配置说明
 
-在 `lib/config.dart` 中配置 GitHub OAuth 相关参数：
+应用使用 GitHub Device Flow 登录。Client ID 是公开标识，通过构建参数传入；应用不需要也不能包含 Client Secret。
 
-```dart
-class AppConfig {
-  // 这些是敏感信息，千万别提交到公开仓库！
-  static const String githubClientId = 'Ovxxxxxxxxxxx'; // 你的Client ID
-  static const String githubClientSecret = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // 你的Client Secret
-  static const String githubCallbackUrl = 'myfluttergithubapp://callback'; // 回调URL
-}
-```
-
-使用 GitHub OAuth 功能需要：
+使用登录功能前需要：
 
 1. 在 [GitHub Developer Settings](https://github.com/settings/developers) 创建 OAuth 应用
-2. 设置回调 URL（与 `lib/config.dart` 保持一致）: `myfluttergithubapp://callback`
-3. 获取 `Client ID` 和 `Client Secret`（这两个很重要，别弄丢了）
-4. 在 `lib/config.dart` 中配置 `githubClientId`、`githubClientSecret`、`githubCallbackUrl`
+2. 在 OAuth App 设置中启用 `Enable Device Flow`
+3. 使用 OAuth App 的 Client ID 运行或构建应用
 
-**重要提醒**：
-- 千万别把 `Client Secret` 提交到公开仓库！
-- 如果不小心提交了，赶紧去GitHub重新生成一个
-- 本地开发可以用 `.env` 文件管理敏感信息，生产环境建议使用安全的环境变量管理方案。
+默认不申请 OAuth scope，只能读取公开信息。如需访问私有仓库，可额外传入：
+
+```bash
+--dart-define='GITHUB_OAUTH_SCOPES=read:user repo'
+```
+
+`repo` 会授予广泛的公私仓库读写权限，并非只读权限。发布应用前应确认确实需要该权限。历史中使用过的 Client Secret 应在 GitHub 后台轮换或删除。
 
 ## 📄 许可证
 

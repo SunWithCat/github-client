@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:ghclient/common/utils/app_log.dart';
 import 'package:ghclient/models/my_user_model.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 
 class StorageService {
@@ -14,6 +15,7 @@ class StorageService {
   static const String _reposKey = 'user_repos';
   static const String _starredKey = 'user_starred';
   static const String _readmeKey = 'user_readme';
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   // 获取盒子的实例
   late Box _box;
@@ -44,14 +46,21 @@ class StorageService {
 
   // 保存 token
   Future<void> saveToken(String token) async {
-    if (!_initialized) await init();
-    await _box.put(_tokenKey, token);
+    await _secureStorage.write(key: _tokenKey, value: token);
   }
 
   // 获取 token
   Future<String?> getToken() async {
+    final secureToken = await _secureStorage.read(key: _tokenKey);
+    if (secureToken != null) return secureToken;
+
     if (!_initialized) await init();
-    return _box.get(_tokenKey);
+    final legacyToken = _box.get(_tokenKey) as String?;
+    if (legacyToken != null) {
+      await _secureStorage.write(key: _tokenKey, value: legacyToken);
+      await _box.delete(_tokenKey);
+    }
+    return legacyToken;
   }
 
   // 保存用户信息
@@ -129,6 +138,7 @@ class StorageService {
 
   // 清除 token
   Future<void> clearToken() async {
+    await _secureStorage.delete(key: _tokenKey);
     if (!_initialized) await init();
     await _box.delete(_tokenKey);
     await _box.delete(_userKey);

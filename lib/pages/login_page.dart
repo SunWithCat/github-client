@@ -6,7 +6,6 @@ import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/core/device_auth_provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef ExternalUrlLauncher = Future<bool> Function(Uri uri);
@@ -87,10 +86,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         const SizedBox(height: 18),
         Text(
           '登录到 GitHub',
-          style: GoogleFonts.notoSansSc(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 24),
         FilledButton.icon(
@@ -130,10 +126,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         const SizedBox(height: 16),
         Text(
           '在 GitHub 完成授权',
-          style: GoogleFonts.notoSansSc(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 10),
         Text(
@@ -154,7 +147,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             userCode,
             key: const ValueKey('device_auth_user_code'),
             textAlign: TextAlign.center,
-            style: GoogleFonts.robotoMono(
+            style: const TextStyle(
+              // 'monospace' 仅 Android 识别，其他平台需按名回退到各自的等宽字体
+              fontFamily: 'monospace',
+              fontFamilyFallback: [
+                'Menlo',
+                'Consolas',
+                'DejaVu Sans Mono',
+                'Courier New',
+              ],
               fontSize: 28,
               fontWeight: FontWeight.w700,
             ),

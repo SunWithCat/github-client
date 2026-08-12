@@ -53,3 +53,5 @@ android/key.properties
 *.keystore
 
 .vscode/
+
+graphify-out/

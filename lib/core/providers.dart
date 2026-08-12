@@ -419,13 +419,3 @@ final appVersionProvider = Provider<String>((ref) {
     error: (_, _) => '未知',
   );
 });
-
-/// 应用完整版本号 Provider（格式：x.y.z+buildNumber）
-final appFullVersionProvider = Provider<String>((ref) {
-  final packageInfoAsync = ref.watch(packageInfoProvider);
-  return packageInfoAsync.when(
-    data: (info) => '${info.version}+${info.buildNumber}',
-    loading: () => '...',
-    error: (_, _) => '未知',
-  );
-});

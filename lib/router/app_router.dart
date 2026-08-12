@@ -21,14 +21,14 @@ class RepoDetailArgs {
 }
 
 class GoRouterRefreshNotifier extends ChangeNotifier {
+  final Ref _ref;
+  late final ProviderSubscription<ProfileState> _subscription;
+
   GoRouterRefreshNotifier(this._ref) {
     _subscription = _ref.listen<ProfileState>(profileProvider, (_, __) {
       notifyListeners();
     });
   }
-
-  final Ref _ref;
-  late final ProviderSubscription<ProfileState> _subscription;
 
   @override
   void dispose() {
@@ -72,26 +72,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/loading',
         builder: (context, state) => const LoadingPage(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
-      ),
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomePage(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/', builder: (context, state) => const HomePage()),
       GoRoute(
         path: '/explore',
         builder: (context, state) => const ExplorePage(),
       ),
-      GoRoute(
-        path: '/search',
-        builder: (context, state) => const SearchPage(),
-      ),
-      GoRoute(
-        path: '/repos',
-        builder: (context, state) => const ReposPage(),
-      ),
+      GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
+      GoRoute(path: '/repos', builder: (context, state) => const ReposPage()),
       GoRoute(
         path: '/starred',
         builder: (context, state) => const StarredReposPage(),

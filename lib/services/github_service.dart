@@ -145,6 +145,23 @@ class GithubService {
     );
   }
 
+  // 获取仓库分支列表
+  Future<ApiResult<List<dynamic>>> getBranches(
+    String owner,
+    String repoName,
+    String token, {
+    int perPage = 10,
+  }) {
+    return _safeCall(
+      () => _dio.get(
+        '/repos/$owner/$repoName/branches',
+        queryParameters: {'per_page': perPage},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      ),
+      (data) => data as List<dynamic>,
+    );
+  }
+
   // 获取README
   Future<ApiResult<String?>> getReadme(
     String owner,
@@ -171,11 +188,13 @@ class GithubService {
   Future<ApiResult<String?>> getReadmeHtml(
     String owner,
     String repoName,
-    String token,
-  ) async {
+    String token, {
+    String? ref,
+  }) async {
     return _safeCall(
       () => _dio.get(
         '/repos/$owner/$repoName/readme',
+        queryParameters: {if (ref != null) 'ref': ref},
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -211,13 +230,18 @@ class GithubService {
     String owner,
     String repoName,
     String token, {
+    String? sha,
     int page = 1,
     int perPage = 10,
   }) async {
     return _safeCall(
       () => _dio.get(
         '/repos/$owner/$repoName/commits',
-        queryParameters: {'page': page, 'per_page': perPage},
+        queryParameters: {
+          'page': page,
+          'per_page': perPage,
+          if (sha != null) 'sha': sha,
+        },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       ),
       (data) => data as List<dynamic>,

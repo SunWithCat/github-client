@@ -8,12 +8,14 @@ class OverviewTab extends StatefulWidget {
   final Repo repo;
   final String? readmeContent;
   final Future<void> Function() onRefresh;
+  final String branch;
 
   const OverviewTab({
     super.key,
     required this.repo,
     this.readmeContent,
     required this.onRefresh,
+    required this.branch,
   });
 
   @override
@@ -139,7 +141,7 @@ class _OverviewTabState extends State<OverviewTab>
                   data: displayContent,
                   owner: widget.repo.owner,
                   repo: widget.repo.name,
-                  branch: widget.repo.defaultBranch ?? 'main',
+                  branch: widget.branch,
                   selectable: false,
                 ),
               ),

@@ -13,6 +13,7 @@ class CommitsTab extends ConsumerStatefulWidget {
   final String token;
   final List<dynamic> initialCommits;
   final Future<void> Function() onRefresh;
+  final String? branch;
 
   const CommitsTab({
     super.key,
@@ -20,6 +21,7 @@ class CommitsTab extends ConsumerStatefulWidget {
     required this.token,
     required this.initialCommits,
     required this.onRefresh,
+    this.branch,
   });
 
   @override
@@ -77,6 +79,7 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
         widget.repo.owner,
         widget.repo.name,
         widget.token,
+        sha: widget.branch,
         page: _page + 1,
       );
 

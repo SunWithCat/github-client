@@ -9,6 +9,7 @@ import 'package:ghclient/pages/repo_detail/commits_tab.dart';
 import 'package:ghclient/pages/repo_detail/contributors_tab.dart';
 import 'package:ghclient/pages/repo_detail/issues_tab.dart';
 import 'package:ghclient/pages/repo_detail/overview_tab.dart';
+import 'package:ghclient/pages/repo_detail/pull_requests_tab.dart';
 import 'package:ghclient/services/github_service.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 
@@ -32,6 +33,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   String? readmeContent;
   bool isLoading = true;
   List<dynamic> issues = [];
+  List<dynamic> pullRequests = [];
   List<dynamic> commits = [];
   List<dynamic> contributors = [];
   List<String> _branches = [];
@@ -44,7 +46,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   void initState() {
     super.initState();
     _currentBranch = widget.repo.defaultBranch ?? 'main';
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _fetchRepoDetails();
   }
 
@@ -63,6 +65,11 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
           ref: _currentBranch,
         ),
         githubService.getIssues(
+          widget.repo.owner,
+          widget.repo.name,
+          widget.token,
+        ),
+        githubService.getPullRequests(
           widget.repo.owner,
           widget.repo.name,
           widget.token,
@@ -89,14 +96,16 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
       // 解构结果
       final readmeResult = responses[0] as ApiResult<String?>;
       final issuesResult = responses[1] as ApiResult<List<dynamic>>;
-      final commitsResult = responses[2] as ApiResult<List<dynamic>>;
-      final contributorsResult = responses[3] as ApiResult<List<dynamic>>;
-      final branchesResult = responses[4] as ApiResult<List<dynamic>>;
+      final prResult = responses[2] as ApiResult<List<dynamic>>;
+      final commitsResult = responses[3] as ApiResult<List<dynamic>>;
+      final contributorsResult = responses[4] as ApiResult<List<dynamic>>;
+      final branchesResult = responses[5] as ApiResult<List<dynamic>>;
 
       if (mounted) {
         setState(() {
           readmeContent = readmeResult.$1;
           issues = issuesResult.$1 ?? [];
+          pullRequests = prResult.$1 ?? [];
           commits = commitsResult.$1 ?? [];
           contributors = contributorsResult.$1 ?? [];
           _branches = (branchesResult.$1 ?? [])
@@ -196,11 +205,46 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     }
   }
 
-  /// 刷新 Commits 数据
-  Future<void> _refreshCommits() async {
+  /// 刷新 Pull Requests 数据
+  Future<void> _refreshPullRequests() async {
     if (_refreshingTabs.contains(2)) return;
     setState(() {
       _refreshingTabs.add(2);
+    });
+    try {
+      final githubService = ref.read(githubServiceProvider);
+      final (newPrs, error) = await githubService.getPullRequests(
+        widget.repo.owner,
+        widget.repo.name,
+        widget.token,
+      );
+      if (error != null && mounted) {
+        _showRefreshError(error);
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          pullRequests = newPrs ?? [];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showRefreshError(e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _refreshingTabs.remove(2);
+        });
+      }
+    }
+  }
+
+  /// 刷新 Commits 数据
+  Future<void> _refreshCommits() async {
+    if (_refreshingTabs.contains(3)) return;
+    setState(() {
+      _refreshingTabs.add(3);
     });
 
     try {
@@ -229,7 +273,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     } finally {
       if (mounted) {
         setState(() {
-          _refreshingTabs.remove(2);
+          _refreshingTabs.remove(3);
         });
       }
     }
@@ -237,9 +281,9 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
 
   /// 刷新 Contributors 数据
   Future<void> _refreshContributors() async {
-    if (_refreshingTabs.contains(3)) return;
+    if (_refreshingTabs.contains(4)) return;
     setState(() {
-      _refreshingTabs.add(3);
+      _refreshingTabs.add(4);
     });
 
     try {
@@ -267,7 +311,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     } finally {
       if (mounted) {
         setState(() {
-          _refreshingTabs.remove(3);
+          _refreshingTabs.remove(4);
         });
       }
     }
@@ -516,9 +560,12 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             _refreshIssues();
             break;
           case 2:
-            _refreshCommits();
+            _refreshPullRequests();
             break;
           case 3:
+            _refreshCommits();
+            break;
+          case 4:
             _refreshContributors();
             break;
         }
@@ -555,6 +602,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
           tabs: const [
             Tab(icon: Icon(OctIcons.book_16, size: 20), text: '概览'),
             Tab(icon: Icon(OctIcons.issue_opened_16, size: 20), text: 'Issues'),
+            Tab(icon: Icon(OctIcons.git_pull_request_16, size: 20), text: 'PR'),
             Tab(icon: Icon(OctIcons.git_commit_16, size: 20), text: '提交'),
             Tab(icon: Icon(OctIcons.people_16), text: '贡献者'),
           ],
@@ -581,6 +629,15 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                   token: widget.token,
                   initialIssues: issues,
                   onRefresh: _refreshIssues,
+                ),
+          // PullRequestsTab - 加载时显示列表骨架屏
+          isLoading
+              ? const SkeletonLoader(type: SkeletonType.list)
+              : PullRequestsTab(
+                  repo: widget.repo,
+                  token: widget.token,
+                  initialPullRequests: pullRequests,
+                  onRefresh: _refreshPullRequests,
                 ),
           // CommitsTab - 加载时显示列表骨架屏
           isLoading

@@ -225,6 +225,24 @@ class GithubService {
     );
   }
 
+  // 获取 PR 列表
+  Future<ApiResult<List<dynamic>>> getPullRequests(
+    String owner,
+    String repoName,
+    String token, {
+    int page = 1,
+    int perPage = 10,
+  }) async {
+    return _safeCall(
+      () => _dio.get(
+        '/repos/$owner/$repoName/pulls',
+        queryParameters: {'state': 'all', 'page': page, 'per_page': perPage},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      ),
+      (data) => data as List<dynamic>,
+    );
+  }
+
   // 获取最近提交
   Future<ApiResult<List<dynamic>>> getCommits(
     String owner,

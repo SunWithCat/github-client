@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/pr_card.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class PullRequestsTab extends ConsumerStatefulWidget {
   final Repo repo;
@@ -84,7 +84,7 @@ class _PullRequestsTabState extends ConsumerState<PullRequestsTab>
             _prs.addAll(newPrs);
             _page++;
             _hasMore = newPrs.length >= 10;
-          } else {
+          } else if (error == null) {
             _hasMore = false;
           }
           _isLoadingMore = false;
@@ -118,11 +118,11 @@ class _PullRequestsTabState extends ConsumerState<PullRequestsTab>
               title: '没有 Pull Requests',
               message: '这个仓库目前没有任何 PR',
               actionLabel: '创建第一个 PR',
-              onAction: () async {
-                final url = Uri.parse(
+              onAction: () {
+                openExternalUrl(
+                  context,
                   'https://github.com/${widget.repo.owner}/${widget.repo.name}/compare',
                 );
-                if (await canLaunchUrl(url)) await launchUrl(url);
               },
             ),
           ),
@@ -135,7 +135,7 @@ class _PullRequestsTabState extends ConsumerState<PullRequestsTab>
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _prs.length + (_hasMore ? 1 : 0),
+        itemCount: _prs.length + (_isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == _prs.length) {
             return const Padding(
@@ -146,9 +146,8 @@ class _PullRequestsTabState extends ConsumerState<PullRequestsTab>
           final pr = _prs[index];
           return PrCard(
             pr: pr as Map<String, dynamic>,
-            onTap: () async {
-              final url = Uri.parse(pr['html_url']);
-              if (await canLaunchUrl(url)) await launchUrl(url);
+            onTap: () {
+              openExternalUrl(context, pr['html_url']?.toString() ?? '');
             },
           );
         },

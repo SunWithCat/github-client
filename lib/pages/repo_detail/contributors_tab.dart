@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/pages/repo_detail/contributor_card.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ContributorsTab extends StatefulWidget {
   final List<dynamic> contributors;
@@ -68,9 +68,11 @@ class _ContributorsTabState extends State<ContributorsTab>
           return ContributorCard(
             contributor: contributor as Map<String, dynamic>,
             totalContributions: total,
-            onTap: () async {
-              final url = Uri.parse(contributor['html_url']);
-              if (await canLaunchUrl(url)) await launchUrl(url);
+            onTap: () {
+              openExternalUrl(
+                context,
+                contributor['html_url']?.toString() ?? '',
+              );
             },
           );
         },

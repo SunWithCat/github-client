@@ -50,7 +50,9 @@ void main() {
   });
 
   group('EmptyState Widget', () {
-    testWidgets('renders with required properties', (WidgetTester tester) async {
+    testWidgets('renders with required properties', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -68,9 +70,11 @@ void main() {
       expect(find.byIcon(Icons.inbox), findsOneWidget);
     });
 
-    testWidgets('renders action button when provided', (WidgetTester tester) async {
+    testWidgets('renders action button when provided', (
+      WidgetTester tester,
+    ) async {
       bool actionCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -86,7 +90,7 @@ void main() {
       );
 
       expect(find.text('Add Item'), findsOneWidget);
-      
+
       await tester.tap(find.text('Add Item'));
       expect(actionCalled, isTrue);
     });
@@ -96,9 +100,7 @@ void main() {
     testWidgets('renders overview skeleton', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SkeletonLoader(type: SkeletonType.overview),
-          ),
+          home: Scaffold(body: SkeletonLoader(type: SkeletonType.overview)),
         ),
       );
 
@@ -106,7 +108,9 @@ void main() {
       expect(find.byType(SkeletonLoader), findsOneWidget);
     });
 
-    testWidgets('renders list skeleton with items', (WidgetTester tester) async {
+    testWidgets('renders list skeleton with items', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -121,9 +125,7 @@ void main() {
     testWidgets('renders card skeleton', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SkeletonLoader(type: SkeletonType.card),
-          ),
+          home: Scaffold(body: SkeletonLoader(type: SkeletonType.card)),
         ),
       );
 
@@ -229,22 +231,26 @@ void main() {
     testWidgets('shows minimal loading view before showing empty state', (
       WidgetTester tester,
     ) async {
-      final notifier = _FakeProfileNotifier(const ProfileState(isLoading: true));
+      final notifier = _FakeProfileNotifier(
+        const ProfileState(isLoading: true),
+      );
       await _pumpHomePage(tester, notifier);
 
       expect(find.byKey(const ValueKey('home_loading')), findsOneWidget);
       expect(find.text('正在同步 GitHub 数据...'), findsOneWidget);
-      expect(find.text('未能找到用户消息'), findsNothing);
+      expect(find.text('未能找到用户信息'), findsNothing);
     });
 
     testWidgets('shows empty state when loading completed and no user', (
       WidgetTester tester,
     ) async {
-      final notifier = _FakeProfileNotifier(const ProfileState(isLoading: false));
+      final notifier = _FakeProfileNotifier(
+        const ProfileState(isLoading: false),
+      );
       await _pumpHomePage(tester, notifier);
 
       expect(find.byKey(const ValueKey('home_empty')), findsOneWidget);
-      expect(find.text('未能找到用户消息'), findsOneWidget);
+      expect(find.text('未能找到用户信息'), findsOneWidget);
     });
 
     testWidgets('shows content sections when user exists', (
@@ -336,7 +342,9 @@ void main() {
       expect(find.text('explore-page'), findsOneWidget);
     });
 
-    testWidgets('pull to refresh calls refreshData', (WidgetTester tester) async {
+    testWidgets('pull to refresh calls refreshData', (
+      WidgetTester tester,
+    ) async {
       final notifier = _FakeProfileNotifier(
         ProfileState(isLoading: false, user: _fakeUser()),
       );
@@ -411,8 +419,8 @@ Future<GoRouter> _pumpHomePage(
       ),
       GoRoute(
         path: '/settings',
-        builder:
-            (context, state) => const Scaffold(body: Text('settings-page')),
+        builder: (context, state) =>
+            const Scaffold(body: Text('settings-page')),
       ),
       GoRoute(
         path: '/explore',

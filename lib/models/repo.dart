@@ -20,6 +20,10 @@ class Repo {
 
   String get owner => ownerData['login'];
 
+  String get htmlUrl => 'https://github.com/$owner/$name';
+
+  String get cloneUrl => '$htmlUrl.git';
+
   Repo({
     required this.name,
     this.description,

@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ghclient/common/utils/date_formatter.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 
 class CommitCard extends StatefulWidget {
   final Map<String, dynamic> commit;
 
   final VoidCallback? onTap;
 
-  const CommitCard({
-    super.key,
-    required this.commit,
-    this.onTap,
-  });
+  const CommitCard({super.key, required this.commit, this.onTap});
 
   @override
   State<CommitCard> createState() => _CommitCardState();
@@ -30,6 +27,7 @@ class _CommitCardState extends State<CommitCard> {
     }
     return {};
   }
+
   Map<String, dynamic> get authorInfo {
     final author = commitInfo['author'];
     if (author is Map<String, dynamic>) {
@@ -81,9 +79,9 @@ class _CommitCardState extends State<CommitCard> {
   /// 获取作者名称
   String get authorName {
     // 优先使用 committer 的 login，否则使用 author 的 name
-    return committerInfo['login']?.toString() ?? 
-           authorInfo['name']?.toString() ?? 
-           '';
+    return committerInfo['login']?.toString() ??
+        authorInfo['name']?.toString() ??
+        '';
   }
 
   /// 获取提交日期
@@ -103,9 +101,7 @@ class _CommitCardState extends State<CommitCard> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: InkWell(
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(10),
@@ -149,8 +145,8 @@ class _CommitCardState extends State<CommitCard> {
                               _isExpanded ? '收起' : '展开',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark 
-                                    ? Colors.blue.shade300 
+                                color: isDark
+                                    ? Colors.blue.shade300
                                     : Colors.blue.shade600,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -171,14 +167,18 @@ class _CommitCardState extends State<CommitCard> {
                     Icon(
                       OctIcons.person_16,
                       size: 14,
-                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                      color: isDark
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade600,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       authorName,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -186,15 +186,29 @@ class _CommitCardState extends State<CommitCard> {
                     Icon(
                       OctIcons.git_commit_16,
                       size: 14,
-                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                      color: isDark
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade600,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      shortSha,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: 'monospace',
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    Tooltip(
+                      message: '长按复制完整 SHA',
+                      child: GestureDetector(
+                        onLongPress: () {
+                          final sha = widget.commit['sha']?.toString() ?? '';
+                          if (sha.isEmpty) return;
+                          copyText(context, sha, successMessage: '已复制 SHA');
+                        },
+                        child: Text(
+                          shortSha,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: 'monospace',
+                            color: isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -202,7 +216,9 @@ class _CommitCardState extends State<CommitCard> {
                     Icon(
                       OctIcons.clock_16,
                       size: 14,
-                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                      color: isDark
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade600,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -210,7 +226,9 @@ class _CommitCardState extends State<CommitCard> {
                         DateFormatter.relative(commitDate),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

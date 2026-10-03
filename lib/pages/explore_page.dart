@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
@@ -22,6 +23,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
   List<Repo> _trendingRepos = [];
   String _selectedTimeRange = 'monthly';
   DateTime _loadingCompleteTime = DateTime.now();
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -32,12 +34,14 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
   Future<void> _fetchTrendingRepos() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
     final token = ref.read(tokenProvider);
     if (token == null) {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _errorMessage = '登录已失效，请重新登录后再探索';
         });
       }
       return;
@@ -52,10 +56,12 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       if (mounted) {
         setState(() {
           if (error != null) {
-            AppLog.e('加载热门仓库失败：$error'); 
+            AppLog.e('加载热门仓库失败：$error');
+            _errorMessage = error;
           } else {
             _trendingRepos = repos ?? [];
             _loadingCompleteTime = DateTime.now(); // 记录加载完成时间
+            _errorMessage = null;
           }
           _isLoading = false;
         });
@@ -65,6 +71,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _errorMessage = '加载失败，请稍后重试';
         });
       }
     }
@@ -89,22 +96,23 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
         title: const Text('探索'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors:
-                  isDark
-                      ? [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surfaceContainer,
-                      ]
-                      : [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surfaceContainerLow,
-                      ],
+              colors: isDark
+                  ? [
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surfaceContainer,
+                    ]
+                  : [
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surfaceContainerLow,
+                    ],
             ),
           ),
         ),
@@ -112,6 +120,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
+              tooltip: '搜索仓库',
               onPressed: () {
                 context.push('/search');
               },
@@ -125,10 +134,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors:
-                isDark
-                    ? [const Color(0xFF0D1117), const Color(0xFF010409)]
-                    : [const Color(0xFFF6F8FA), const Color(0xFFFFFFFF)],
+            colors: isDark
+                ? [const Color(0xFF0D1117), const Color(0xFF010409)]
+                : [const Color(0xFFF6F8FA), const Color(0xFFFFFFFF)],
             stops: const [0.0, 1.0],
           ),
         ),
@@ -161,8 +169,6 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     child: SegmentedButton<String>(
                       showSelectedIcon: false,
                       style: ButtonStyle(
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -227,7 +233,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                         Text(
                           '正在探索...',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                             fontSize: 14,
                           ),
                         ),
@@ -235,26 +243,26 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     ),
                   ),
                 )
+              else if (_errorMessage != null && _trendingRepos.isEmpty)
+                SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.wifi_off_outlined,
+                    title: '加载失败',
+                    message: _errorMessage!,
+                    actionLabel: '重试',
+                    actionIcon: Icons.refresh,
+                    onAction: _fetchTrendingRepos,
+                  ),
+                )
               else if (_trendingRepos.isEmpty)
                 SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          OctIcons.telescope_16,
-                          size: 64,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '暂无趋势数据',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: EmptyState(
+                    icon: OctIcons.telescope_16,
+                    title: '暂无趋势数据',
+                    message: '换个时间范围，或者下拉刷新试试',
+                    actionLabel: '重新加载',
+                    actionIcon: Icons.refresh,
+                    onAction: _fetchTrendingRepos,
                   ),
                 )
               else
@@ -310,8 +318,8 @@ class _AnimatedRepoItemState extends State<_AnimatedRepoItem>
         800;
 
     // 只有初始加载时才使用级联延迟，否则快速显示
-    final delay = isInitialLoad ? widget.index * 80 : 0;
-    final duration = isInitialLoad ? 600 : 300;
+    final delay = isInitialLoad ? (widget.index.clamp(0, 8) * 50) : 0;
+    final duration = isInitialLoad ? 400 : 240;
 
     _controller = AnimationController(
       duration: Duration(milliseconds: duration),

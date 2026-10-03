@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/issue_card.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class IssuesTab extends ConsumerStatefulWidget {
   final Repo repo;
@@ -85,7 +85,7 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
             _issues.addAll(newIssues);
             _page++;
             _hasMore = newIssues.length >= 10;
-          } else {
+          } else if (error == null) {
             _hasMore = false;
           }
           _isLoadingMore = false;
@@ -116,11 +116,11 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
               title: '没有 Issues',
               message: '这个仓库目前没有任何 Issues',
               actionLabel: '创建第一个 Issue',
-              onAction: () async {
-                final url = Uri.parse(
+              onAction: () {
+                openExternalUrl(
+                  context,
                   'https://github.com/${widget.repo.owner}/${widget.repo.name}/issues/new',
                 );
-                if (await canLaunchUrl(url)) await launchUrl(url);
               },
             ),
           ),
@@ -134,7 +134,7 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _issues.length + (_hasMore ? 1 : 0),
+        itemCount: _issues.length + (_isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == _issues.length) {
             return const Padding(
@@ -146,9 +146,8 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
           final issue = _issues[index];
           return IssueCard(
             issue: issue as Map<String, dynamic>,
-            onTap: () async {
-              final url = Uri.parse(issue['html_url']);
-              if (await canLaunchUrl(url)) await launchUrl(url);
+            onTap: () {
+              openExternalUrl(context, issue['html_url']?.toString() ?? '');
             },
           );
         },

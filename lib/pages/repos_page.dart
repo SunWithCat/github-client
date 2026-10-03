@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/app_log.dart';
+import 'package:ghclient/common/utils/toast_utils.dart';
+import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/utils/debouncer.dart';
-
-import '../common/utils/app_log.dart';
 
 class ReposPage extends ConsumerStatefulWidget {
   const ReposPage({super.key});
@@ -29,8 +31,10 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   @override
   void initState() {
     super.initState();
-    _repos = ref.read(profileProvider).repos;
+    final profile = ref.read(profileProvider);
+    _repos = profile.repos;
     _filteredRepos = _repos;
+    _hasMore = profile.reposHasMore;
     _scrollController.addListener(_onScroll);
     _searchController.addListener(() {
       if (mounted) setState(() {});
@@ -61,20 +65,22 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     try {
       final notifier = ref.read(profileProvider.notifier);
       final newRepos = await notifier.loadMoreRepos();
-      if (newRepos.isEmpty) {
-        setState(() {
-          _hasMore = false;
-        });
-      } else {
-        final profileState = ref.read(profileProvider);
-        setState(() {
-          _repos = profileState.repos;
-          _hasMore = profileState.reposHasMore;
-          _filterRepos(_searchController.text);
-        });
-      }
+      if (!mounted) return;
+      final profileState = ref.read(profileProvider);
+      setState(() {
+        _repos = profileState.repos;
+        _hasMore = profileState.reposHasMore && newRepos.isNotEmpty;
+        _filterRepos(_searchController.text);
+      });
     } catch (e, s) {
       AppLog.e('加载更多仓库失败', e, s);
+      if (mounted) {
+        ToastUtils.show(
+          context,
+          message: '加载更多失败，请稍后重试',
+          type: ToastType.error,
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -84,11 +90,28 @@ class _ReposPageState extends ConsumerState<ReposPage> {
     }
   }
 
-  // 搜索过滤
+  Future<void> _onRefresh() async {
+    try {
+      await ref.read(profileProvider.notifier).refreshData();
+    } catch (e, s) {
+      AppLog.e('刷新仓库失败', e, s);
+      if (mounted) {
+        ToastUtils.show(context, message: '刷新失败，请稍后重试', type: ToastType.error);
+      }
+    }
+    if (!mounted) return;
+    final profile = ref.read(profileProvider);
+    setState(() {
+      _repos = profile.repos;
+      _hasMore = profile.reposHasMore;
+      _filterRepos(_searchController.text);
+    });
+  }
+
   void _filterRepos(String query) {
     if (query.isEmpty) {
       setState(() {
-        _filteredRepos = _repos; // 当搜索框为空时，显示所有仓库
+        _filteredRepos = _repos;
       });
     } else {
       final filtered = _repos.where((repo) {
@@ -103,7 +126,6 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   @override
   Widget build(BuildContext context) {
     return SafeScaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('我的仓库'),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -124,6 +146,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
               trailing: [
                 if (_searchController.text.isNotEmpty)
                   IconButton(
+                    tooltip: '清空',
                     onPressed: () {
                       _searchController.clear();
                       _filterRepos('');
@@ -141,7 +164,9 @@ class _ReposPageState extends ConsumerState<ReposPage> {
                 RoundedSuperellipseBorder(
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                   side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.8),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.8),
                     width: 1.0,
                   ),
                 ),
@@ -161,24 +186,48 @@ class _ReposPageState extends ConsumerState<ReposPage> {
 
   Widget _buildBody() {
     if (_repos.isEmpty) {
-      return const Center(child: Text('你还没有任何仓库'));
+      return RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 80),
+            EmptyState(
+              icon: OctIcons.repo_16,
+              title: '还没有仓库',
+              message: '下拉刷新，或去 GitHub 创建一个新仓库',
+            ),
+          ],
+        ),
+      );
     }
     if (_searchController.text.isNotEmpty && _filteredRepos.isEmpty) {
-      return const Center(child: Text('没有找到匹配的仓库'));
+      return const EmptyState(
+        icon: OctIcons.search_16,
+        title: '没有找到匹配的仓库',
+        message: '试试其他关键词',
+      );
     }
-    return ListView.builder(
-      controller: _scrollController,
-      cacheExtent: 500,
-      itemCount: _filteredRepos.length + (_hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == _filteredRepos.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        cacheExtent: 500,
+        itemCount: _filteredRepos.length + (_isLoading ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _filteredRepos.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return RepoItem(
+            repo: _filteredRepos[index],
+            showVisibilityBadge: true,
           );
-        }
-        return RepoItem(repo: _filteredRepos[index], showVisibilityBadge: true);
-      },
+        },
+      ),
     );
   }
 }

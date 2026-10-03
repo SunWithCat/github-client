@@ -56,105 +56,116 @@ class PrCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       elevation: 1,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题行
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(_statusIcon, color: _statusColor, size: 18),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    _title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // 元信息行：编号 · 作者 · 时间
-            Padding(
-              padding: const EdgeInsets.only(left: 28),
-              child: Row(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 标题行
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '#$_number',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: subTextColor,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(_statusIcon, color: _statusColor, size: 18),
                   ),
-                  const SizedBox(width: 8),
-                  _dot(isDark),
-                  const SizedBox(width: 8),
-                  Text(
-                    _authorLogin,
-                    style: TextStyle(fontSize: 13, color: subTextColor),
-                  ),
-                  const SizedBox(width: 8),
-                  _dot(isDark),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      DateFormatter.relative(_createdAt),
-                      style: TextStyle(fontSize: 13, color: subTextColor),
+                      _title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-            ),
-            // 分支信息行：head → base
-            if (_headRef.isNotEmpty && _baseRef.isNotEmpty) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
+              // 元信息行：编号 · 作者 · 时间
               Padding(
                 padding: const EdgeInsets.only(left: 28),
                 child: Row(
                   children: [
-                    Icon(OctIcons.git_branch_16, size: 12, color: subTextColor),
-                    const SizedBox(width: 4),
                     Text(
-                      '$_headRef → $_baseRef',
-                      style: TextStyle(fontSize: 12, color: subTextColor),
-                      overflow: TextOverflow.ellipsis,
+                      '#$_number',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: subTextColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _dot(isDark),
+                    const SizedBox(width: 8),
+                    Text(
+                      _authorLogin,
+                      style: TextStyle(fontSize: 13, color: subTextColor),
+                    ),
+                    const SizedBox(width: 8),
+                    _dot(isDark),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        DateFormatter.relative(_createdAt),
+                        style: TextStyle(fontSize: 13, color: subTextColor),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-            // 标签
-            if (_labels.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 28),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _labels.map((label) {
-                    return IssueLabel(
-                      name: label['name']?.toString() ?? '',
-                      color: label['color']?.toString() ?? 'cccccc',
-                    );
-                  }).toList(),
+              // 分支信息行：head → base
+              if (_headRef.isNotEmpty && _baseRef.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(left: 28),
+                  child: Row(
+                    children: [
+                      Icon(
+                        OctIcons.git_branch_16,
+                        size: 12,
+                        color: subTextColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '$_headRef → $_baseRef',
+                          style: TextStyle(fontSize: 12, color: subTextColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
+              // 标签
+              if (_labels.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(left: 28),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: _labels.map((label) {
+                      return IssueLabel(
+                        name: label['name']?.toString() ?? '',
+                        color: label['color']?.toString() ?? 'cccccc',
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

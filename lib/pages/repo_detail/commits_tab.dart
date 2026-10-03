@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/commit_card.dart';
 import 'package:ghclient/pages/repo_detail/date_separator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CommitsTab extends ConsumerStatefulWidget {
   final Repo repo;
@@ -89,7 +89,7 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
             _commits.addAll(newCommits);
             _page++;
             _hasMore = newCommits.length >= 10;
-          } else {
+          } else if (error == null) {
             _hasMore = false;
           }
           _isLoadingMore = false;
@@ -141,16 +141,14 @@ class _CommitsTabState extends ConsumerState<CommitsTab>
       items.add(
         CommitCard(
           commit: commit as Map<String, dynamic>,
-          onTap: () async {
-            final url = Uri.parse(commit['html_url']);
-            if (await canLaunchUrl(url)) await launchUrl(url);
+          onTap: () {
+            openExternalUrl(context, commit['html_url']?.toString() ?? '');
           },
         ),
       );
     }
 
-    // 如果还有更多数据，添加加载指示器
-    if (_hasMore) {
+    if (_isLoadingMore) {
       items.add(
         const Padding(
           padding: EdgeInsets.all(16),

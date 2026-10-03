@@ -6,6 +6,7 @@ import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/github_markdown.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
@@ -54,14 +55,24 @@ class HomePage extends ConsumerWidget {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-            await ref.read(profileProvider.notifier).refreshData();
+            try {
+              await ref.read(profileProvider.notifier).refreshData();
+            } catch (_) {
+              if (context.mounted) {
+                ToastUtils.show(
+                  context,
+                  message: '刷新失败，请稍后重试',
+                  type: ToastType.error,
+                );
+              }
+            }
           },
           child: SafeArea(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeOut,
-              child: _buildBody(context, profileState, user),
+              child: _buildBody(context, ref, profileState, user),
             ),
           ),
         ),
@@ -71,6 +82,7 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildBody(
     BuildContext context,
+    WidgetRef ref,
     ProfileState profileState,
     User? user,
   ) {
@@ -90,7 +102,21 @@ class HomePage extends ConsumerWidget {
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.68,
-            child: const _HomeEmptyState(),
+            child: _HomeEmptyState(
+              onRetry: () async {
+                try {
+                  await ref.read(profileProvider.notifier).refreshData();
+                } catch (_) {
+                  if (context.mounted) {
+                    ToastUtils.show(
+                      context,
+                      message: '刷新失败，请稍后重试',
+                      type: ToastType.error,
+                    );
+                  }
+                }
+              },
+            ),
           ),
         ],
       );
@@ -160,14 +186,19 @@ class HomePage extends ConsumerWidget {
 }
 
 class _HomeEmptyState extends StatelessWidget {
-  const _HomeEmptyState();
+  final VoidCallback onRetry;
+
+  const _HomeEmptyState({required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    return const EmptyState(
+    return EmptyState(
       icon: Icons.person_off_outlined,
-      title: '未能找到用户消息',
-      message: '请下拉刷新重试',
+      title: '未能找到用户信息',
+      message: '下拉刷新，或点下面按钮重试',
+      actionLabel: '重新加载',
+      actionIcon: Icons.refresh,
+      onAction: onRetry,
     );
   }
 }

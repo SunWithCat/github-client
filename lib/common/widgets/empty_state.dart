@@ -16,6 +16,9 @@ class EmptyState extends StatelessWidget {
   /// 可选的操作按钮回调
   final VoidCallback? onAction;
 
+  /// 操作按钮图标（创建类操作可保持，重试请传 Icons.refresh）
+  final IconData actionIcon;
+
   /// 图标大小
   final double iconSize;
 
@@ -29,6 +32,7 @@ class EmptyState extends StatelessWidget {
     required this.message,
     this.actionLabel,
     this.onAction,
+    this.actionIcon = Icons.add,
     this.iconSize = 64,
     this.iconColor,
   });
@@ -57,7 +61,8 @@ class EmptyState extends StatelessWidget {
               child: Icon(
                 icon,
                 size: iconSize,
-                color: iconColor ??
+                color:
+                    iconColor ??
                     (isDark ? Colors.grey.shade500 : Colors.grey.shade400),
               ),
             ),
@@ -84,7 +89,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add, size: 18),
+                icon: Icon(actionIcon, size: 18),
                 label: Text(actionLabel!),
               ),
             ],

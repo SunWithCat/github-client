@@ -234,7 +234,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _copyAndOpen(String userCode, Uri verificationUri) async {
     await ref.read(clipboardWriterProvider)(userCode);
     final opened = await ref.read(externalUrlLauncherProvider)(verificationUri);
-    if (!mounted || opened) return;
-    ToastUtils.show(context, message: '无法打开浏览器，请稍后重试', type: ToastType.error);
+    if (!mounted) return;
+    if (!opened) {
+      ToastUtils.show(context, message: '无法打开浏览器，请稍后重试', type: ToastType.error);
+      return;
+    }
+    ToastUtils.show(context, message: '验证码已复制', type: ToastType.success);
   }
 }

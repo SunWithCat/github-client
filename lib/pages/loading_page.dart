@@ -12,7 +12,7 @@ class LoadingPage extends StatelessWidget {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 15.0),
-            Text('登陆中'),
+            Text('登录中…'),
           ],
         ),
       ),

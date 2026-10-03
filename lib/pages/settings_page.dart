@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -69,43 +69,8 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
                 trailing: IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (dialogContext) {
-                        return AlertDialog(
-                          title: const Text('退出登录'),
-                          content: const Text('你确定要退出这个帐号吗？'),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(dialogContext),
-                              child: Text(
-                                '取消',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(dialogContext);
-                                await ref
-                                    .read(profileProvider.notifier)
-                                    .logout();
-                              },
-                              child: const Text(
-                                '确定',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
+                  tooltip: '退出登录',
+                  onPressed: () => _confirmLogout(context, ref),
                   icon: const Icon(OctIcons.sign_out_16),
                 ),
                 title: Text(userLogin),
@@ -115,7 +80,9 @@ class SettingsPage extends ConsumerWidget {
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                 ),
-                onTap: () {},
+                onTap: () {
+                  openExternalUrl(context, 'https://github.com/$userLogin');
+                },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
@@ -191,11 +158,8 @@ class SettingsPage extends ConsumerWidget {
                 title: const Text('开发者'),
                 subtitle: const Text(developer),
                 trailing: const Icon(OctIcons.chevron_right_16),
-                onTap: () async {
-                  final url = Uri.parse('https://github.com/$developer');
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  }
+                onTap: () {
+                  openExternalUrl(context, 'https://github.com/$developer');
                 },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -207,11 +171,8 @@ class SettingsPage extends ConsumerWidget {
                 title: const Text('项目地址'),
                 subtitle: const Text('开放源代码'),
                 trailing: const Icon(OctIcons.chevron_right_16),
-                onTap: () async {
-                  final url = Uri.parse(projectUrl);
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  }
+                onTap: () {
+                  openExternalUrl(context, projectUrl);
                 },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -252,5 +213,36 @@ class SettingsPage extends ConsumerWidget {
       ),
       child: Column(children: children),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('退出登录'),
+          content: const Text('你确定要退出这个帐号吗？'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(
+                '取消',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('确定', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true) {
+      await ref.read(profileProvider.notifier).logout();
+    }
   }
 }

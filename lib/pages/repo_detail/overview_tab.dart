@@ -135,15 +135,13 @@ class _OverviewTabState extends State<OverviewTab>
           // README Content
           Padding(
             padding: const EdgeInsets.all(16),
-            child: ExcludeSemantics(
-              child: RepaintBoundary(
-                child: GitHubMarkdown(
-                  data: displayContent,
-                  owner: widget.repo.owner,
-                  repo: widget.repo.name,
-                  branch: widget.branch,
-                  selectable: false,
-                ),
+            child: RepaintBoundary(
+              child: GitHubMarkdown(
+                data: displayContent,
+                owner: widget.repo.owner,
+                repo: widget.repo.name,
+                branch: widget.branch,
+                selectable: false,
               ),
             ),
           ),

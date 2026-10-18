@@ -1,7 +1,9 @@
+import 'package:fluid_glass/fluid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/widgets/liquid_glass_navbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/repo_item.dart';
@@ -24,11 +26,22 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
   String _selectedTimeRange = 'monthly';
   DateTime _loadingCompleteTime = DateTime.now();
   String? _errorMessage;
+  static const List<String> _timeRanges = ['daily', 'weekly', 'monthly'];
+  final LayerBackdrop _backdrop = LayerBackdrop();
+
+  int get _selectedTimeRangeIndex =>
+      _timeRanges.indexOf(_selectedTimeRange).clamp(0, 2);
 
   @override
   void initState() {
     super.initState();
     _fetchTrendingRepos();
+  }
+
+  @override
+  void dispose() {
+    _backdrop.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchTrendingRepos() async {
@@ -129,159 +142,128 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0D1117), const Color(0xFF010409)]
-                : [const Color(0xFFF6F8FA), const Color(0xFFFFFFFF)],
-            stops: const [0.0, 1.0],
-          ),
-        ),
-        child: RefreshIndicator(
-          onRefresh: _fetchTrendingRepos,
-          color: theme.colorScheme.primary,
-          backgroundColor: theme.colorScheme.surface,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: theme.dividerColor.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    padding: const EdgeInsets.all(6),
-                    child: SegmentedButton<String>(
-                      showSelectedIcon: false,
-                      style: ButtonStyle(
-                        shape: WidgetStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+      body: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: BackdropLayer(
+              backdrop: _backdrop,
+              motionPixelRatio: MediaQuery.devicePixelRatioOf(context) * 0.5,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF0D1117), const Color(0xFF010409)]
+                        : [const Color(0xFFF6F8FA), const Color(0xFFFFFFFF)],
+                    stops: const [0.0, 1.0],
+                  ),
+                ),
+                child: RefreshIndicator(
+                  edgeOffset: 60,
+                  onRefresh: _fetchTrendingRepos,
+                  color: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.surface,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      const SliverToBoxAdapter(child: SizedBox(height: 84)),
+                      if (_isLoading)
+                        SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '正在探索...',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else if (_errorMessage != null && _trendingRepos.isEmpty)
+                        SliverFillRemaining(
+                          child: EmptyState(
+                            icon: Icons.wifi_off_outlined,
+                            title: '加载失败',
+                            message: _errorMessage!,
+                            actionLabel: '重试',
+                            actionIcon: Icons.refresh,
+                            onAction: _fetchTrendingRepos,
+                          ),
+                        )
+                      else if (_trendingRepos.isEmpty)
+                        SliverFillRemaining(
+                          child: EmptyState(
+                            icon: OctIcons.telescope_16,
+                            title: '暂无趋势数据',
+                            message: '换个时间范围，或者下拉刷新试试',
+                            actionLabel: '重新加载',
+                            actionIcon: Icons.refresh,
+                            onAction: _fetchTrendingRepos,
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.only(bottom: 20, top: 8),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final repo = _trendingRepos[index];
+                              return _AnimatedRepoItem(
+                                repo: repo,
+                                index: index,
+                                loadingCompleteTime: _loadingCompleteTime,
+                              );
+                            }, childCount: _trendingRepos.length),
                           ),
                         ),
-                        backgroundColor: WidgetStateProperty.resolveWith((
-                          states,
-                        ) {
-                          if (states.contains(WidgetState.selected)) {
-                            return isDark
-                                ? const Color(0xFF1F6FEB)
-                                : const Color(0xFF0969DA);
-                          }
-                          return null;
-                        }),
-                        foregroundColor: WidgetStateProperty.resolveWith((
-                          states,
-                        ) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.white;
-                          }
-                          return theme.colorScheme.onSurface;
-                        }),
-                        side: WidgetStateProperty.all(BorderSide.none),
-                      ),
-                      segments: const [
-                        ButtonSegment(
-                          value: 'daily',
-                          label: Text('今日'),
-                          icon: Icon(OctIcons.flame_16, size: 14),
-                        ),
-                        ButtonSegment(
-                          value: 'weekly',
-                          label: Text('本周'),
-                          icon: Icon(OctIcons.rocket_16, size: 14),
-                        ),
-                        ButtonSegment(
-                          value: 'monthly',
-                          label: Text('本月'),
-                          icon: Icon(OctIcons.pulse_16, size: 14),
-                        ),
-                      ],
-                      selected: {_selectedTimeRange},
-                      onSelectionChanged: (newSelection) {
-                        _onTimeRangeChanged(newSelection.first);
-                      },
-                    ),
+                    ],
                   ),
                 ),
               ),
-              if (_isLoading)
-                SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '正在探索...',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else if (_errorMessage != null && _trendingRepos.isEmpty)
-                SliverFillRemaining(
-                  child: EmptyState(
-                    icon: Icons.wifi_off_outlined,
-                    title: '加载失败',
-                    message: _errorMessage!,
-                    actionLabel: '重试',
-                    actionIcon: Icons.refresh,
-                    onAction: _fetchTrendingRepos,
-                  ),
-                )
-              else if (_trendingRepos.isEmpty)
-                SliverFillRemaining(
-                  child: EmptyState(
-                    icon: OctIcons.telescope_16,
-                    title: '暂无趋势数据',
-                    message: '换个时间范围，或者下拉刷新试试',
-                    actionLabel: '重新加载',
-                    actionIcon: Icons.refresh,
-                    onAction: _fetchTrendingRepos,
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 20, top: 8),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final repo = _trendingRepos[index];
-                      return _AnimatedRepoItem(
-                        repo: repo,
-                        index: index,
-                        loadingCompleteTime: _loadingCompleteTime,
-                      );
-                    }, childCount: _trendingRepos.length),
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            top: 12,
+            left: 16,
+            right: 16,
+            child: LiquidGlassTheme(
+              colors:
+                  (isDark ? LiquidGlassColors.dark : LiquidGlassColors.light)
+                      .copyWith(
+                        accent: isDark
+                            ? const Color(0xFF1F6FEB)
+                            : const Color(0xFF0969DA),
+                        container: isDark
+                            ? const Color(0xFF161B22).withValues(alpha: 0.6)
+                            : const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+                      ),
+              child: LiquidGlassNavBar(
+                backdrop: _backdrop,
+                selectedIndex: _selectedTimeRangeIndex,
+                onSelected: (int index) =>
+                    _onTimeRangeChanged(_timeRanges[index]),
+                items: const [
+                  GlassNavItem(label: '今日', icon: OctIcons.flame_16),
+                  GlassNavItem(label: '本周', icon: OctIcons.rocket_16),
+                  GlassNavItem(label: '本月', icon: OctIcons.pulse_16),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

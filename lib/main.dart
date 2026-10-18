@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fluid_glass/fluid_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 void main() async {
   // 确保Flutter应用在运行前已经初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  await FluidGlass.ensureInitialized();
 
   // 初始化 Hive
   await Hive.initFlutter();

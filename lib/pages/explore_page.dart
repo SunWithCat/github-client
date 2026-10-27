@@ -11,8 +11,6 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 
-import '../common/utils/app_log.dart';
-
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
 
@@ -21,21 +19,20 @@ class ExplorePage extends ConsumerStatefulWidget {
 }
 
 class _ExplorePageState extends ConsumerState<ExplorePage> {
-  bool _isLoading = true;
-  List<Repo> _trendingRepos = [];
-  String _selectedTimeRange = 'monthly';
-  DateTime _loadingCompleteTime = DateTime.now();
-  String? _errorMessage;
   static const List<String> _timeRanges = ['daily', 'weekly', 'monthly'];
   final LayerBackdrop _backdrop = LayerBackdrop();
-
-  int get _selectedTimeRangeIndex =>
-      _timeRanges.indexOf(_selectedTimeRange).clamp(0, 2);
 
   @override
   void initState() {
     super.initState();
-    _fetchTrendingRepos();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(exploreProvider);
+      if (state.currentRepos == null && !state.isCurrentLoading) {
+        ref
+            .read(exploreProvider.notifier)
+            .fetchTrending(state.selectedTimeRange);
+      }
+    });
   }
 
   @override
@@ -44,66 +41,22 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
     super.dispose();
   }
 
-  Future<void> _fetchTrendingRepos() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-    final token = ref.read(tokenProvider);
-    if (token == null) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = '登录已失效，请重新登录后再探索';
-        });
-      }
-      return;
-    }
-    try {
-      final githubService = ref.read(githubServiceProvider);
-      final (repos, error) = await githubService.getTrendingRepos(
-        token,
-        timeRange: _selectedTimeRange,
-      );
-
-      if (mounted) {
-        setState(() {
-          if (error != null) {
-            AppLog.e('加载热门仓库失败：$error');
-            _errorMessage = error;
-          } else {
-            _trendingRepos = repos ?? [];
-            _loadingCompleteTime = DateTime.now(); // 记录加载完成时间
-            _errorMessage = null;
-          }
-          _isLoading = false;
-        });
-      }
-    } catch (e, s) {
-      AppLog.e('加载热门仓库发生未知错误', e, s);
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = '加载失败，请稍后重试';
-        });
-      }
-    }
-  }
-
   void _onTimeRangeChanged(String timeRange) {
-    if (_selectedTimeRange != timeRange) {
-      setState(() {
-        _selectedTimeRange = timeRange;
-        _trendingRepos = []; // 清空数据
-      });
-      _fetchTrendingRepos();
-    }
+    ref.read(exploreProvider.notifier).selectTimeRange(timeRange);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final exploreState = ref.watch(exploreProvider);
+    final repos = exploreState.currentRepos ?? [];
+    final isLoading = exploreState.isCurrentLoading;
+    final errorMessage = exploreState.currentError;
+    final selectedIndex = _timeRanges
+        .indexOf(exploreState.selectedTimeRange)
+        .clamp(0, 2);
+
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('探索'),
@@ -160,14 +113,19 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                 ),
                 child: RefreshIndicator(
                   edgeOffset: 60,
-                  onRefresh: _fetchTrendingRepos,
+                  onRefresh: () => ref
+                      .read(exploreProvider.notifier)
+                      .fetchTrending(
+                        exploreState.selectedTimeRange,
+                        forceRefresh: true,
+                      ),
                   color: theme.colorScheme.primary,
                   backgroundColor: theme.colorScheme.surface,
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       const SliverToBoxAdapter(child: SizedBox(height: 84)),
-                      if (_isLoading)
+                      if (isLoading && repos.isEmpty)
                         SliverFillRemaining(
                           child: Center(
                             child: Column(
@@ -190,18 +148,23 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                             ),
                           ),
                         )
-                      else if (_errorMessage != null && _trendingRepos.isEmpty)
+                      else if (errorMessage != null && repos.isEmpty)
                         SliverFillRemaining(
                           child: EmptyState(
                             icon: Icons.wifi_off_outlined,
                             title: '加载失败',
-                            message: _errorMessage!,
+                            message: errorMessage,
                             actionLabel: '重试',
                             actionIcon: Icons.refresh,
-                            onAction: _fetchTrendingRepos,
+                            onAction: () => ref
+                                .read(exploreProvider.notifier)
+                                .fetchTrending(
+                                  exploreState.selectedTimeRange,
+                                  forceRefresh: true,
+                                ),
                           ),
                         )
-                      else if (_trendingRepos.isEmpty)
+                      else if (repos.isEmpty)
                         SliverFillRemaining(
                           child: EmptyState(
                             icon: OctIcons.telescope_16,
@@ -209,7 +172,12 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                             message: '换个时间范围，或者下拉刷新试试',
                             actionLabel: '重新加载',
                             actionIcon: Icons.refresh,
-                            onAction: _fetchTrendingRepos,
+                            onAction: () => ref
+                                .read(exploreProvider.notifier)
+                                .fetchTrending(
+                                  exploreState.selectedTimeRange,
+                                  forceRefresh: true,
+                                ),
                           ),
                         )
                       else
@@ -220,13 +188,17 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                               context,
                               index,
                             ) {
-                              final repo = _trendingRepos[index];
+                              final repo = repos[index];
                               return _AnimatedRepoItem(
+                                key: ValueKey(
+                                  '${exploreState.selectedTimeRange}_${repo.cloneUrl}',
+                                ),
                                 repo: repo,
                                 index: index,
-                                loadingCompleteTime: _loadingCompleteTime,
+                                loadingCompleteTime:
+                                    exploreState.loadingCompleteTime,
                               );
-                            }, childCount: _trendingRepos.length),
+                            }, childCount: repos.length),
                           ),
                         ),
                     ],
@@ -252,7 +224,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                       ),
               child: LiquidGlassNavBar(
                 backdrop: _backdrop,
-                selectedIndex: _selectedTimeRangeIndex,
+                selectedIndex: selectedIndex,
                 onSelected: (int index) =>
                     _onTimeRangeChanged(_timeRanges[index]),
                 items: const [
@@ -275,6 +247,7 @@ class _AnimatedRepoItem extends StatefulWidget {
   final DateTime loadingCompleteTime;
 
   const _AnimatedRepoItem({
+    super.key,
     required this.repo,
     required this.index,
     required this.loadingCompleteTime,

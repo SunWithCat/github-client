@@ -8,6 +8,8 @@ import 'package:ghclient/services/storage_service.dart';
 import 'package:ghclient/theme/theme.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+export 'explore_provider.dart';
+
 // GitHub API 服务
 final githubServiceProvider = Provider<GithubService>((ref) {
   return GithubService.instance;

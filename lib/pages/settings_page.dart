@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
+import 'package:ghclient/core/app_identity.dart';
 import 'package:ghclient/core/providers.dart';
+import 'package:ghclient/models/release_info.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -14,6 +16,7 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final profileUser = ref.watch(userProvider);
+    final versionCheckState = ref.watch(versionCheckProvider);
 
     if (profileUser == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -23,8 +26,6 @@ class SettingsPage extends ConsumerWidget {
     final userLogin = profileUser.login;
     final userName = profileUser.name;
 
-    const String developer = 'SunWithCat';
-    const projectUrl = 'https://github.com/SunWithCat/github-client';
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('设置'),
@@ -141,13 +142,14 @@ class SettingsPage extends ConsumerWidget {
                 leading: const Icon(OctIcons.versions_16),
                 title: const Text('版本'),
                 subtitle: Text(ref.watch(appVersionProvider)),
-                onTap: () {
-                  ToastUtils.show(
-                    context,
-                    message: "目前已是最新版~",
-                    type: ToastType.success,
-                  );
-                },
+                trailing: versionCheckState.isChecking
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(OctIcons.chevron_right_16),
+                onTap: () => _handleVersionCheck(context, ref),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,
@@ -156,10 +158,10 @@ class SettingsPage extends ConsumerWidget {
               ListTile(
                 leading: const Icon(OctIcons.person_16),
                 title: const Text('开发者'),
-                subtitle: const Text(developer),
+                subtitle: const Text(AppIdentity.repoOwner),
                 trailing: const Icon(OctIcons.chevron_right_16),
                 onTap: () {
-                  openExternalUrl(context, 'https://github.com/$developer');
+                  openExternalUrl(context, AppIdentity.developerUrl);
                 },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -172,7 +174,7 @@ class SettingsPage extends ConsumerWidget {
                 subtitle: const Text('开放源代码'),
                 trailing: const Icon(OctIcons.chevron_right_16),
                 onTap: () {
-                  openExternalUrl(context, projectUrl);
+                  openExternalUrl(context, AppIdentity.repoUrl);
                 },
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -244,5 +246,84 @@ class SettingsPage extends ConsumerWidget {
     if (confirmed == true) {
       await ref.read(profileProvider.notifier).logout();
     }
+  }
+
+  Future<void> _handleVersionCheck(BuildContext context, WidgetRef ref) async {
+    if (ref.read(versionCheckProvider).isChecking) return;
+
+    final result = await ref
+        .read(versionCheckProvider.notifier)
+        .checkForUpdate();
+    if (!context.mounted) return;
+
+    switch (result.status) {
+      case VersionCheckStatus.idle:
+      case VersionCheckStatus.checking:
+        return;
+      case VersionCheckStatus.upToDate:
+        ToastUtils.show(
+          context,
+          message: '目前已是最新版~',
+          type: ToastType.success,
+        );
+      case VersionCheckStatus.error:
+        final release = result.latestRelease;
+        ToastUtils.show(
+          context,
+          message: result.errorMessage ?? '检查更新失败，请稍后重试',
+          type: ToastType.error,
+          actionLabel: release != null ? '前往查看' : null,
+          onAction: release != null
+              ? () => openExternalUrl(context, release.htmlUrl)
+              : null,
+        );
+      case VersionCheckStatus.updateAvailable:
+        final release = result.latestRelease;
+        if (release != null) {
+          await _showUpdateDialog(context, release);
+        }
+    }
+  }
+
+  Future<void> _showUpdateDialog(
+    BuildContext context,
+    ReleaseInfo release,
+  ) async {
+    final notes = release.body;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('发现新版本 ${release.tagName}'),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: SingleChildScrollView(
+              child: Text(
+                (notes != null && notes.isNotEmpty) ? notes : '暂无更新说明',
+              ),
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                '稍后',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                openExternalUrl(context, release.htmlUrl);
+              },
+              child: const Text('前往下载'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

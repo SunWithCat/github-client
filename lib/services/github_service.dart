@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:ghclient/models/my_user_model.dart';
+import 'package:ghclient/models/release_info.dart';
 import 'package:ghclient/models/repo.dart';
 
 // (success, error) - (T?, String?)
@@ -316,5 +317,37 @@ class GithubService {
       ),
       (data) => (data['items'] as List).map((e) => Repo.fromJson(e)).toList(),
     );
+  }
+
+  /// 获取指定仓库的最新 Release
+  /// 若仓库尚无正式 Release（404），返回 `(null, null)`
+  Future<ApiResult<ReleaseInfo>> getLatestRelease(
+    String owner,
+    String repoName, {
+    String? token,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/repos/$owner/$repoName/releases/latest',
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return (ReleaseInfo.fromJson(data), null);
+      }
+      return (null, '版本数据格式异常');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return (null, null);
+      }
+      return (null, _handleDioError(e));
+    } catch (e) {
+      return (null, '未知错误:$e');
+    }
   }
 }

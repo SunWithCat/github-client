@@ -222,7 +222,9 @@ class GithubService {
         queryParameters: {'state': 'all', 'page': page, 'per_page': perPage},
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       ),
-      (data) => data as List<dynamic>,
+      (data) => (data as List<dynamic>)
+          .where((item) => item is! Map || !item.containsKey('pull_request'))
+          .toList(),
     );
   }
 

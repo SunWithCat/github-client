@@ -41,7 +41,7 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
     super.initState();
     _issues = List.from(widget.initialIssues);
     _page = 1;
-    _hasMore = _issues.length >= 10;
+    _hasMore = _issues.isNotEmpty;
     _scrollController.addListener(_onScroll);
   }
 
@@ -53,7 +53,7 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
       setState(() {
         _issues = List.from(widget.initialIssues);
         _page = 1;
-        _hasMore = _issues.length >= 10;
+        _hasMore = _issues.isNotEmpty;
       });
     }
   }
@@ -84,7 +84,7 @@ class _IssuesTabState extends ConsumerState<IssuesTab>
           if (error == null && newIssues != null && newIssues.isNotEmpty) {
             _issues.addAll(newIssues);
             _page++;
-            _hasMore = newIssues.length >= 10;
+            _hasMore = true;
           } else if (error == null) {
             _hasMore = false;
           }

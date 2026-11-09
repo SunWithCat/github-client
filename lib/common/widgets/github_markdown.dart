@@ -26,6 +26,9 @@ class GitHubMarkdown extends StatelessWidget {
   /// 自定义链接点击回调
   final void Function(String? href)? onTapLink;
 
+  /// HTML 渲染模式（默认 Column，长文档可使用 RenderMode.sliverList 按需懒加载）
+  final RenderMode renderMode;
+
   const GitHubMarkdown({
     super.key,
     required this.data,
@@ -34,6 +37,7 @@ class GitHubMarkdown extends StatelessWidget {
     this.branch = 'main',
     this.selectable = false,
     this.onTapLink,
+    this.renderMode = RenderMode.column,
   });
 
   @override
@@ -43,6 +47,7 @@ class GitHubMarkdown extends StatelessWidget {
 
     return HtmlWidget(
       data,
+      renderMode: renderMode,
       // 文本是否可选
       textStyle: theme.textTheme.bodyMedium?.copyWith(
         color: isDark ? Colors.grey.shade300 : Colors.grey.shade900,

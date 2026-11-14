@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ghclient/common/utils/number_formatter.dart';
 import 'package:ghclient/models/repo.dart';
-import 'package:ghclient/pages/repo_detail/stat_item.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -95,7 +95,7 @@ class RepoStatsCard extends StatelessWidget {
           _buildStatColumn(
             context,
             icon: OctIcons.star_fill_16,
-            value: StatItem.formatNumber(repo.starCount),
+            value: NumberFormatter.formatNumber(repo.starCount),
             label: '星标',
             iconColor: Colors.amber.shade600,
           ),
@@ -103,7 +103,7 @@ class RepoStatsCard extends StatelessWidget {
           _buildStatColumn(
             context,
             icon: OctIcons.repo_forked_16,
-            value: StatItem.formatNumber(repo.forkCount),
+            value: NumberFormatter.formatNumber(repo.forkCount),
             label: '分支',
             iconColor: isDark ? Colors.teal.shade300 : Colors.teal.shade600,
           ),

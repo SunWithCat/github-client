@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/number_formatter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/scale_wrapper.dart';
 import 'package:ghclient/core/providers.dart';
@@ -63,13 +64,6 @@ class RepoItem extends ConsumerWidget {
       default:
         return Colors.grey.shade600;
     }
-  }
-
-  // 格式化数字显示
-  String formatNumber(int number) {
-    if (number < 1000) return number.toString();
-    if (number < 1000000) return '${(number / 1000).toStringAsFixed(1)}k';
-    return '${(number / 1000000).toStringAsFixed(1)}m';
   }
 
   @override
@@ -179,7 +173,7 @@ class RepoItem extends ConsumerWidget {
                         color: Colors.yellow.shade700,
                       ),
                       const SizedBox(width: 4),
-                      Text(formatNumber(repo.starCount)),
+                      Text(NumberFormatter.formatNumber(repo.starCount)),
                       const SizedBox(width: 16),
                       Icon(
                         OctIcons.repo_forked_16,
@@ -187,7 +181,7 @@ class RepoItem extends ConsumerWidget {
                         color: isDark ? Colors.grey.shade400 : Colors.grey,
                       ),
                       const SizedBox(width: 4),
-                      Text(formatNumber(repo.forkCount)),
+                      Text(NumberFormatter.formatNumber(repo.forkCount)),
                     ],
                   ),
                 ],

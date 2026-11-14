@@ -21,16 +21,6 @@ class StatItem extends StatelessWidget {
     this.iconColor,
   });
 
-  /// 格式化数字，将大数字转换为易读格式
-  static String formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}k';
-    }
-    return number.toString();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

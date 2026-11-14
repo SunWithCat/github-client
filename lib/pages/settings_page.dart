@@ -4,6 +4,7 @@ import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
+import 'package:ghclient/common/widgets/github_markdown.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/app_identity.dart';
 import 'package:ghclient/core/providers.dart';
@@ -261,11 +262,7 @@ class SettingsPage extends ConsumerWidget {
       case VersionCheckStatus.checking:
         return;
       case VersionCheckStatus.upToDate:
-        ToastUtils.show(
-          context,
-          message: '目前已是最新版~',
-          type: ToastType.success,
-        );
+        ToastUtils.show(context, message: '目前已是最新版~', type: ToastType.success);
       case VersionCheckStatus.error:
         final release = result.latestRelease;
         ToastUtils.show(
@@ -289,17 +286,32 @@ class SettingsPage extends ConsumerWidget {
     BuildContext context,
     ReleaseInfo release,
   ) async {
+    final htmlNotes = release.bodyHtml;
     final notes = release.body;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text('发现新版本 ${release.tagName}'),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 280),
-            child: SingleChildScrollView(
-              child: Text(
-                (notes != null && notes.isNotEmpty) ? notes : '暂无更新说明',
+          content: SizedBox(
+            width: 480,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 360),
+              child: SingleChildScrollView(
+                child: (htmlNotes != null && htmlNotes.isNotEmpty)
+                    ? GitHubMarkdown(
+                        data: htmlNotes,
+                        owner: AppIdentity.repoOwner,
+                        repo: AppIdentity.repoName,
+                        onTapLink: (url) {
+                          if (url != null && url.isNotEmpty) {
+                            openExternalUrl(dialogContext, url);
+                          }
+                        },
+                      )
+                    : Text(
+                        (notes != null && notes.isNotEmpty) ? notes : '暂无更新说明',
+                      ),
               ),
             ),
           ),

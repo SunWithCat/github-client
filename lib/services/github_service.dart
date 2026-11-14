@@ -312,6 +312,7 @@ class GithubService {
         '/repos/$owner/$repoName/releases/latest',
         options: Options(
           headers: {
+            'Accept': 'application/vnd.github.full+json',
             if (token != null && token.isNotEmpty)
               'Authorization': 'Bearer $token',
           },

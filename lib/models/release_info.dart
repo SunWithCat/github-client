@@ -21,6 +21,7 @@ class ReleaseInfo {
   final String version;
   final String htmlUrl;
   final String? body;
+  final String? bodyHtml;
   final String? name;
 
   const ReleaseInfo({
@@ -28,6 +29,7 @@ class ReleaseInfo {
     required this.version,
     required this.htmlUrl,
     this.body,
+    this.bodyHtml,
     this.name,
   });
 
@@ -35,6 +37,7 @@ class ReleaseInfo {
     final rawTag = (json['tag_name'] as String? ?? '').trim();
     final rawUrl = (json['html_url'] as String? ?? '').trim();
     final rawBody = (json['body'] as String?)?.trim();
+    final rawBodyHtml = (json['body_html'] as String?)?.trim();
     final rawName = (json['name'] as String?)?.trim();
 
     return ReleaseInfo(
@@ -42,6 +45,9 @@ class ReleaseInfo {
       version: normalizeVersion(rawTag),
       htmlUrl: rawUrl.isNotEmpty ? rawUrl : defaultReleasesUrl,
       body: (rawBody != null && rawBody.isNotEmpty) ? rawBody : null,
+      bodyHtml: (rawBodyHtml != null && rawBodyHtml.isNotEmpty)
+          ? rawBodyHtml
+          : null,
       name: (rawName != null && rawName.isNotEmpty) ? rawName : null,
     );
   }

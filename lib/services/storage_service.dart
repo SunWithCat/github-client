@@ -15,6 +15,7 @@ class StorageService {
   static const String _reposKey = 'user_repos';
   static const String _starredKey = 'user_starred';
   static const String _readmeKey = 'user_readme';
+  static const String _themeModeKey = 'theme_mode';
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   // 获取盒子的实例
@@ -134,6 +135,19 @@ class StorageService {
   Future<String?> getReadme() async {
     if (!_initialized) await init();
     return _box.get(_readmeKey);
+  }
+
+  // 读取本地保存的主题配置
+  String? getThemeMode() {
+    if (!_initialized) return null;
+    final value = _box.get(_themeModeKey);
+    return value is String ? value : null;
+  }
+
+  // 保存主题配置
+  Future<void> saveThemeMode(String mode) async {
+    if (!_initialized) await init();
+    await _box.put(_themeModeKey, mode);
   }
 
   // 清除 token

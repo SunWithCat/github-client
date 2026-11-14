@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ghclient/common/utils/app_log.dart';
 import 'package:ghclient/common/utils/link_utils.dart';
 import 'package:ghclient/common/utils/toast_utils.dart';
 import 'package:ghclient/common/widgets/github_markdown.dart';
@@ -104,8 +105,18 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 subtitle: Text(isDarkMode ? '已开启' : '已关闭'),
                 value: isDarkMode,
-                onChanged: (bool value) {
-                  ref.read(themeProvider.notifier).toggleTheme();
+                onChanged: (bool value) async {
+                  try {
+                    await ref.read(themeProvider.notifier).toggleTheme();
+                  } catch (e, s) {
+                    AppLog.e('保存主题配置到本地失败', e, s);
+                    if (!context.mounted) return;
+                    ToastUtils.show(
+                      context,
+                      message: '主题配置保存失败，可以再试试',
+                      type: ToastType.error,
+                    );
+                  }
                 },
                 secondary: Icon(
                   isDarkMode ? OctIcons.moon_16 : OctIcons.sun_16,

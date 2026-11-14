@@ -368,18 +368,24 @@ final profileProvider = NotifierProvider<ProfileNotifier, ProfileState>(() {
 class ThemeNotifier extends Notifier<ThemeData> {
   @override
   ThemeData build() {
+    final mode = ref.read(storageServiceProvider).getThemeMode();
     // 默认使用暗色主题
-    return darkMode;
+    return mode == 'light' ? lightMode : darkMode;
   }
 
   /// 切换主题
-  void toggleTheme() {
-    state = state.brightness == Brightness.light ? darkMode : lightMode;
+  Future<void> toggleTheme() {
+    return setTheme(
+      state.brightness == Brightness.light ? darkMode : lightMode,
+    );
   }
 
-  /// 设置特定主题
-  void setTheme(ThemeData themeData) {
+  /// 先生效主题，再写入到本地
+  Future<void> setTheme(ThemeData themeData) async {
     state = themeData;
+    await ref
+        .read(storageServiceProvider)
+        .saveThemeMode(themeData.brightness.name);
   }
 }
 

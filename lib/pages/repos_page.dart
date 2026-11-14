@@ -21,20 +21,14 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  List<Repo> _repos = [];
-  List<Repo> _filteredRepos = [];
   bool _isLoading = false;
-  bool _hasMore = true;
+  String _searchQuery = '';
 
   final Debouncer _debouncer = Debouncer(milliseconds: 300);
 
   @override
   void initState() {
     super.initState();
-    final profile = ref.read(profileProvider);
-    _repos = profile.repos;
-    _filteredRepos = _repos;
-    _hasMore = profile.reposHasMore;
     _scrollController.addListener(_onScroll);
     _searchController.addListener(() {
       if (mounted) setState(() {});
@@ -58,20 +52,12 @@ class _ReposPageState extends ConsumerState<ReposPage> {
   }
 
   Future<void> _loadMore() async {
-    if (_isLoading || !_hasMore) return;
+    if (_isLoading || !ref.read(profileProvider).reposHasMore) return;
     setState(() {
       _isLoading = true;
     });
     try {
-      final notifier = ref.read(profileProvider.notifier);
-      final newRepos = await notifier.loadMoreRepos();
-      if (!mounted) return;
-      final profileState = ref.read(profileProvider);
-      setState(() {
-        _repos = profileState.repos;
-        _hasMore = profileState.reposHasMore && newRepos.isNotEmpty;
-        _filterRepos(_searchController.text);
-      });
+      await ref.read(profileProvider.notifier).loadMoreRepos();
     } catch (e, s) {
       AppLog.e('加载更多仓库失败', e, s);
       if (mounted) {
@@ -99,32 +85,17 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         ToastUtils.show(context, message: '刷新失败，请稍后重试', type: ToastType.error);
       }
     }
-    if (!mounted) return;
-    final profile = ref.read(profileProvider);
-    setState(() {
-      _repos = profile.repos;
-      _hasMore = profile.reposHasMore;
-      _filterRepos(_searchController.text);
-    });
-  }
-
-  void _filterRepos(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _filteredRepos = _repos;
-      });
-    } else {
-      final filtered = _repos.where((repo) {
-        return repo.name.toLowerCase().contains(query.toLowerCase());
-      }).toList();
-      setState(() {
-        _filteredRepos = filtered;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final repos = ref.watch(profileProvider.select((state) => state.repos));
+    final keyword = _searchQuery.toLowerCase();
+    final filteredRepos = keyword.isEmpty
+        ? repos
+        : repos.where((repo) {
+            return repo.name.toLowerCase().contains(keyword);
+          }).toList();
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('我的仓库'),
@@ -149,7 +120,9 @@ class _ReposPageState extends ConsumerState<ReposPage> {
                     tooltip: '清空',
                     onPressed: () {
                       _searchController.clear();
-                      _filterRepos('');
+                      setState(() {
+                        _searchQuery = '';
+                      });
                     },
                     icon: const Icon(Icons.clear),
                   ),
@@ -171,21 +144,24 @@ class _ReposPageState extends ConsumerState<ReposPage> {
                   ),
                 ),
               ),
-              onChanged: (value) {
+              onChanged: (_) {
                 _debouncer.run(() {
-                  _filterRepos(value);
+                  if (!mounted) return;
+                  setState(() {
+                    _searchQuery = _searchController.text;
+                  });
                 });
               },
             ),
           ),
-          Expanded(child: _buildBody()),
+          Expanded(child: _buildBody(repos, filteredRepos)),
         ],
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_repos.isEmpty) {
+  Widget _buildBody(List<Repo> repos, List<Repo> filteredRepos) {
+    if (repos.isEmpty) {
       return RefreshIndicator(
         onRefresh: _onRefresh,
         child: ListView(
@@ -201,7 +177,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         ),
       );
     }
-    if (_searchController.text.isNotEmpty && _filteredRepos.isEmpty) {
+    if (_searchQuery.isNotEmpty && filteredRepos.isEmpty) {
       return const EmptyState(
         icon: OctIcons.search_16,
         title: '没有找到匹配的仓库',
@@ -214,16 +190,16 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         cacheExtent: 500,
-        itemCount: _filteredRepos.length + (_isLoading ? 1 : 0),
+        itemCount: filteredRepos.length + (_isLoading ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == _filteredRepos.length) {
+          if (index == filteredRepos.length) {
             return const Padding(
               padding: EdgeInsets.all(16.0),
               child: Center(child: CircularProgressIndicator()),
             );
           }
           return RepoItem(
-            repo: _filteredRepos[index],
+            repo: filteredRepos[index],
             showVisibilityBadge: true,
           );
         },

@@ -20,20 +20,19 @@ void main() async {
 
   // 初始化安全存储和加密
   const secureStorage = FlutterSecureStorage();
-  final String? encryptionKeyString = await secureStorage.read(
+  String? encryptionKeyString = await secureStorage.read(
     key: 'hive_encryption_key',
   );
 
   if (encryptionKeyString == null) {
-    final key = Hive.generateSecureKey();
+    encryptionKeyString = base64UrlEncode(Hive.generateSecureKey());
     await secureStorage.write(
       key: 'hive_encryption_key',
-      value: base64UrlEncode(key),
+      value: encryptionKeyString,
     );
   }
 
-  final keyString = await secureStorage.read(key: 'hive_encryption_key');
-  final Uint8List encryptionKey = base64Url.decode(keyString!);
+  final Uint8List encryptionKey = base64Url.decode(encryptionKeyString);
 
   await Hive.openBox('authBox', encryptionCipher: HiveAesCipher(encryptionKey));
 

@@ -5,6 +5,7 @@ import 'package:ghclient/common/widgets/empty_state.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/common/widgets/skeleton_loader.dart';
 import 'package:ghclient/core/providers.dart';
+import 'package:ghclient/core/repo_languages_provider.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/commits_tab.dart';
 import 'package:ghclient/pages/repo_detail/contributors_tab.dart';
@@ -666,6 +667,15 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
   Widget build(BuildContext context) {
     // AutomaticKeepAliveClientMixin 要求调用 super.build
     super.build(context);
+    // 提前请求语言统计
+    ref.listen(
+      repoLanguagesProvider((
+        owner: widget.repo.owner,
+        repoName: widget.repo.name,
+        token: widget.token,
+      )),
+      (_, _) {},
+    );
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return SafeScaffold(
@@ -693,7 +703,9 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: isDark ? const Color(0xFF30363D) : const Color(0xFFE1E4E8),
+                color: isDark
+                    ? const Color(0xFF30363D)
+                    : const Color(0xFFE1E4E8),
                 width: 1,
               ),
             ),
@@ -779,6 +791,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             ? const SkeletonLoader(type: SkeletonType.overview)
             : OverviewTab(
                 repo: widget.repo,
+                token: widget.token,
                 readmeContent: readmeContent,
                 onRefresh: _refreshOverview,
                 branch: _currentBranch,

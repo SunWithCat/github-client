@@ -9,10 +9,11 @@ typedef ApiResult<T> = (T?, String?);
 class GithubService {
   static const int defaultPerPage = 30;
 
-  // 私有构造，保证全局唯一
-  GithubService._();
-  static final GithubService instance = GithubService._();
-  late final Dio _dio = Dio(BaseOptions(baseUrl: 'https://api.github.com'));
+  // 默认复用单例
+  GithubService({Dio? dio})
+    : _dio = dio ?? Dio(BaseOptions(baseUrl: 'https://api.github.com'));
+  static final GithubService instance = GithubService();
+  final Dio _dio;
 
   // 泛型封装，处理所有异常
   Future<ApiResult<T>> _safeCall<T>(
@@ -128,6 +129,26 @@ class GithubService {
         ),
       ),
       (data) => data.toString(),
+    );
+  }
+
+  /// 获取仓库各语言的代码字节数
+  Future<ApiResult<Map<String, int>>> getLanguages(
+    String owner,
+    String repoName,
+    String token,
+  ) {
+    return _safeCall(
+      () => _dio.get(
+        '/repos/$owner/$repoName/languages',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/vnd.github+json',
+          },
+        ),
+      ),
+      (data) => Map<String, int>.from(data as Map),
     );
   }
 

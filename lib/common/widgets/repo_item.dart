@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/number_formatter.dart';
+import 'package:ghclient/common/utils/language_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ghclient/common/widgets/scale_wrapper.dart';
 import 'package:ghclient/core/providers.dart';
@@ -17,54 +18,6 @@ class RepoItem extends ConsumerWidget {
     required this.repo,
     this.showVisibilityBadge = false,
   });
-
-  Color getLanguageColor(String? language) {
-    if (language == null) return Colors.grey;
-    switch (language.toLowerCase()) {
-      case 'dart':
-        return const Color(0xFF00B4AB); // Dart
-      case 'java':
-        return const Color(0xFFB07219); // Java
-      case 'javascript':
-        return const Color(0xFFF1E05A); // JavaScript
-      case 'typescript':
-        return const Color(0xFF3178c6); // TypeScript
-      case 'html':
-        return const Color(0xFFe34c26); // HTML
-      case 'css':
-        return const Color(0xFF563d7c); // CSS
-      case 'vue':
-        return const Color(0xFF41b883); // Vue
-      case 'c++':
-        return const Color(0xFFf34b7d); // C++
-      case 'c':
-        return const Color(0xFF555555); // C
-      case 'c#':
-        return const Color(0xFF178600); // C#
-      case 'python':
-        return const Color(0xFF3572A5); // Python
-      case 'php':
-        return const Color(0xFF4F5D95); // PHP
-      case 'ruby':
-        return const Color(0xFF701516); // Ruby
-      case 'go':
-        return const Color(0xFF00ADD8); // Go
-      case 'rust':
-        return const Color(0xFFdea584); // Rust
-      case 'swift':
-        return const Color(0xFFF05138); // Swift
-      case 'kotlin':
-        return const Color(0xFFA97BFF); // Kotlin
-      case 'scala':
-        return const Color(0xFFc22d40); // Scala
-      case 'shell':
-        return const Color(0xFF89E051); // Shell
-      case 'dockerfile':
-        return const Color(0xFF384D54); // Dockerfile
-      default:
-        return Colors.grey.shade600;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/number_formatter.dart';
 import 'package:ghclient/models/repo.dart';
+import 'package:ghclient/pages/repo_detail/repo_languages_section.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RepoStatsCard extends StatelessWidget {
   /// 仓库数据
   final Repo repo;
+  final AsyncValue<Map<String, int>> languages;
+  final VoidCallback onRetryLanguages;
 
   const RepoStatsCard({
     super.key,
     required this.repo,
+    required this.languages,
+    required this.onRetryLanguages,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     // 渐变背景颜色
     final gradientColors = isDark
-        ? [
-            Colors.grey.shade800,
-            Colors.grey.shade900,
-          ]
-        : [
-            Colors.blue.shade50,
-            Colors.indigo.shade50,
-          ];
+        ? [Colors.grey.shade800, Colors.grey.shade900]
+        : [Colors.blue.shade50, Colors.indigo.shade50];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -40,7 +40,7 @@ class RepoStatsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.3)
                 : Colors.blueGrey.withValues(alpha: 0.15),
             blurRadius: 12,
@@ -65,12 +65,20 @@ class RepoStatsCard extends StatelessWidget {
                   ),
                 ),
               ),
-            
+
             // 统计信息行
             _buildStatsRow(context, isDark),
-            
+
             const SizedBox(height: 20),
-            
+
+            // 语言统计
+            RepoLanguagesSection(
+              languages: languages,
+              onRetry: onRetryLanguages,
+            ),
+
+            const SizedBox(height: 20),
+
             // GitHub 链接按钮
             _buildGitHubButton(context, isDark),
           ],
@@ -84,7 +92,7 @@ class RepoStatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark 
+        color: isDark
             ? Colors.black.withValues(alpha: 0.2)
             : Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
@@ -107,16 +115,6 @@ class RepoStatsCard extends StatelessWidget {
             label: '分支',
             iconColor: isDark ? Colors.teal.shade300 : Colors.teal.shade600,
           ),
-          if (repo.language != null) ...[
-            _buildDivider(isDark),
-            _buildStatColumn(
-              context,
-              icon: OctIcons.code_16,
-              value: repo.language!,
-              label: '语言',
-              iconColor: isDark ? Colors.purple.shade300 : Colors.purple.shade600,
-            ),
-          ],
         ],
       ),
     );
@@ -132,15 +130,11 @@ class RepoStatsCard extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: iconColor,
-        ),
+        Icon(icon, size: 24, color: iconColor),
         const SizedBox(height: 8),
         Text(
           value,
@@ -165,9 +159,7 @@ class RepoStatsCard extends StatelessWidget {
     return Container(
       height: 40,
       width: 1,
-      color: isDark 
-          ? Colors.grey.shade700
-          : Colors.grey.shade300,
+      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
     );
   }
 
@@ -199,9 +191,7 @@ class RepoStatsCard extends StatelessWidget {
         ),
         label: Text(
           '在 GitHub 上查看',
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.grey.shade800,
-          ),
+          style: TextStyle(color: isDark ? Colors.white : Colors.grey.shade800),
         ),
       ),
     );

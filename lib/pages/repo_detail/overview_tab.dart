@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:ghclient/common/widgets/github_markdown.dart';
+import 'package:ghclient/core/repo_languages_provider.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/repo_stats_card.dart';
 
-class OverviewTab extends StatefulWidget {
+class OverviewTab extends ConsumerStatefulWidget {
   final Repo repo;
+  final String token;
   final String? readmeContent;
   final Future<void> Function() onRefresh;
   final String branch;
@@ -14,16 +17,17 @@ class OverviewTab extends StatefulWidget {
   const OverviewTab({
     super.key,
     required this.repo,
+    required this.token,
     this.readmeContent,
     required this.onRefresh,
     required this.branch,
   });
 
   @override
-  State<OverviewTab> createState() => _OverviewTabState();
+  ConsumerState<OverviewTab> createState() => _OverviewTabState();
 }
 
-class _OverviewTabState extends State<OverviewTab>
+class _OverviewTabState extends ConsumerState<OverviewTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -33,15 +37,34 @@ class _OverviewTabState extends State<OverviewTab>
     super.build(context);
     final repo = widget.repo;
     final readmeContent = widget.readmeContent;
+    final languagesProvider = repoLanguagesProvider((
+      owner: repo.owner,
+      repoName: repo.name,
+      token: widget.token,
+    ));
+    final languages = ref.watch(languagesProvider);
 
     return RefreshIndicator(
-      onRefresh: widget.onRefresh,
+      onRefresh: () async {
+        await Future.wait([
+          widget.onRefresh(),
+          ref
+              .refresh(languagesProvider.future)
+              .then<void>((_) {}, onError: (Object _, StackTrace _) {}),
+        ]);
+      },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.all(16),
-            sliver: SliverToBoxAdapter(child: RepoStatsCard(repo: repo)),
+            sliver: SliverToBoxAdapter(
+              child: RepoStatsCard(
+                repo: repo,
+                languages: languages,
+                onRetryLanguages: () => ref.invalidate(languagesProvider),
+              ),
+            ),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

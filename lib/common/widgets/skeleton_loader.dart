@@ -71,9 +71,6 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
           // 仓库信息卡片骨架
           _buildCardSkeleton(),
           const SizedBox(height: 16),
-          // README 标题骨架
-          _buildSkeletonBox(width: 100, height: 24),
-          const SizedBox(height: 12),
           // README 内容卡片骨架
           _buildReadmeCardSkeleton(),
         ],
@@ -110,8 +107,20 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
                 _buildSkeletonBox(width: 60, height: 20),
                 const SizedBox(width: 16),
                 _buildSkeletonBox(width: 60, height: 20),
-                const SizedBox(width: 16),
-                _buildSkeletonBox(width: 80, height: 20),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // 语言统计骨架
+            _buildSkeletonBox(width: 32, height: 16),
+            const SizedBox(height: 12),
+            _buildSkeletonBox(width: double.infinity, height: 8),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                _buildSkeletonBox(width: 80, height: 14),
+                _buildSkeletonBox(width: 80, height: 14),
               ],
             ),
             const SizedBox(height: 16),
@@ -131,6 +140,9 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // README 标题与正文共用卡片
+            _buildSkeletonBox(width: 100, height: 20),
+            const SizedBox(height: 12),
             _buildSkeletonBox(width: double.infinity, height: 14),
             const SizedBox(height: 10),
             _buildSkeletonBox(width: double.infinity, height: 14),

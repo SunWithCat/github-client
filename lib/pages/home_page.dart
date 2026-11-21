@@ -222,7 +222,14 @@ class _HomeHeaderCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(
+            alpha: theme.brightness == Brightness.dark ? 1.0 : 0.4,
+          ),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -484,10 +491,20 @@ class _HomeMetaSection extends StatelessWidget {
     final hasLocation =
         user.location != null && user.location!.trim().isNotEmpty;
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(
+            alpha: theme.brightness == Brightness.dark ? 1.0 : 0.4,
+          ),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -608,6 +625,13 @@ class _HomeReadmeSection extends StatelessWidget {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 1.0
+                            : 0.4,
+                      ),
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(10),

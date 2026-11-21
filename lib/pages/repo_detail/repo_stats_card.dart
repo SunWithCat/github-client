@@ -23,10 +23,18 @@ class RepoStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     // 渐变背景颜色
     final gradientColors = isDark
-        ? [Colors.grey.shade800, Colors.grey.shade900]
+        ? [
+            colorScheme.surface,
+            Color.lerp(
+              colorScheme.surface,
+              colorScheme.surfaceContainerHighest,
+              0.55,
+            )!,
+          ]
         : [Colors.blue.shade50, Colors.indigo.shade50];
 
     return Container(
@@ -38,10 +46,13 @@ class RepoStatsCard extends StatelessWidget {
           colors: gradientColors,
         ),
         borderRadius: BorderRadius.circular(16),
+        border: isDark
+            ? Border.all(color: colorScheme.outlineVariant, width: 1.0)
+            : null,
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
+                ? Colors.black.withValues(alpha: 0.25)
                 : Colors.blueGrey.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 4),
@@ -89,13 +100,22 @@ class RepoStatsCard extends StatelessWidget {
 
   /// 构建统计信息行
   Widget _buildStatsRow(BuildContext context, bool isDark) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.black.withValues(alpha: 0.2)
+            ? theme.scaffoldBackgroundColor.withValues(alpha: 0.55)
             : Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
+        border: isDark
+            ? Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.8),
+                width: 1.0,
+              )
+            : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -107,7 +127,7 @@ class RepoStatsCard extends StatelessWidget {
             label: '星标',
             iconColor: Colors.amber.shade600,
           ),
-          _buildDivider(isDark),
+          _buildDivider(context, isDark),
           _buildStatColumn(
             context,
             icon: OctIcons.repo_forked_16,
@@ -155,16 +175,20 @@ class RepoStatsCard extends StatelessWidget {
   }
 
   /// 构建分隔线
-  Widget _buildDivider(bool isDark) {
+  Widget _buildDivider(BuildContext context, bool isDark) {
     return Container(
       height: 40,
       width: 1,
-      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+      color: isDark
+          ? Theme.of(context).colorScheme.outlineVariant
+          : Colors.grey.shade300,
     );
   }
 
   /// 构建 GitHub 链接按钮
   Widget _buildGitHubButton(BuildContext context, bool isDark) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -179,7 +203,7 @@ class RepoStatsCard extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12),
           side: BorderSide(
-            color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            color: isDark ? colorScheme.outlineVariant : Colors.grey.shade400,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

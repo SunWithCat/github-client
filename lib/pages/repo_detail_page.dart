@@ -434,6 +434,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
               maxChildSize: 0.9,
               expand: false,
               builder: (_, scrollController) {
+                final colorScheme = Theme.of(context).colorScheme;
                 return Column(
                   children: [
                     // 顶部拖动条
@@ -442,7 +443,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                       height: 4,
                       width: 40,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
+                        color: colorScheme.onSurfaceVariant,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -468,7 +469,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                             '${_branches.length} 个分支',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -507,7 +508,9 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                           ? Center(
                               child: Text(
                                 _branches.isEmpty ? '暂无分支信息' : '未找到匹配分支',
-                                style: TextStyle(color: Colors.grey.shade500),
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             )
                           : ListView.builder(
@@ -523,8 +526,8 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                                     OctIcons.git_branch_16,
                                     size: 16,
                                     color: isCurrent
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey.shade600,
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurfaceVariant,
                                   ),
                                   title: Row(
                                     children: [
@@ -536,9 +539,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                                                 ? FontWeight.bold
                                                 : FontWeight.normal,
                                             color: isCurrent
-                                                ? Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary
+                                                ? colorScheme.primary
                                                 : null,
                                           ),
                                           overflow: TextOverflow.ellipsis,
@@ -554,16 +555,22 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Colors.grey.shade200,
+                                            color: colorScheme
+                                                .surfaceContainerHighest,
                                             borderRadius: BorderRadius.circular(
                                               10,
+                                            ),
+                                            border: Border.all(
+                                              color: colorScheme.outlineVariant,
+                                              width: 0.8,
                                             ),
                                           ),
                                           child: Text(
                                             'default',
                                             style: TextStyle(
                                               fontSize: 10,
-                                              color: Colors.grey.shade700,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                           ),
                                         ),
@@ -572,9 +579,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
                                   trailing: isCurrent
                                       ? Icon(
                                           Icons.check,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
+                                          color: colorScheme.primary,
                                         )
                                       : null,
                                   onTap: () {

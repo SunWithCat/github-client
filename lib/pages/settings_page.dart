@@ -63,7 +63,9 @@ class SettingsPage extends ConsumerWidget {
                       errorWidget: (context, url, error) => Container(
                         width: 40,
                         height: 40,
-                        color: Colors.grey.shade300,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         child: const Icon(Icons.person),
                       ),
                       fadeInDuration: Duration.zero,

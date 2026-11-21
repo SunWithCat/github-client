@@ -100,8 +100,13 @@ class _CommitCardState extends State<CommitCard> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: isDark ? 0 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: isDark
+            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(10),

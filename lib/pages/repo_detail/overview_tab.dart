@@ -79,14 +79,16 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
   /// 构建 README 卡片顶部标题栏
   Widget _buildReadmeHeader(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.grey.shade800.withValues(alpha: 0.5)
+            ? colorScheme.surfaceContainerHighest
             : Colors.grey.shade100,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(12),
@@ -94,7 +96,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
         ),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+            color: isDark ? colorScheme.outlineVariant : Colors.grey.shade300,
             width: 1,
           ),
         ),
@@ -104,7 +106,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
           Icon(
             OctIcons.book_16,
             size: 18,
-            color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+            color: isDark ? colorScheme.onSurfaceVariant : Colors.grey.shade700,
           ),
           const SizedBox(width: 8),
           Text(
@@ -112,7 +114,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
+              color: isDark ? colorScheme.onSurface : Colors.grey.shade800,
             ),
           ),
         ],
@@ -124,46 +126,69 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
   Widget _buildReadmeSliver(BuildContext context, String readmeContent) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final borderRadius = BorderRadius.circular(12);
 
     return DecoratedSliver(
+      position: DecorationPosition.foreground,
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: isDark ? colorScheme.outlineVariant : Colors.grey.shade200,
+          width: 1,
+        ),
       ),
-      sliver: SliverMainAxisGroup(
-        slivers: [
-          SliverToBoxAdapter(child: _buildReadmeHeader(context)),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: GitHubMarkdown(
-              data: readmeContent,
-              owner: widget.repo.owner,
-              repo: widget.repo.name,
-              branch: widget.branch,
-              selectable: false,
-              renderMode: RenderMode.sliverList,
+      sliver: DecoratedSliver(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: borderRadius,
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        sliver: SliverMainAxisGroup(
+          slivers: [
+            SliverToBoxAdapter(child: _buildReadmeHeader(context)),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: GitHubMarkdown(
+                data: readmeContent,
+                owner: widget.repo.owner,
+                repo: widget.repo.name,
+                branch: widget.branch,
+                selectable: false,
+                renderMode: RenderMode.sliverList,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   /// 构建空 README 状态卡片
   Widget _buildEmptyReadmeCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: isDark ? 0 : 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isDark
+              ? theme.colorScheme.outlineVariant
+              : Colors.grey.shade200,
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

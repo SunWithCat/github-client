@@ -38,6 +38,15 @@ class DateSeparator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final lineColor = isDark
+        ? theme.colorScheme.outlineVariant
+        : Colors.grey.shade300;
+    final badgeBgColor = isDark
+        ? theme.colorScheme.surfaceContainerHighest
+        : Colors.grey.shade100;
+    final textColor = isDark
+        ? theme.colorScheme.onSurfaceVariant
+        : Colors.grey.shade600;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -47,7 +56,7 @@ class DateSeparator extends StatelessWidget {
           Expanded(
             child: Container(
               height: 1,
-              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+              color: lineColor,
             ),
           ),
           // 日期标签
@@ -56,12 +65,10 @@ class DateSeparator extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.grey.shade800
-                    : Colors.grey.shade100,
+                color: badgeBgColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                  color: lineColor,
                   width: 1,
                 ),
               ),
@@ -70,7 +77,7 @@ class DateSeparator extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  color: textColor,
                 ),
               ),
             ),
@@ -79,7 +86,7 @@ class DateSeparator extends StatelessWidget {
           Expanded(
             child: Container(
               height: 1,
-              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+              color: lineColor,
             ),
           ),
         ],

@@ -4,6 +4,15 @@ const primaryColor = Color(0xFF24292E); // GitHub 头部黑
 const accentColor = Color(0xFF0366D6); // GitHub 链接蓝
 const lightGreyColor = Color(0xFFF5F7F9); // 浅灰背景
 
+// GitHub Dark 语义色阶
+const darkCanvasColor = Color(0xFF0D1117);
+const darkSurfaceColor = Color(0xFF161B22);
+const darkElevatedSurfaceColor = Color(0xFF21262D);
+const darkBorderColor = Color(0xFF30363D);
+const darkAccentColor = Color(0xFF1F6FEB);
+const darkTextPrimaryColor = Color(0xFFE6EDF3);
+const darkTextSecondaryColor = Color(0xFF8B949E);
+
 TextTheme _buildBaseTextTheme(Brightness brightness) {
   final fallback = brightness == Brightness.dark
       ? ThemeData.dark().textTheme
@@ -40,19 +49,42 @@ ThemeData lightMode = ThemeData(
 
 ThemeData darkMode = ThemeData(
   brightness: Brightness.dark,
-  scaffoldBackgroundColor: const Color(0xFF0D1117), // 匹配 colorScheme 的背景色
+  scaffoldBackgroundColor: darkCanvasColor,
+  dividerColor: darkBorderColor,
   colorScheme: ColorScheme.dark(
-    primary: Colors.grey.shade400,
-    secondary: lightGreyColor,
-    surface: const Color(0xFF1E1E1E), // 较浅的表面颜色
-    surfaceContainer: const Color(0xFF1E1E1E),
+    primary: Colors.grey.shade300,
+    onPrimary: darkCanvasColor,
+    secondary: darkAccentColor,
+    onSecondary: Colors.white,
+    surface: darkSurfaceColor,
+    onSurface: darkTextPrimaryColor,
+    onSurfaceVariant: darkTextSecondaryColor,
+    surfaceContainer: darkSurfaceColor,
+    surfaceContainerHighest: darkElevatedSurfaceColor,
+    outlineVariant: darkBorderColor,
     surfaceTint: Colors.transparent,
   ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: darkCanvasColor,
+    foregroundColor: darkTextPrimaryColor,
+    surfaceTintColor: Colors.transparent,
+  ),
   cardTheme: CardThemeData(
-    color: const Color(0xFF2C2C2C), // 使用明显更浅的灰色
-    elevation: 4.0, // 进一步增加阴影深度
-    shadowColor: Colors.black.withValues(alpha: 0.5), // 增加阴影不透明度
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    color: darkSurfaceColor,
+    elevation: 0,
+    shadowColor: Colors.black.withValues(alpha: 0.35),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: const BorderSide(color: darkBorderColor, width: 1.0),
+    ),
+  ),
+  dialogTheme: const DialogThemeData(
+    backgroundColor: darkSurfaceColor,
+    surfaceTintColor: Colors.transparent,
+  ),
+  bottomSheetTheme: const BottomSheetThemeData(
+    backgroundColor: darkSurfaceColor,
+    surfaceTintColor: Colors.transparent,
   ),
   textTheme: _buildBaseTextTheme(Brightness.dark),
 );

@@ -55,9 +55,14 @@ class PrCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 1,
+      elevation: isDark ? 0 : 1,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: isDark
+            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),

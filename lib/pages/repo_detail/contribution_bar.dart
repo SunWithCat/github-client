@@ -58,8 +58,11 @@ class ContributionBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final barColor = color ?? theme.colorScheme.primary;
-    final bgColor = backgroundColor ??
-        (isDark ? Colors.grey.shade800 : Colors.grey.shade200);
+    final bgColor =
+        backgroundColor ??
+        (isDark
+            ? theme.colorScheme.surfaceContainerHighest
+            : Colors.grey.shade200);
 
     return Row(
       children: [

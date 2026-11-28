@@ -96,12 +96,14 @@ class _ReposPageState extends ConsumerState<ReposPage> {
         : repos.where((repo) {
             return repo.name.toLowerCase().contains(keyword);
           }).toList();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('我的仓库'),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: colorScheme.onSurface,
       ),
       body: Column(
         children: [
@@ -110,10 +112,7 @@ class _ReposPageState extends ConsumerState<ReposPage> {
             child: SearchBar(
               controller: _searchController,
               hintText: '搜索你的仓库...',
-              leading: Icon(
-                Icons.search,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              leading: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
               trailing: [
                 if (_searchController.text.isNotEmpty)
                   IconButton(
@@ -127,23 +126,6 @@ class _ReposPageState extends ConsumerState<ReposPage> {
                     icon: const Icon(Icons.clear),
                   ),
               ],
-              elevation: const WidgetStatePropertyAll(0),
-              backgroundColor: WidgetStatePropertyAll(
-                Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              ),
-              shape: WidgetStatePropertyAll(
-                RoundedSuperellipseBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  side: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.8),
-                    width: 1.0,
-                  ),
-                ),
-              ),
               onChanged: (_) {
                 _debouncer.run(() {
                   if (!mounted) return;

@@ -8,6 +8,7 @@ import 'package:ghclient/common/widgets/scale_wrapper.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/router/app_router.dart';
+import 'package:ghclient/theme/theme.dart';
 
 /// 仓库列表项组件：使用 ConsumerWidget
 class RepoItem extends ConsumerWidget {
@@ -23,26 +24,26 @@ class RepoItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF161B22) : Colors.white;
-    final borderColor = isDark
-        ? const Color(0xFF30363D)
-        : const Color(0xFFE1E4E8);
+    final colorScheme = theme.colorScheme;
+    final semanticColors = theme.semanticColors;
 
     return ScaleWrapper(
       pressedScale: 0.98,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: 1.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant, width: 1.0),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -56,7 +57,7 @@ class RepoItem extends ConsumerWidget {
                 );
               }
             },
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -67,9 +68,7 @@ class RepoItem extends ConsumerWidget {
                       Icon(
                         OctIcons.repo_16,
                         size: 16,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -77,13 +76,10 @@ class RepoItem extends ConsumerWidget {
                           repo.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: isDark
-                                    ? Colors.grey.shade300
-                                    : Color(0xFF0366D6),
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       if (showVisibilityBadge) ...[
@@ -98,10 +94,8 @@ class RepoItem extends ConsumerWidget {
                       repo.description!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? Colors.grey.shade300
-                            : Colors.grey.shade700,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   const SizedBox(height: 16),
@@ -123,7 +117,7 @@ class RepoItem extends ConsumerWidget {
                       Icon(
                         OctIcons.star_fill_16,
                         size: 16,
-                        color: Colors.yellow.shade700,
+                        color: semanticColors.star,
                       ),
                       const SizedBox(width: 4),
                       Text(NumberFormatter.formatNumber(repo.starCount)),
@@ -131,7 +125,7 @@ class RepoItem extends ConsumerWidget {
                       Icon(
                         OctIcons.repo_forked_16,
                         size: 16,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
                       Text(NumberFormatter.formatNumber(repo.forkCount)),
@@ -156,11 +150,11 @@ class _VisibilityBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final background = isPrivate
-        ? colorScheme.primaryContainer.withValues(alpha: 0.72)
-        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.75);
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceContainerHighest;
     final border = isPrivate
         ? colorScheme.primary.withValues(alpha: 0.35)
-        : colorScheme.outlineVariant.withValues(alpha: 0.65);
+        : colorScheme.outlineVariant;
     final foreground = isPrivate
         ? colorScheme.onPrimaryContainer
         : colorScheme.onSurfaceVariant;

@@ -2,17 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/common/utils/date_formatter.dart';
 import 'package:ghclient/pages/repo_detail/issue_label.dart';
+import 'package:ghclient/theme/theme.dart';
 
 class IssueCard extends StatelessWidget {
   final Map<String, dynamic> issue;
 
   final VoidCallback? onTap;
 
-  const IssueCard({
-    super.key,
-    required this.issue,
-    this.onTap,
-  });
+  const IssueCard({super.key, required this.issue, this.onTap});
 
   /// 获取 Issue 状态
   bool get isOpen => issue['state'] == 'open';
@@ -22,7 +19,8 @@ class IssueCard extends StatelessWidget {
       isOpen ? OctIcons.issue_opened_16 : OctIcons.issue_closed_16;
 
   /// 获取状态颜色
-  Color get statusColor => isOpen ? Colors.green : Colors.purple;
+  Color _statusColor(AppSemanticColors semantic) =>
+      isOpen ? semantic.open : semantic.merged;
 
   /// 获取 Issue 标题
   String get title => issue['title']?.toString() ?? '';
@@ -46,9 +44,7 @@ class IssueCard extends StatelessWidget {
   List<Map<String, dynamic>> get labels {
     final labelList = issue['labels'];
     if (labelList is List) {
-      return labelList
-          .whereType<Map<String, dynamic>>()
-          .toList();
+      return labelList.whereType<Map<String, dynamic>>().toList();
     }
     return [];
   }
@@ -56,20 +52,15 @@ class IssueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final subTextColor = colorScheme.onSurfaceVariant;
+    final dotColor = colorScheme.onSurfaceVariant.withValues(alpha: 0.65);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: isDark ? 0 : 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: isDark
-            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
-            : BorderSide.none,
-      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -83,7 +74,7 @@ class IssueCard extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Icon(
                       statusIcon,
-                      color: statusColor,
+                      color: _statusColor(theme.semanticColors),
                       size: 18,
                     ),
                   ),
@@ -95,7 +86,7 @@ class IssueCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -113,7 +104,7 @@ class IssueCard extends StatelessWidget {
                       '#$number',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: subTextColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -123,7 +114,7 @@ class IssueCard extends StatelessWidget {
                       width: 3,
                       height: 3,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                        color: dotColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -131,10 +122,7 @@ class IssueCard extends StatelessWidget {
                     // 作者
                     Text(
                       authorLogin,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 13, color: subTextColor),
                     ),
                     const SizedBox(width: 8),
                     // 分隔点
@@ -142,7 +130,7 @@ class IssueCard extends StatelessWidget {
                       width: 3,
                       height: 3,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                        color: dotColor,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -151,10 +139,7 @@ class IssueCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         DateFormatter.relative(createdAt),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                        ),
+                        style: TextStyle(fontSize: 13, color: subTextColor),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

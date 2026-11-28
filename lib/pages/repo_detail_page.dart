@@ -643,24 +643,20 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     required IconData icon,
     required String title,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return PopupMenuItem<String>(
       value: value,
       height: 44,
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-          ),
+          Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 12),
           Text(
             title,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -683,6 +679,7 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
     );
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
     return SafeScaffold(
       appBar: AppBar(
         title: Text(widget.repo.name),
@@ -691,7 +688,12 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             padding: const EdgeInsets.only(right: 4.0),
             child: ActionChip(
               avatar: const Icon(OctIcons.git_branch_16, size: 14),
-              label: Text(_currentBranch, style: const TextStyle(fontSize: 12)),
+              label: Text(
+                _currentBranch,
+                style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+              ),
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              side: BorderSide(color: colorScheme.outlineVariant),
               onPressed: _showBranchPicker,
               visualDensity: VisualDensity.compact,
             ),
@@ -700,19 +702,14 @@ class _ConsumerRepoPageState extends ConsumerState<RepoPage>
             tooltip: '更多操作',
             icon: Icon(
               Icons.more_horiz_rounded,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+              color: colorScheme.onSurfaceVariant,
             ),
-            elevation: 8,
-            shadowColor: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
-            color: isDark ? const Color(0xFF161B22) : Colors.white,
+            elevation: isDark ? 4 : 6,
+            shadowColor: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
+            color: isDark ? colorScheme.surfaceContainer : colorScheme.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: isDark
-                    ? const Color(0xFF30363D)
-                    : const Color(0xFFE1E4E8),
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: colorScheme.outlineVariant, width: 1),
             ),
             position: PopupMenuPosition.under,
             offset: const Offset(0, 8),

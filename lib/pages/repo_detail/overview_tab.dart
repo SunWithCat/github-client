@@ -79,42 +79,31 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
   /// 构建 README 卡片顶部标题栏
   Widget _buildReadmeHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surfaceContainerHighest
-            : Colors.grey.shade100,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(12),
           topRight: Radius.circular(12),
         ),
         border: Border(
-          bottom: BorderSide(
-            color: isDark ? colorScheme.outlineVariant : Colors.grey.shade300,
-            width: 1,
-          ),
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
         children: [
-          Icon(
-            OctIcons.book_16,
-            size: 18,
-            color: isDark ? colorScheme.onSurfaceVariant : Colors.grey.shade700,
-          ),
+          Icon(OctIcons.book_16, size: 18, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 8),
           Text(
             'README',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: isDark ? colorScheme.onSurface : Colors.grey.shade800,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -133,10 +122,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
       position: DecorationPosition.foreground,
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        border: Border.all(
-          color: isDark ? colorScheme.outlineVariant : Colors.grey.shade200,
-          width: 1,
-        ),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1),
       ),
       sliver: DecoratedSliver(
         decoration: BoxDecoration(
@@ -174,21 +160,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
   /// 构建空 README 状态卡片
   Widget _buildEmptyReadmeCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: EdgeInsets.zero,
-      elevation: isDark ? 0 : 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isDark
-              ? theme.colorScheme.outlineVariant
-              : Colors.grey.shade200,
-          width: 1,
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -201,16 +176,12 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
                   Icon(
                     OctIcons.file_16,
                     size: 32,
-                    color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     '此仓库没有 README 文件',
-                    style: TextStyle(
-                      color: isDark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
-                    ),
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

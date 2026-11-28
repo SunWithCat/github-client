@@ -96,20 +96,14 @@ class _CommitCardState extends State<CommitCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final subTextColor = colorScheme.onSurfaceVariant;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: isDark ? 0 : 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: isDark
-            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
-            : BorderSide.none,
-      ),
       child: InkWell(
         onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -119,7 +113,7 @@ class _CommitCardState extends State<CommitCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 提交者头像
-                  _buildAvatar(isDark),
+                  _buildAvatar(colorScheme),
                   const SizedBox(width: 12),
                   // 提交消息
                   Expanded(
@@ -131,7 +125,7 @@ class _CommitCardState extends State<CommitCard> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color: colorScheme.onSurface,
                             height: 1.4,
                           ),
                           maxLines: _isExpanded ? null : 2,
@@ -150,9 +144,7 @@ class _CommitCardState extends State<CommitCard> {
                               _isExpanded ? '收起' : '展开',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark
-                                    ? Colors.blue.shade300
-                                    : Colors.blue.shade600,
+                                color: colorScheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -169,32 +161,15 @@ class _CommitCardState extends State<CommitCard> {
                 child: Row(
                   children: [
                     // 作者名称
-                    Icon(
-                      OctIcons.person_16,
-                      size: 14,
-                      color: isDark
-                          ? Colors.grey.shade500
-                          : Colors.grey.shade600,
-                    ),
+                    Icon(OctIcons.person_16, size: 14, color: subTextColor),
                     const SizedBox(width: 4),
                     Text(
                       authorName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 12, color: subTextColor),
                     ),
                     const SizedBox(width: 12),
                     // SHA
-                    Icon(
-                      OctIcons.git_commit_16,
-                      size: 14,
-                      color: isDark
-                          ? Colors.grey.shade500
-                          : Colors.grey.shade600,
-                    ),
+                    Icon(OctIcons.git_commit_16, size: 14, color: subTextColor),
                     const SizedBox(width: 4),
                     Tooltip(
                       message: '长按复制完整 SHA',
@@ -209,32 +184,19 @@ class _CommitCardState extends State<CommitCard> {
                           style: TextStyle(
                             fontSize: 12,
                             fontFamily: 'monospace',
-                            color: isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
+                            color: subTextColor,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     // 提交时间
-                    Icon(
-                      OctIcons.clock_16,
-                      size: 14,
-                      color: isDark
-                          ? Colors.grey.shade500
-                          : Colors.grey.shade600,
-                    ),
+                    Icon(OctIcons.clock_16, size: 14, color: subTextColor),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         DateFormatter.relative(commitDate),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade600,
-                        ),
+                        style: TextStyle(fontSize: 12, color: subTextColor),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -249,7 +211,7 @@ class _CommitCardState extends State<CommitCard> {
   }
 
   /// 构建头像组件
-  Widget _buildAvatar(bool isDark) {
+  Widget _buildAvatar(ColorScheme colorScheme) {
     if (avatarUrl != null && avatarUrl!.isNotEmpty) {
       return ClipOval(
         child: CachedNetworkImage(
@@ -262,26 +224,27 @@ class _CommitCardState extends State<CommitCard> {
           placeholder: (context, url) => Container(
             width: 36,
             height: 36,
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+            color: colorScheme.surfaceContainerHighest,
           ),
-          errorWidget: (context, url, error) => _buildDefaultAvatar(isDark),
+          errorWidget: (context, url, error) =>
+              _buildDefaultAvatar(colorScheme),
         ),
       );
     }
-    return _buildDefaultAvatar(isDark);
+    return _buildDefaultAvatar(colorScheme);
   }
 
   /// 构建默认头像
-  Widget _buildDefaultAvatar(bool isDark) {
+  Widget _buildDefaultAvatar(ColorScheme colorScheme) {
     return ClipOval(
       child: Container(
         width: 36,
         height: 36,
-        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        color: colorScheme.surfaceContainerHighest,
         child: Icon(
           OctIcons.person_16,
           size: 20,
-          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );

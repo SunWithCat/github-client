@@ -10,6 +10,7 @@ import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/app_identity.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/release_info.dart';
+import 'package:ghclient/theme/theme.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -81,9 +82,9 @@ class SettingsPage extends ConsumerWidget {
                 title: Text(userLogin),
                 subtitle: Text(
                   userName ?? 'Unknown Name',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 onTap: () {
                   openExternalUrl(context, 'https://github.com/$userLogin');
@@ -122,23 +123,6 @@ class SettingsPage extends ConsumerWidget {
                 },
                 secondary: Icon(
                   isDarkMode ? OctIcons.moon_16 : OctIcons.sun_16,
-                ),
-                thumbColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) {
-                    return const Color(0xFF58A6FF); // 更清爽的 GitHub 蓝
-                  }
-                  return isDarkMode ? Colors.grey.shade400 : Colors.white;
-                }),
-                trackColor: WidgetStateProperty.resolveWith((states) {
-                  if (states.contains(WidgetState.selected)) {
-                    return const Color(0xFF1F6FEB).withValues(alpha: 0.5);
-                  }
-                  return isDarkMode
-                      ? const Color(0xFF30363D)
-                      : Colors.grey.shade300;
-                }),
-                trackOutlineColor: const WidgetStatePropertyAll(
-                  Colors.transparent,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -222,11 +206,6 @@ class SettingsPage extends ConsumerWidget {
   }) {
     return Card(
       clipBehavior: Clip.antiAlias, // 裁切多余的边角
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(color: Theme.of(context).dividerColor, width: 1.0),
-      ),
       child: Column(children: children),
     );
   }
@@ -235,6 +214,7 @@ class SettingsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
+        final dialogTheme = Theme.of(dialogContext);
         return AlertDialog(
           title: const Text('退出登录'),
           content: const Text('你确定要退出这个帐号吗？'),
@@ -246,12 +226,17 @@ class SettingsPage extends ConsumerWidget {
               onPressed: () => Navigator.pop(dialogContext, false),
               child: Text(
                 '取消',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                style: TextStyle(
+                  color: dialogTheme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('确定', style: TextStyle(color: Colors.red)),
+              child: Text(
+                '确定',
+                style: TextStyle(color: dialogTheme.semanticColors.closed),
+              ),
             ),
           ],
         );
@@ -336,10 +321,12 @@ class SettingsPage extends ConsumerWidget {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 '稍后',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                style: TextStyle(
+                  color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
                 openExternalUrl(context, release.htmlUrl);

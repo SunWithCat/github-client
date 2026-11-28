@@ -29,27 +29,19 @@ class ContributorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: isDark ? 0 : 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: isDark
-            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
-            : BorderSide.none,
-      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               // 头像
-              _buildAvatar(isDark),
+              _buildAvatar(colorScheme),
               const SizedBox(width: 12),
               // 用户信息和进度条
               Expanded(
@@ -62,7 +54,7 @@ class ContributorCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -73,7 +65,7 @@ class ContributorCard extends StatelessWidget {
                       '$contributions 次贡献',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -93,17 +85,17 @@ class ContributorCard extends StatelessWidget {
   }
 
   /// 构建头像组件
-  Widget _buildAvatar(bool isDark) {
+  Widget _buildAvatar(ColorScheme colorScheme) {
     if (avatarUrl.isEmpty) {
       return ClipOval(
         child: Container(
           width: 48,
           height: 48,
-          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          color: colorScheme.surfaceContainerHighest,
           child: Icon(
             Icons.person,
             size: 24,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       );
@@ -120,7 +112,7 @@ class ContributorCard extends StatelessWidget {
         placeholder: (context, url) => Container(
           width: 48,
           height: 48,
-          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          color: colorScheme.surfaceContainerHighest,
           alignment: Alignment.center,
           child: const SizedBox(
             width: 20,
@@ -131,11 +123,11 @@ class ContributorCard extends StatelessWidget {
         errorWidget: (context, url, error) => Container(
           width: 48,
           height: 48,
-          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+          color: colorScheme.surfaceContainerHighest,
           child: Icon(
             Icons.person,
             size: 24,
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ),

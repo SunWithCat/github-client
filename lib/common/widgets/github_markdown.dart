@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../utils/app_log.dart';
+import '../../theme/theme.dart';
 
 class GitHubMarkdown extends StatelessWidget {
   /// HTML 内容（来自 GitHub API 的 application/vnd.github.html+json 响应）
@@ -40,17 +41,23 @@ class GitHubMarkdown extends StatelessWidget {
     this.renderMode = RenderMode.column,
   });
 
+  static String _toCssHex(Color color) {
+    final rgb = color.toARGB32() & 0xFFFFFF;
+    return '#${rgb.toRadixString(16).padLeft(6, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final semantic = theme.semanticColors;
 
     return HtmlWidget(
       data,
       renderMode: renderMode,
       // 文本是否可选
       textStyle: theme.textTheme.bodyMedium?.copyWith(
-        color: isDark ? Colors.grey.shade300 : Colors.grey.shade900,
+        color: colorScheme.onSurface,
       ),
       // 链接点击处理
       onTapUrl: (url) {
@@ -76,7 +83,10 @@ class GitHubMarkdown extends StatelessWidget {
           }
 
           if (originalUrl.contains('readme-typing-svg')) {
-            return _buildTypingSvgFallback(originalUrl);
+            return _buildTypingSvgFallback(
+              originalUrl,
+              fallbackColor: colorScheme.onSurface,
+            );
           }
 
           if (originalUrl.toLowerCase().contains('.svg')) {
@@ -89,8 +99,8 @@ class GitHubMarkdown extends StatelessWidget {
                   return SvgPicture.network(
                     src,
                     fit: BoxFit.contain,
-                    errorBuilder:
-                        (context, error, stackTrace) => _buildImage(src),
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildImage(src),
                   );
                 },
               ),
@@ -122,8 +132,7 @@ class GitHubMarkdown extends StatelessWidget {
         // 代码块样式
         if (element.localName == 'pre') {
           return {
-            'background-color':
-                isDark ? 'rgba(50, 50, 50, 1.0)' : 'rgba(230, 230, 230, 1.0)',
+            'background-color': _toCssHex(semantic.codeBackground),
             'border-radius': '8px',
             'padding': '12px',
           };
@@ -131,8 +140,7 @@ class GitHubMarkdown extends StatelessWidget {
         // 行内代码
         if (element.localName == 'code' && element.parent?.localName != 'pre') {
           return {
-            'background-color':
-                isDark ? 'rgba(60, 60, 60, 1.0)' : 'rgba(220, 220, 220, 1.0)',
+            'background-color': _toCssHex(semantic.inlineCodeBackground),
             'padding': '2px 6px',
             'border-radius': '4px',
           };
@@ -140,15 +148,14 @@ class GitHubMarkdown extends StatelessWidget {
         // 引用块
         if (element.localName == 'blockquote') {
           return {
-            'border-left': isDark ? '4px solid #FFA000' : '4px solid #607D8B',
-            'padding': '12px 12px 12px 16px',
-            'background-color':
-                isDark ? 'rgba(60, 60, 60, 0.6)' : 'rgba(240, 240, 240, 1.0)',
+            'border-left': '4px solid ${_toCssHex(semantic.blockquoteBorder)}',
+            'color': _toCssHex(semantic.blockquoteText),
+            'padding': '4px 12px 4px 16px',
           };
         }
         // 链接
         if (element.localName == 'a') {
-          return {'color': isDark ? '#64B5F6' : '#1565C0'};
+          return {'color': _toCssHex(semantic.link)};
         }
         return null;
       },
@@ -218,7 +225,7 @@ class GitHubMarkdown extends StatelessWidget {
   }
 
   /// 解析 readme-typing-svg URL 参数，用原生 Text 静态展示文字内容
-  Widget _buildTypingSvgFallback(String url) {
+  Widget _buildTypingSvgFallback(String url, {required Color fallbackColor}) {
     final uri = Uri.tryParse(url);
     if (uri == null) return const SizedBox.shrink();
 
@@ -226,16 +233,20 @@ class GitHubMarkdown extends StatelessWidget {
     final lines = params['lines']?.split(';') ?? [];
     if (lines.isEmpty) return const SizedBox.shrink();
 
-    final colorHex = params['color'] ?? '000000';
-    final colorVal =
-        int.tryParse(colorHex.replaceAll('#', ''), radix: 16) ?? 0x000000;
+    final rawColor = params['color']?.replaceAll('#', '').trim();
+    final parsedRgb = (rawColor != null && rawColor.isNotEmpty)
+        ? int.tryParse(rawColor, radix: 16)
+        : null;
+    final resolvedColor = parsedRgb != null
+        ? Color(parsedRgb | 0xFF000000)
+        : fallbackColor;
     final fontSize = double.tryParse(params['size'] ?? '20') ?? 20.0;
     final isCenter = params['center'] == 'true';
     final pauseMs = int.tryParse(params['pause'] ?? '2000') ?? 2000;
 
     return _TypingCarouselWidget(
       lines: lines,
-      color: Color(colorVal | 0xFF000000),
+      color: resolvedColor,
       fontSize: fontSize,
       isCenter: isCenter,
       fontFamily: params['font'],
@@ -275,32 +286,35 @@ class _TypingCarouselWidgetState extends State<_TypingCarouselWidget> {
       width: double.infinity,
       alignment: widget.isCenter ? Alignment.center : Alignment.centerLeft,
       padding: EdgeInsets.zero,
-      child: Animate(
-            key: ValueKey(_currentIndex),
-            onComplete: (controller) {
-              if (mounted) {
-                setState(() {
-                  _currentIndex = (_currentIndex + 1) % widget.lines.length;
-                });
-              }
-            },
-            child: Text(
-              widget.lines[_currentIndex],
-              style: TextStyle(
-                color: widget.color,
-                fontSize: widget.fontSize,
-                fontWeight: FontWeight.w600,
-                fontFamily: widget.fontFamily ?? 'monospace',
-                height: 1.0,
-              ),
-              textAlign: widget.isCenter ? TextAlign.center : TextAlign.left,
-            ),
-          )
-          .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-          .slideY(begin: 0.2, end: 0, duration: 600.ms)
-          .then(delay: widget.pauseMs.ms)
-          .fadeOut(duration: 400.ms)
-          .slideY(begin: 0, end: -0.2, duration: 400.ms),
+      child:
+          Animate(
+                key: ValueKey(_currentIndex),
+                onComplete: (controller) {
+                  if (mounted) {
+                    setState(() {
+                      _currentIndex = (_currentIndex + 1) % widget.lines.length;
+                    });
+                  }
+                },
+                child: Text(
+                  widget.lines[_currentIndex],
+                  style: TextStyle(
+                    color: widget.color,
+                    fontSize: widget.fontSize,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: widget.fontFamily ?? 'monospace',
+                    height: 1.0,
+                  ),
+                  textAlign: widget.isCenter
+                      ? TextAlign.center
+                      : TextAlign.left,
+                ),
+              )
+              .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+              .slideY(begin: 0.2, end: 0, duration: 600.ms)
+              .then(delay: widget.pauseMs.ms)
+              .fadeOut(duration: 400.ms)
+              .slideY(begin: 0, end: -0.2, duration: 400.ms),
     );
   }
 }

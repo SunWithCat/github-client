@@ -12,6 +12,7 @@ import 'package:ghclient/common/widgets/github_markdown.dart';
 import 'package:ghclient/common/widgets/safe_scaffold.dart';
 import 'package:ghclient/core/providers.dart';
 import 'package:ghclient/models/my_user_model.dart';
+import 'package:ghclient/theme/theme.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -221,15 +222,6 @@ class _HomeHeaderCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(
-            alpha: theme.brightness == Brightness.dark ? 1.0 : 0.4,
-          ),
-        ),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -323,14 +315,16 @@ class _HomeHeaderCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            IconButton.filledTonal(
+            IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                foregroundColor: colorScheme.primaryContainer,
+                backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.65,
+                ),
+                foregroundColor: colorScheme.onSurfaceVariant,
               ),
               onPressed: onOpenSettings,
               tooltip: '设置',
-              icon: const Icon(Icons.settings_outlined),
+              icon: const Icon(Icons.settings_outlined, size: 20),
             ),
           ],
         ),
@@ -387,7 +381,7 @@ class _HomeQuickActions extends StatelessWidget {
         Expanded(
           child: _QuickActionButton(
             icon: OctIcons.star_fill_16,
-            iconColor: Colors.amber.shade700,
+            iconColor: Theme.of(context).semanticColors.star,
             title: '星标',
             value: _buildStarredValueText(),
             onTap: onOpenStarred,
@@ -420,18 +414,16 @@ class _QuickActionButton extends StatelessWidget {
 
     return Material(
       color: colorScheme.surface,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           constraints: const BoxConstraints(minHeight: 56),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.outlineVariant),
           ),
           child: Row(
             children: [
@@ -440,9 +432,7 @@ class _QuickActionButton extends StatelessWidget {
                 height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.6,
-                  ),
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
@@ -491,20 +481,8 @@ class _HomeMetaSection extends StatelessWidget {
     final hasLocation =
         user.location != null && user.location!.trim().isNotEmpty;
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Card(
       margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(
-            alpha: theme.brightness == Brightness.dark ? 1.0 : 0.4,
-          ),
-        ),
-      ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -558,7 +536,7 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -622,17 +600,6 @@ class _HomeReadmeSection extends StatelessWidget {
               ? Card(
                   key: const ValueKey('readme_content'),
                   margin: EdgeInsets.zero,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(
-                      color: colorScheme.outlineVariant.withValues(
-                        alpha: Theme.of(context).brightness == Brightness.dark
-                            ? 1.0
-                            : 0.4,
-                      ),
-                    ),
-                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(10),
                     child: GitHubMarkdown(
@@ -649,10 +616,8 @@ class _HomeReadmeSection extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.outlineVariant),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -692,50 +657,42 @@ class _HomeInitialLoadingView extends StatelessWidget {
             padding: const EdgeInsets.only(top: 36),
             child: Card(
               margin: EdgeInsets.zero,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 24,
                   ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.6,
-                        color: colorScheme.primary,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.6,
+                          color: colorScheme.primary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      '正在同步 GitHub 数据...',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 14),
+                      Text(
+                        '正在同步 GitHub 数据...',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '首次加载可能稍慢，请耐心等待...',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 6),
+                      Text(
+                        '首次加载可能稍慢，请耐心等待...',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:ghclient/common/utils/date_formatter.dart';
 import 'package:ghclient/pages/repo_detail/issue_label.dart';
+import 'package:ghclient/theme/theme.dart';
 
 class PrCard extends StatelessWidget {
   final Map<String, dynamic> pr;
@@ -20,10 +21,10 @@ class PrCard extends StatelessWidget {
     _ => OctIcons.git_pull_request_16,
   };
 
-  Color get _statusColor => switch (_state) {
-    'merged' => Colors.purple,
-    'closed' => Colors.red,
-    _ => Colors.green,
+  Color _statusColor(AppSemanticColors semantic) => switch (_state) {
+    'merged' => semantic.merged,
+    'closed' => semantic.closed,
+    _ => semantic.open,
   };
 
   String get _title => pr['title']?.toString() ?? '';
@@ -50,22 +51,15 @@ class PrCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final subTextColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final colorScheme = theme.colorScheme;
+    final subTextColor = colorScheme.onSurfaceVariant;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: isDark ? 0 : 1,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: isDark
-            ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
-            : BorderSide.none,
-      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -77,7 +71,11 @@ class PrCard extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Icon(_statusIcon, color: _statusColor, size: 18),
+                    child: Icon(
+                      _statusIcon,
+                      color: _statusColor(theme.semanticColors),
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -86,7 +84,7 @@ class PrCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -109,14 +107,14 @@ class PrCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _dot(isDark),
+                    _dot(subTextColor),
                     const SizedBox(width: 8),
                     Text(
                       _authorLogin,
                       style: TextStyle(fontSize: 13, color: subTextColor),
                     ),
                     const SizedBox(width: 8),
-                    _dot(isDark),
+                    _dot(subTextColor),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -176,11 +174,11 @@ class PrCard extends StatelessWidget {
     );
   }
 
-  Widget _dot(bool isDark) => Container(
+  Widget _dot(Color subTextColor) => Container(
     width: 3,
     height: 3,
     decoration: BoxDecoration(
-      color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+      color: subTextColor.withValues(alpha: 0.65),
       shape: BoxShape.circle,
     ),
   );

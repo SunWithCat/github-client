@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ghclient/theme/theme.dart';
 
 class IssueLabel extends StatelessWidget {
   /// 标签名称
@@ -36,15 +37,12 @@ class IssueLabel extends StatelessWidget {
 
   // 神奇的计算
   static Color getContrastColor(Color backgroundColor) {
-    final r = backgroundColor.r;
-    final g = backgroundColor.g;
-    final b = backgroundColor.b;
-
-    // 计算相对亮度 (使用 sRGB 亮度公式)
-    final luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-
-    // 亮度阈值：0.5 以上为浅色背景
-    return luminance > 0.5 ? Colors.black87 : Colors.white;
+    final whiteContrast = calculateContrastRatio(Colors.white, backgroundColor);
+    final darkContrast = calculateContrastRatio(
+      lightTextPrimaryColor,
+      backgroundColor,
+    );
+    return whiteContrast >= darkContrast ? Colors.white : lightTextPrimaryColor;
   }
 
   /// 计算两个颜色之间相对亮度对比度
@@ -54,6 +52,21 @@ class IssueLabel extends StatelessWidget {
     final brightest = l1 > l2 ? l1 : l2;
     final darkest = l1 > l2 ? l2 : l1;
     return (brightest + 0.05) / (darkest + 0.05);
+  }
+
+  static Color getDarkBorderColor(
+    Color baseColor, {
+    required Color surfaceColor,
+    required Color fallbackBorderColor,
+    double borderAlpha = 0.45,
+    double minBorderContrast = 1.35,
+  }) {
+    final candidate = baseColor.withValues(alpha: borderAlpha);
+    final blended = Color.alphaBlend(candidate, surfaceColor);
+    if (calculateContrastRatio(blended, surfaceColor) < minBorderContrast) {
+      return fallbackBorderColor;
+    }
+    return candidate;
   }
 
   /// 动态提亮文字颜色
@@ -97,22 +110,33 @@ class IssueLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
     final baseColor = hexToColor(color);
     final backgroundColor = isDark
         ? baseColor.withValues(alpha: 0.18)
         : baseColor;
     final textColor = isDark
-        ? getDarkTextColor(baseColor, surfaceColor: theme.colorScheme.surface)
+        ? getDarkTextColor(baseColor, surfaceColor: colorScheme.surface)
         : getContrastColor(baseColor);
+    final border = isDark
+        ? Border.all(
+            color: getDarkBorderColor(
+              baseColor,
+              surfaceColor: colorScheme.surface,
+              fallbackBorderColor: colorScheme.outlineVariant,
+            ),
+            width: 1.0,
+          )
+        : (calculateContrastRatio(baseColor, colorScheme.surface) < 1.2
+              ? Border.all(color: colorScheme.outlineVariant, width: 1.0)
+              : null);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: isDark
-            ? Border.all(color: baseColor.withValues(alpha: 0.45), width: 1.0)
-            : null,
+        border: border,
       ),
       child: Text(
         name,

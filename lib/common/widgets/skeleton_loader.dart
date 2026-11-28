@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
 
 /// 骨架屏类型
-enum SkeletonType {
-  overview,
-  list,
-  card,
-}
+enum SkeletonType { overview, list, card }
 
 class SkeletonLoader extends StatefulWidget {
   /// 骨架屏类型
   final SkeletonType type;
-  
+
   /// 列表类型时显示的项目数量
   final int itemCount;
 
-  const SkeletonLoader({
-    super.key,
-    required this.type,
-    this.itemCount = 5,
-  });
+  const SkeletonLoader({super.key, required this.type, this.itemCount = 5});
 
   @override
   State<SkeletonLoader> createState() => _SkeletonLoaderState();
@@ -36,9 +28,10 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
-    _animation = Tween<double>(begin: 0.3, end: 0.6).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 0.6,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -199,16 +192,15 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
     required double height,
     double borderRadius = 4,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.grey.shade800.withValues(alpha: _animation.value)
-            : Colors.grey.shade300.withValues(alpha: _animation.value),
+        color: colorScheme.surfaceContainerHighest.withValues(
+          alpha: (_animation.value + 0.25).clamp(0.45, 0.9),
+        ),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );

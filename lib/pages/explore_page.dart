@@ -60,28 +60,13 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('探索'),
-        backgroundColor: Colors.transparent,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: theme.colorScheme.onSurface,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         systemOverlayStyle: isDark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      theme.colorScheme.surface,
-                      theme.colorScheme.surfaceContainer,
-                    ]
-                  : [
-                      theme.colorScheme.surface,
-                      theme.colorScheme.surfaceContainerLow,
-                    ],
-            ),
-          ),
-        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -102,15 +87,8 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
             child: BackdropLayer(
               backdrop: _backdrop,
               motionPixelRatio: MediaQuery.devicePixelRatioOf(context) * 0.5,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [const Color(0xFF0D1117), const Color(0xFF010409)]
-                        : [const Color(0xFFF6F8FA), const Color(0xFFFFFFFF)],
-                    stops: const [0.0, 1.0],
-                  ),
-                ),
+              child: ColoredBox(
+                color: theme.scaffoldBackgroundColor,
                 child: RefreshIndicator(
                   edgeOffset: 60,
                   onRefresh: () => ref
@@ -139,8 +117,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                                 Text(
                                   '正在探索...',
                                   style: TextStyle(
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
+                                    color: theme.colorScheme.onSurfaceVariant,
                                     fontSize: 14,
                                   ),
                                 ),
@@ -215,12 +192,10 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
               colors:
                   (isDark ? LiquidGlassColors.dark : LiquidGlassColors.light)
                       .copyWith(
-                        accent: isDark
-                            ? const Color(0xFF1F6FEB)
-                            : const Color(0xFF0969DA),
-                        container: isDark
-                            ? const Color(0xFF161B22).withValues(alpha: 0.6)
-                            : const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+                        accent: theme.colorScheme.secondary,
+                        container: theme.colorScheme.surface.withValues(
+                          alpha: isDark ? 0.65 : 0.75,
+                        ),
                       ),
               child: LiquidGlassNavBar(
                 backdrop: _backdrop,

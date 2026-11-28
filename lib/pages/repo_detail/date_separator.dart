@@ -5,10 +5,7 @@ class DateSeparator extends StatelessWidget {
   /// 分隔日期
   final DateTime date;
 
-  const DateSeparator({
-    super.key,
-    required this.date,
-  });
+  const DateSeparator({super.key, required this.date});
 
   /// 获取格式化的日期字符串
   String get formattedDate {
@@ -36,29 +33,17 @@ class DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final lineColor = isDark
-        ? theme.colorScheme.outlineVariant
-        : Colors.grey.shade300;
-    final badgeBgColor = isDark
-        ? theme.colorScheme.surfaceContainerHighest
-        : Colors.grey.shade100;
-    final textColor = isDark
-        ? theme.colorScheme.onSurfaceVariant
-        : Colors.grey.shade600;
+    final colorScheme = Theme.of(context).colorScheme;
+    final lineColor = colorScheme.outlineVariant;
+    final badgeBgColor = colorScheme.surfaceContainerHighest;
+    final textColor = colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           // 左侧分隔线
-          Expanded(
-            child: Container(
-              height: 1,
-              color: lineColor,
-            ),
-          ),
+          Expanded(child: Container(height: 1, color: lineColor)),
           // 日期标签
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -67,10 +52,7 @@ class DateSeparator extends StatelessWidget {
               decoration: BoxDecoration(
                 color: badgeBgColor,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: lineColor,
-                  width: 1,
-                ),
+                border: Border.all(color: lineColor, width: 1),
               ),
               child: Text(
                 relativeDate,
@@ -83,12 +65,7 @@ class DateSeparator extends StatelessWidget {
             ),
           ),
           // 右侧分隔线
-          Expanded(
-            child: Container(
-              height: 1,
-              color: lineColor,
-            ),
-          ),
+          Expanded(child: Container(height: 1, color: lineColor)),
         ],
       ),
     );

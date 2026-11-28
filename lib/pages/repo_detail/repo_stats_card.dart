@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghclient/common/utils/number_formatter.dart';
 import 'package:ghclient/models/repo.dart';
 import 'package:ghclient/pages/repo_detail/repo_languages_section.dart';
+import 'package:ghclient/theme/theme.dart';
 import 'package:flutter_octicons/flutter_octicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,17 +26,17 @@ class RepoStatsCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final colorScheme = theme.colorScheme;
 
-    // 渐变背景颜色
-    final gradientColors = isDark
-        ? [
-            colorScheme.surface,
-            Color.lerp(
-              colorScheme.surface,
-              colorScheme.surfaceContainerHighest,
-              0.55,
-            )!,
-          ]
-        : [Colors.blue.shade50, Colors.indigo.shade50];
+    // 浅色保留清透微蓝渐变，深色保持克制的石板灰阶过渡
+    final gradientColors = [
+      colorScheme.surface,
+      Color.lerp(
+        colorScheme.surface,
+        isDark
+            ? colorScheme.surfaceContainerHighest
+            : colorScheme.primaryContainer,
+        isDark ? 0.55 : 0.38,
+      )!,
+    ];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -45,19 +46,17 @@ class RepoStatsCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: gradientColors,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: isDark
-            ? Border.all(color: colorScheme.outlineVariant, width: 1.0)
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.25)
-                : Colors.blueGrey.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1.0),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -72,7 +71,7 @@ class RepoStatsCard extends StatelessWidget {
                   repo.description!,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     height: 1.5,
-                    color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -102,20 +101,16 @@ class RepoStatsCard extends StatelessWidget {
   Widget _buildStatsRow(BuildContext context, bool isDark) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final semanticColors = theme.semanticColors;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isDark
-            ? theme.scaffoldBackgroundColor.withValues(alpha: 0.55)
-            : Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
-        border: isDark
-            ? Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.8),
-                width: 1.0,
-              )
-            : null,
+            ? colorScheme.surfaceContainerLowest.withValues(alpha: 0.6)
+            : colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1.0),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -125,15 +120,15 @@ class RepoStatsCard extends StatelessWidget {
             icon: OctIcons.star_fill_16,
             value: NumberFormatter.formatNumber(repo.starCount),
             label: '星标',
-            iconColor: Colors.amber.shade600,
+            iconColor: semanticColors.star,
           ),
-          _buildDivider(context, isDark),
+          _buildDivider(context),
           _buildStatColumn(
             context,
             icon: OctIcons.repo_forked_16,
             value: NumberFormatter.formatNumber(repo.forkCount),
             label: '分支',
-            iconColor: isDark ? Colors.teal.shade300 : Colors.teal.shade600,
+            iconColor: semanticColors.fork,
           ),
         ],
       ),
@@ -149,7 +144,7 @@ class RepoStatsCard extends StatelessWidget {
     Color? iconColor,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -160,14 +155,14 @@ class RepoStatsCard extends StatelessWidget {
           value,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.grey.shade900,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+            color: colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -175,13 +170,11 @@ class RepoStatsCard extends StatelessWidget {
   }
 
   /// 构建分隔线
-  Widget _buildDivider(BuildContext context, bool isDark) {
+  Widget _buildDivider(BuildContext context) {
     return Container(
       height: 40,
       width: 1,
-      color: isDark
-          ? Theme.of(context).colorScheme.outlineVariant
-          : Colors.grey.shade300,
+      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 
@@ -202,20 +195,21 @@ class RepoStatsCard extends StatelessWidget {
         },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          side: BorderSide(
-            color: isDark ? colorScheme.outlineVariant : Colors.grey.shade400,
+          backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+            alpha: isDark ? 0.5 : 0.45,
           ),
+          side: BorderSide(color: colorScheme.outlineVariant),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        icon: Icon(
-          OctIcons.mark_github_16,
-          color: isDark ? Colors.white : Colors.grey.shade800,
-        ),
+        icon: Icon(OctIcons.mark_github_16, color: colorScheme.onSurface),
         label: Text(
           '在 GitHub 上查看',
-          style: TextStyle(color: isDark ? Colors.white : Colors.grey.shade800),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

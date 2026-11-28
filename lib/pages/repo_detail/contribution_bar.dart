@@ -55,14 +55,10 @@ class ContributionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
-    final barColor = color ?? theme.colorScheme.primary;
-    final bgColor =
-        backgroundColor ??
-        (isDark
-            ? theme.colorScheme.surfaceContainerHighest
-            : Colors.grey.shade200);
+    final barColor = color ?? colorScheme.primary;
+    final bgColor = backgroundColor ?? colorScheme.surfaceContainerHighest;
 
     return Row(
       children: [
@@ -106,7 +102,7 @@ class ContributionBar extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.right,
             ),

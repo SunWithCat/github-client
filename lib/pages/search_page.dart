@@ -203,12 +203,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return SafeScaffold(
       appBar: AppBar(
         title: const Text('搜索仓库'),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: colorScheme.onSurface,
       ),
       body: Column(
         children: [
@@ -219,7 +222,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               hintText: '输入关键词搜索...',
               leading: Icon(
                 OctIcons.search_16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurfaceVariant,
               ),
               trailing: [
                 if (_textEditingController.text.isNotEmpty)
@@ -237,23 +240,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     icon: const Icon(Icons.clear),
                   ),
               ],
-              elevation: const WidgetStatePropertyAll(0),
-              backgroundColor: WidgetStatePropertyAll(
-                Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              ),
-              shape: WidgetStatePropertyAll(
-                RoundedSuperellipseBorder(
-                  borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  side: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.8),
-                    width: 1.0,
-                  ),
-                ),
-              ),
               onSubmitted: _performSearch,
             ),
           ),
